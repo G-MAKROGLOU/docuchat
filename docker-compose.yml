@@ -40,7 +40,7 @@ services:
       # One file, so the image keeps its own bootstrap script in this folder.
       - ./backend/db/init/01-extensions.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
     ports:
-      - "127.0.0.1:${DB_PORT}:5432"
+      - "127.0.0.1:${DB_PORT:-}:5432"
     healthcheck:
       # TCP check, so the check fails while the init scripts run on the socket-only server.
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
@@ -62,7 +62,7 @@ services:
     volumes:
       - storage_data:/data
     ports:
-      - "127.0.0.1:${STORAGE_PORT}:8333"
+      - "127.0.0.1:${STORAGE_PORT:-}:8333"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8333/healthz"]
       interval: 5s
@@ -87,7 +87,7 @@ services:
       - ./backend:/app
       - /app/.venv
     ports:
-      - "${BACKEND_PORT}:8000"
+      - "${BACKEND_PORT:-}:8000"
     depends_on:
       preflight:
         condition: service_completed_successfully
@@ -115,7 +115,7 @@ services:
       - /app/node_modules
       - /app/.next
     ports:
-      - "${FRONTEND_PORT}:3000"
+      - "${FRONTEND_PORT:-}:3000"
     depends_on:
       preflight:
         condition: service_completed_successfully
