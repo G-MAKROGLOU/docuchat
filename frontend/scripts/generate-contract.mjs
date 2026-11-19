@@ -48,7 +48,7 @@ const schema = normalize({
   title: "Contract",
   type: "object",
   additionalProperties: false,
-  $defs: { ...(openapi.components?.schemas ?? {}), ...$defs, StreamEvent: streamEvent },
+  $defs: { ...openapi.components?.schemas, ...$defs, StreamEvent: streamEvent },
 });
 const types = await compile(schema, "Contract", {
   bannerComment: BANNER,
