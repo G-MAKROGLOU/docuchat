@@ -1,5 +1,6 @@
 """Database connectivity check."""
 
+import asyncio
 import logging
 from dataclasses import dataclass
 
@@ -21,12 +22,14 @@ class PostgresProbe:
 
     async def check(self) -> DatabaseStatus:
         try:
-            async with await psycopg.AsyncConnection.connect(
-                self._database_url, connect_timeout=self._timeout_seconds
-            ) as conn:
-                cursor = await conn.execute("SELECT extname FROM pg_extension ORDER BY extname")
-                rows = await cursor.fetchall()
-        except psycopg.Error as exc:
+            # One limit for connect and query, so a stalled server cannot hang /health.
+            async with asyncio.timeout(self._timeout_seconds):
+                async with await psycopg.AsyncConnection.connect(
+                    self._database_url, connect_timeout=self._timeout_seconds
+                ) as conn:
+                    cursor = await conn.execute("SELECT extname FROM pg_extension ORDER BY extname")
+                    rows = await cursor.fetchall()
+        except (psycopg.Error, TimeoutError) as exc:
             logger.warning("database check failed", extra={"error": type(exc).__name__})
             return DatabaseStatus(connected=False, extensions=[])
         return DatabaseStatus(connected=True, extensions=[str(row[0]) for row in rows])
