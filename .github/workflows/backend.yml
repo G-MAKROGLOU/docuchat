@@ -28,7 +28,19 @@ jobs:
         options: >-
           --health-cmd "curl -fsS http://127.0.0.1:8333/healthz"
           --health-interval 5s --health-timeout 5s --health-retries 20
+      # ParadeDB, so the repository and search tests run against pg_search and pgvector.
+      db:
+        image: paradedb/paradedb:0.26.8-pg18
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U ci -d ci"
+          --health-interval 5s --health-timeout 5s --health-retries 20
     env:
+      TEST_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       S3_TEST_ENDPOINT_URL: http://localhost:8333
       S3_TEST_ACCESS_KEY: ci-access
       S3_TEST_SECRET_KEY: ci-secret
