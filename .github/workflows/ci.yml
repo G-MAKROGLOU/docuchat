@@ -2,13 +2,14 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  backend:
+  check:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1
@@ -29,3 +30,33 @@ jobs:
         run: uv run --frozen pytest
       - name: Bandit
         run: uv run --frozen bandit -c pyproject.toml -r app
+      - name: Contract is up to date
+        run: uv run --frozen python -m app.api.contract --check
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Build and push the prod image to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build --target prod -t "$image:$GITHUB_SHA" -t "$image:latest" .
+          docker push --all-tags "$image"
+
+  # PLACEHOLDER: deploy. Target: pull ghcr.io/<owner>/docuchat-backend:<sha> into the
+  # dev environment and roll the backend service. No deployment exists yet.
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: publish
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Placeholder
+        run: echo "No deployment target configured."
