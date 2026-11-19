@@ -18,6 +18,24 @@ export interface DatabaseHealth {
 }
 /**
  * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "HTTPValidationError".
+ */
+export interface HTTPValidationError {
+  detail?: ValidationError[];
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "ValidationError".
+ */
+export interface ValidationError {
+  loc: (string | number)[];
+  msg: string;
+  type: string;
+  input?: unknown;
+  ctx?: {};
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
  * via the `definition` "HealthResponse".
  */
 export interface HealthResponse {
