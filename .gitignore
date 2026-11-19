@@ -8,3 +8,5 @@ corpus/files/
 Thumbs.db
 .vscode/
 .idea/
+
+.claude/worktrees/
