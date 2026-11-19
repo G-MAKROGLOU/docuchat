@@ -12,8 +12,6 @@ __pycache__/
 .pytest_cache/
 .coverage
 
-# Corpus downloads
-corpus/files/
 
 # OS and editors
 .DS_Store
