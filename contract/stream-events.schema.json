@@ -14,7 +14,10 @@
           "type": "string"
         }
       },
-      "required": ["type", "message"],
+      "required": [
+        "type",
+        "message"
+      ],
       "title": "ErrorEvent",
       "type": "object"
     },
@@ -38,7 +41,11 @@
           "type": "array"
         }
       },
-      "required": ["type", "answer", "citations"],
+      "required": [
+        "type",
+        "answer",
+        "citations"
+      ],
       "title": "FinalEvent",
       "type": "object"
     },
@@ -51,12 +58,19 @@
           "type": "string"
         },
         "reason": {
-          "enum": ["no_relevant_context", "no_valid_citation", "out_of_scope"],
+          "enum": [
+            "no_relevant_context",
+            "no_valid_citation",
+            "out_of_scope"
+          ],
           "title": "Reason",
           "type": "string"
         }
       },
-      "required": ["type", "reason"],
+      "required": [
+        "type",
+        "reason"
+      ],
       "title": "RefusalEvent",
       "type": "object"
     },
@@ -87,7 +101,14 @@
           "type": "string"
         }
       },
-      "required": ["id", "document", "drug", "section", "page", "text"],
+      "required": [
+        "id",
+        "document",
+        "drug",
+        "section",
+        "page",
+        "text"
+      ],
       "title": "Source",
       "type": "object"
     },
@@ -107,7 +128,10 @@
           "type": "array"
         }
       },
-      "required": ["type", "items"],
+      "required": [
+        "type",
+        "items"
+      ],
       "title": "SourcesEvent",
       "type": "object"
     },
@@ -120,7 +144,12 @@
           "type": "string"
         },
         "stage": {
-          "enum": ["rewrite", "retrieve", "grade", "generate"],
+          "enum": [
+            "rewrite",
+            "retrieve",
+            "grade",
+            "generate"
+          ],
           "title": "Stage",
           "type": "string"
         },
@@ -129,7 +158,11 @@
           "type": "string"
         }
       },
-      "required": ["type", "stage", "message"],
+      "required": [
+        "type",
+        "stage",
+        "message"
+      ],
       "title": "StatusEvent",
       "type": "object"
     },
@@ -146,7 +179,10 @@
           "type": "string"
         }
       },
-      "required": ["type", "text"],
+      "required": [
+        "type",
+        "text"
+      ],
       "title": "TokenEvent",
       "type": "object"
     }
