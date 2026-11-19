@@ -13,16 +13,19 @@ _RESERVED = set(logging.makeLogRecord({}).__dict__) | {"message", "asctime", "co
 
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
+        # Extras first, so they cannot overwrite the core fields below.
         payload: dict[str, object] = {
-            "timestamp": datetime.fromtimestamp(record.created, UTC).isoformat(),
-            "level": record.levelname,
-            "logger": record.name,
-            "message": record.getMessage(),
+            k: v for k, v in record.__dict__.items() if k not in _RESERVED
         }
+        payload.update(
+            timestamp=datetime.fromtimestamp(record.created, UTC).isoformat(),
+            level=record.levelname,
+            logger=record.name,
+            message=record.getMessage(),
+        )
         request_id = request_id_var.get()
         if request_id is not None:
             payload["request_id"] = request_id
-        payload.update({k: v for k, v in record.__dict__.items() if k not in _RESERVED})
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
         return json.dumps(payload, default=str)
