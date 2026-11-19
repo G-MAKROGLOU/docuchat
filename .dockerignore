@@ -1,14 +1,11 @@
 .git
 .github
-.claude
 .venv
 **/__pycache__
 .mypy_cache
 .ruff_cache
 .pytest_cache
 .env
-corpus
 db
 *.md
-docker-compose.yml
-compose.prod.yml
+compose.dev.yml
