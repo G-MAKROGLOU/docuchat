@@ -1,7 +1,4 @@
-"""API contract: the stream event JSON Schema route and the export command.
-
-Usage: python -m app.api.contract [--check]
-"""
+"""Stream event schema route and contract export. Usage: python -m app.api.contract [--check]"""
 
 import argparse
 import json
