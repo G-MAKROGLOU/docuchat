@@ -27,7 +27,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT:?set BACKEND_PORT in .env}:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -46,7 +46,7 @@ services:
     environment:
       BACKEND_URL: http://backend:8000
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:?set FRONTEND_PORT in .env}:3000"
     depends_on:
       backend:
         condition: service_healthy

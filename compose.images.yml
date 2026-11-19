@@ -1,6 +1,5 @@
-# Full stack from the images that CI publishes to GHCR. No local build, no submodules needed.
-# The images are private: run `docker login ghcr.io` first (a token with read:packages).
-# Start: docker compose -f compose.images.yml up -d
+# Full stack from the private GHCR images that CI publishes. No build, no submodules.
+# First: docker login ghcr.io (read:packages). Start: docker compose -f compose.images.yml up -d
 services:
   db:
     image: paradedb/paradedb:0.26.8-pg18
@@ -23,13 +22,13 @@ services:
       start_period: 10s
 
   backend:
-    image: ghcr.io/g-makroglou/docuchat-backend:${BACKEND_IMAGE_TAG:-latest}
+    image: ghcr.io/g-makroglou/docuchat-backend:${BACKEND_IMAGE_TAG:?set BACKEND_IMAGE_TAG in .env}
     restart: unless-stopped
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT:?set BACKEND_PORT in .env}:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -41,12 +40,12 @@ services:
       start_period: 10s
 
   frontend:
-    image: ghcr.io/g-makroglou/docuchat-frontend:${FRONTEND_IMAGE_TAG:-latest}
+    image: ghcr.io/g-makroglou/docuchat-frontend:${FRONTEND_IMAGE_TAG:?set FRONTEND_IMAGE_TAG in .env}
     restart: unless-stopped
     environment:
       BACKEND_URL: http://backend:8000
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:?set FRONTEND_PORT in .env}:3000"
     depends_on:
       backend:
         condition: service_healthy

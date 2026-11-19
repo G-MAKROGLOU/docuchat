@@ -34,7 +34,7 @@ services:
       - db_data:/var/lib/postgresql
       - ./backend/db/init:/docker-entrypoint-initdb.d:ro
     ports:
-      - "127.0.0.1:${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${DB_PORT}:5432"
     healthcheck:
       # TCP check, so the check fails while the init scripts run on the socket-only server.
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
@@ -59,7 +59,7 @@ services:
       - ./backend:/app
       - /app/.venv
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT}:8000"
     depends_on:
       preflight:
         condition: service_completed_successfully
@@ -85,7 +85,7 @@ services:
       - /app/node_modules
       - /app/.next
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT}:3000"
     depends_on:
       preflight:
         condition: service_completed_successfully
