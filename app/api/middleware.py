@@ -1,6 +1,7 @@
 """Request ID middleware. Pure ASGI, so streamed responses are not buffered."""
 
 import logging
+import re
 import time
 import uuid
 
@@ -10,6 +11,8 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from app.infrastructure.logging import request_id_var
 
 REQUEST_ID_HEADER = "x-request-id"
+# A client-supplied ID is kept only when it matches; otherwise a new one is generated.
+_VALID_REQUEST_ID = re.compile(r"[A-Za-z0-9-]{1,64}")
 logger = logging.getLogger("app.request")
 
 
@@ -22,8 +25,8 @@ class RequestIdMiddleware:
             await self.app(scope, receive, send)
             return
 
-        incoming = dict(scope["headers"]).get(REQUEST_ID_HEADER.encode())
-        request_id = incoming.decode("latin-1")[:128] if incoming else uuid.uuid4().hex
+        incoming = dict(scope["headers"]).get(REQUEST_ID_HEADER.encode(), b"").decode("latin-1")
+        request_id = incoming if _VALID_REQUEST_ID.fullmatch(incoming) else uuid.uuid4().hex
         token = request_id_var.set(request_id)
         started = time.perf_counter()
         status_code = 500
@@ -32,7 +35,7 @@ class RequestIdMiddleware:
             nonlocal status_code
             if message["type"] == "http.response.start":
                 status_code = message["status"]
-                MutableHeaders(scope=message).append(REQUEST_ID_HEADER, request_id)
+                MutableHeaders(scope=message)[REQUEST_ID_HEADER] = request_id
             await send(message)
 
         try:
