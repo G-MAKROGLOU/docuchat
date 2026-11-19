@@ -24,17 +24,7 @@ docker info >/dev/null 2>&1 ||
   fail "Docker is installed but not running." "Start Docker Desktop or the Docker service, then run ./setup.sh again."
 echo "OK  Docker and Docker Compose are running."
 
-# 2. Submodules
-if [ ! -f backend/pyproject.toml ] || [ ! -f frontend/package.json ]; then
-  echo "..  Submodule folders are empty. Running: git submodule update --init --recursive"
-  if ! git submodule update --init --recursive; then
-    fail "git could not fetch the backend and frontend repositories. Probable cause: your GitHub account has no read access to the private repositories docuchat-backend and docuchat-frontend, or git has no credentials for github.com." \
-      "Ask the owner for read access, sign in to GitHub in git, then run: git submodule update --init --recursive"
-  fi
-fi
-echo "OK  backend/ and frontend/ are checked out."
-
-# 3. .env
+# 2. .env
 if [ ! -f .env ]; then
   cp .env.example .env
   echo ""
@@ -47,17 +37,18 @@ fi
 missing=""
 for name in OPENROUTER_API_KEY OPENROUTER_BASE_URL LLM_REWRITE_MODEL LLM_GRADE_MODEL LLM_GENERATE_MODEL \
   EMBEDDING_MODEL EMBEDDING_DIMENSIONS POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB \
-  FRONTEND_PORT BACKEND_PORT DB_PORT; do
+  STORAGE_BACKEND S3_BUCKET S3_REGION S3_ACCESS_KEY S3_SECRET_KEY \
+  FRONTEND_PORT BACKEND_PORT DB_PORT STORAGE_PORT; do
   [ -n "$(env_value "$name")" ] || missing="$missing $name"
 done
 [ -z "$missing" ] || fail "Required values in .env are empty:$missing" "Edit .env, then run ./setup.sh again."
 echo "OK  .env has all required values."
 
-# 4. Ports (skipped while this stack runs, because its own containers hold the ports)
+# 3. Ports (skipped while this stack runs, because its own containers hold the ports)
 if [ -n "$(docker compose ps -q 2>/dev/null)" ]; then
   echo "OK  The stack is already running. Port check skipped."
 else
-  for var in FRONTEND_PORT BACKEND_PORT DB_PORT; do
+  for var in FRONTEND_PORT BACKEND_PORT DB_PORT STORAGE_PORT; do
     port="$(env_value "$var")"
     if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
       fail "Port $port is in use." "Stop the program that uses port $port, or set $var to a free port in .env."
@@ -66,7 +57,7 @@ else
   echo "OK  Ports are free."
 fi
 
-# 5. Next step
+# 4. Next step
 frontend_port="$(env_value FRONTEND_PORT)"
 backend_port="$(env_value BACKEND_PORT)"
 echo ""

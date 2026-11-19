@@ -33,19 +33,7 @@ if (-not (Test-Native { docker info })) {
 }
 Write-Host 'OK  Docker and Docker Compose are running.'
 
-# 2. Submodules
-if (-not (Test-Path backend/pyproject.toml) -or -not (Test-Path frontend/package.json)) {
-    Write-Host '..  Submodule folders are empty. Running: git submodule update --init --recursive'
-    git submodule update --init --recursive
-    if ($LASTEXITCODE -ne 0) {
-        Stop-Setup ('git could not fetch the backend and frontend repositories. Probable cause: your GitHub account ' +
-            'has no read access to the private repositories docuchat-backend and docuchat-frontend, or git has no credentials for github.com.') `
-            'Ask the owner for read access, sign in to GitHub in git, then run: git submodule update --init --recursive'
-    }
-}
-Write-Host 'OK  backend/ and frontend/ are checked out.'
-
-# 3. .env
+# 2. .env
 if (-not (Test-Path .env)) {
     Copy-Item .env.example .env
     Write-Host ''
@@ -57,20 +45,21 @@ if (-not (Test-Path .env)) {
 }
 $required = 'OPENROUTER_API_KEY', 'OPENROUTER_BASE_URL', 'LLM_REWRITE_MODEL', 'LLM_GRADE_MODEL', 'LLM_GENERATE_MODEL',
     'EMBEDDING_MODEL', 'EMBEDDING_DIMENSIONS', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB',
-    'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT'
+    'STORAGE_BACKEND', 'S3_BUCKET', 'S3_REGION', 'S3_ACCESS_KEY', 'S3_SECRET_KEY',
+    'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT', 'STORAGE_PORT'
 $missing = @($required | Where-Object { -not (Get-EnvValue $_) })
 if ($missing.Count -gt 0) {
     Stop-Setup "Required values in .env are empty: $($missing -join ' ')" 'Edit .env, then run .\setup.ps1 again.'
 }
 Write-Host 'OK  .env has all required values.'
 
-# 4. Ports (skipped while this stack runs, because its own containers hold the ports)
+# 3. Ports (skipped while this stack runs, because its own containers hold the ports)
 # Continue: in PowerShell 5.1, redirected stderr from a native command is an error record.
 $running = & { $ErrorActionPreference = 'Continue'; docker compose ps -q 2>$null }
 if ($running) {
     Write-Host 'OK  The stack is already running. Port check skipped.'
 } else {
-    foreach ($var in 'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT') {
+    foreach ($var in 'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT', 'STORAGE_PORT') {
         $port = [int](Get-EnvValue $var)
         $client = New-Object System.Net.Sockets.TcpClient
         try {
@@ -83,7 +72,7 @@ if ($running) {
     Write-Host 'OK  Ports are free.'
 }
 
-# 5. Next step
+# 4. Next step
 $frontendPort = Get-EnvValue FRONTEND_PORT
 $backendPort = Get-EnvValue BACKEND_PORT
 Write-Host ''
