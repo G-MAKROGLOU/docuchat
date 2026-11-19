@@ -2,7 +2,7 @@
 
 Run `./setup.sh` (Windows: `.\setup.ps1`) once before the first start in either mode.
 
-## 1. Build from the submodules (development)
+## 1. Build from backend/ and frontend/ (development)
 
 ```sh
 docker compose up
@@ -17,7 +17,7 @@ docker login ghcr.io          # token with read:packages; the images are private
 docker compose -f compose.images.yml up -d
 ```
 
-Image tags come from `BACKEND_IMAGE_TAG` and `FRONTEND_IMAGE_TAG` in `.env` (a commit hash or `latest`). This mode needs no submodules.
+Image tags come from `BACKEND_IMAGE_TAG` and `FRONTEND_IMAGE_TAG` in `.env` (a commit hash or `latest`). This mode builds nothing.
 
 ## URLs
 
