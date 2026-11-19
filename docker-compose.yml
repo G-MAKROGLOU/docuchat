@@ -1,0 +1,101 @@
+# Full stack for development, built from the submodules. Start: docker compose up
+# Run ./setup.sh (Windows: .\setup.ps1) once before the first start.
+
+services:
+  # Checks the submodules and the required .env values. The other services wait for it.
+  # Compose stops before any build when a required value below is empty.
+  preflight:
+    image: busybox:1.37.0
+    command: ["sh", "/workspace/preflight/check.sh"]
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?OPENROUTER_API_KEY has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:?OPENROUTER_BASE_URL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      LLM_REWRITE_MODEL: ${LLM_REWRITE_MODEL:?LLM_REWRITE_MODEL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      LLM_GRADE_MODEL: ${LLM_GRADE_MODEL:?LLM_GRADE_MODEL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      LLM_GENERATE_MODEL: ${LLM_GENERATE_MODEL:?LLM_GENERATE_MODEL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:?EMBEDDING_MODEL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:?EMBEDDING_DIMENSIONS has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+    volumes:
+      - ./preflight:/workspace/preflight:ro
+      - ./backend:/workspace/backend:ro
+      - ./frontend:/workspace/frontend:ro
+
+  db:
+    image: paradedb/paradedb:0.26.8-pg18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql
+      - ./backend/db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    healthcheck:
+      # TCP check, so the check fails while the init scripts run on the socket-only server.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
+
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    environment:
+      BACKEND_URL: http://backend:8000
+      NEXT_WATCH_POLL_INTERVAL_MS: ${NEXT_WATCH_POLL_INTERVAL_MS:-}
+      WATCHPACK_POLLING: ${WATCHPACK_POLLING:-}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  db_data:
