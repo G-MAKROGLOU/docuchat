@@ -2,13 +2,18 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { GET } from "./route";
+import { GET, HEAD } from "./route";
 
 let server: Server;
 let releaseSecondEvent: () => void = () => {};
 
 beforeAll(async () => {
   server = createServer((req, res) => {
+    if (req.url === "/api/v1/moved") {
+      res.writeHead(307, { location: `${process.env.BACKEND_URL}/api/v1/health?x=1` });
+      res.end();
+      return;
+    }
     if (req.url === "/api/v1/stream") {
       res.writeHead(200, { "content-type": "text/event-stream" });
       res.write('data: {"type":"token","text":"one"}\n\n');
@@ -58,6 +63,20 @@ describe("API proxy route", () => {
 
     releaseSecondEvent();
     expect(await readRest(reader)).toContain('"text":"two"');
+  });
+
+  it("rewrites a redirect to the backend host into a relative URL", async () => {
+    const response = await call(["v1", "moved"]);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("/api/v1/health?x=1");
+  });
+
+  it("forwards HEAD requests", async () => {
+    const request = new Request("http://frontend.test/api/v1/health", { method: "HEAD" });
+    const response = await HEAD(request, { params: Promise.resolve({ path: ["v1", "health"] }) });
+
+    expect(response.status).toBe(200);
   });
 
   it("returns 502 when the backend is unreachable", async () => {

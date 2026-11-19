@@ -29,8 +29,9 @@ function copyHeaders(source: Headers): Headers {
 
 async function proxy(request: Request, context: Context): Promise<Response> {
   const { path } = await context.params;
+  const backendUrl = `${process.env.BACKEND_URL}`;
   const search = new URL(request.url).search;
-  const target = `${process.env.BACKEND_URL}/api/${path.map(encodeURIComponent).join("/")}${search}`;
+  const target = `${backendUrl}/api/${path.map(encodeURIComponent).join("/")}${search}`;
 
   // The timeout covers the wait for response headers only, so long streams are not cut.
   const controller = new AbortController();
@@ -56,6 +57,14 @@ async function proxy(request: Request, context: Context): Promise<Response> {
   }
 
   const headers = copyHeaders(upstream.headers);
+  // A redirect to the backend host becomes a relative URL, so the browser stays on the frontend.
+  const location = headers.get("location");
+  if (location) {
+    const backend = new URL(backendUrl);
+    const resolved = new URL(location, backend);
+    if (resolved.origin === backend.origin)
+      headers.set("location", resolved.pathname + resolved.search);
+  }
   if (headers.get("content-type")?.startsWith("text/event-stream")) {
     headers.set("cache-control", "no-cache, no-transform");
     headers.set("x-accel-buffering", "no");
@@ -63,4 +72,12 @@ async function proxy(request: Request, context: Context): Promise<Response> {
   return new Response(upstream.body, { status: upstream.status, headers });
 }
 
-export { proxy as DELETE, proxy as GET, proxy as PATCH, proxy as POST, proxy as PUT };
+export {
+  proxy as DELETE,
+  proxy as GET,
+  proxy as HEAD,
+  proxy as OPTIONS,
+  proxy as PATCH,
+  proxy as POST,
+  proxy as PUT,
+};
