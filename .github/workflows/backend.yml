@@ -1,16 +1,37 @@
-name: CI
+name: backend
 
 on:
   push:
     branches: [main]
+    paths: ["backend/**", ".github/workflows/backend.yml"]
   pull_request:
+    paths: ["backend/**", ".github/workflows/backend.yml"]
 
 permissions:
   contents: read
 
+defaults:
+  run:
+    working-directory: backend
+
 jobs:
   check:
     runs-on: ubuntu-24.04
+    services:
+      # S3 emulator, so the shared DocumentStore suite also runs against the S3 adapter.
+      storage:
+        image: chrislusf/seaweedfs:4.52
+        env:
+          AWS_ACCESS_KEY_ID: ci-access
+          AWS_SECRET_ACCESS_KEY: ci-secret
+        ports: ["8333:8333"]
+        options: >-
+          --health-cmd "curl -fsS http://127.0.0.1:8333/healthz"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      S3_TEST_ENDPOINT_URL: http://localhost:8333
+      S3_TEST_ACCESS_KEY: ci-access
+      S3_TEST_SECRET_KEY: ci-secret
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: astral-sh/setup-uv@v10.3.3
@@ -18,6 +39,7 @@ jobs:
           version: "0.13.9"
           python-version: "3.13.18"
           enable-cache: true
+          working-directory: backend
       - name: Install dependencies
         run: uv sync --locked
       - name: Ruff lint
@@ -27,14 +49,13 @@ jobs:
       - name: Mypy
         run: uv run --frozen mypy
       - name: Pytest
-        run: uv run --frozen pytest
+        run: uv run --frozen pytest -rs
       - name: Bandit
         run: uv run --frozen bandit -c pyproject.toml -r app
       - name: Contract is up to date
         run: uv run --frozen python -m app.api.contract --check
 
-  publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  image:
     needs: check
     runs-on: ubuntu-24.04
     permissions:
@@ -42,20 +63,23 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v7.0.1
-      - name: Build and push the prod image to GHCR
+      - name: Build the prod image
+        run: docker build --target prod -t "ghcr.io/${GITHUB_REPOSITORY,,}/backend:$GITHUB_SHA" .
+      - name: Push to GHCR (main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/backend"
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker build --target prod -t "$image:$GITHUB_SHA" -t "$image:latest" .
+          docker tag "$image:$GITHUB_SHA" "$image:latest"
           docker push --all-tags "$image"
 
-  # PLACEHOLDER: deploy. Target: pull ghcr.io/<owner>/docuchat-backend:<sha> into the
+  # PLACEHOLDER: deploy. Target: pull ghcr.io/<owner>/docuchat/backend:<sha> into the
   # dev environment and roll the backend service. No deployment exists yet.
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: publish
+    needs: image
     runs-on: ubuntu-24.04
     steps:
       - name: Placeholder

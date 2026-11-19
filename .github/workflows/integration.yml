@@ -1,4 +1,4 @@
-name: CI
+name: integration
 
 on:
   push:
@@ -9,32 +9,10 @@ permissions:
   contents: read
 
 jobs:
-  contract:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          submodules: recursive
-          # The submodules are private. Read-only token for docuchat-backend and docuchat-frontend.
-          token: ${{ secrets.SUBMODULES_TOKEN }}
-      - name: Frontend schema copy matches the pinned backend schema
-        run: sh scripts/check-contract.sh
-      - uses: actions/setup-node@v7.1.0
-        with:
-          node-version: "24.22.3"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - name: Frontend generated types match its schema copy
-        working-directory: frontend
-        run: npm ci && npm run contract:check
-
   smoke:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1
-        with:
-          submodules: recursive
-          token: ${{ secrets.SUBMODULES_TOKEN }}
       - name: Create .env with placeholder values
         run: |
           cp .env.example .env
@@ -43,8 +21,6 @@ jobs:
             -e 's#^LLM_REWRITE_MODEL=$#LLM_REWRITE_MODEL=ci/rewrite#' \
             -e 's#^LLM_GRADE_MODEL=$#LLM_GRADE_MODEL=ci/grade#' \
             -e 's#^LLM_GENERATE_MODEL=$#LLM_GENERATE_MODEL=ci/generate#' \
-            -e 's#^EMBEDDING_MODEL=$#EMBEDDING_MODEL=ci/embed#' \
-            -e 's/^EMBEDDING_DIMENSIONS=$/EMBEDDING_DIMENSIONS=1536/' \
             -e 's/^NEXT_WATCH_POLL_INTERVAL_MS=.*/NEXT_WATCH_POLL_INTERVAL_MS=/' \
             -e 's/^WATCHPACK_POLLING=.*/WATCHPACK_POLLING=/' \
             .env
@@ -54,8 +30,8 @@ jobs:
         run: curl -fsS http://localhost:8000/api/v1/health | tee /dev/stderr | grep -q '"status":"ok"'
       - name: GET /api/v1/health through the frontend proxy
         run: curl -fsS http://localhost:3000/api/v1/health | grep -q '"status":"ok"'
-      # PLACEHOLDER: question test. Send one question to the answer stream endpoint and
-      # assert that the stream ends with a `final` or a `refusal` event.
+      # PLACEHOLDER: question test. Send one question to POST /api/v1/chat and assert that
+      # the stream ends with a `final` or a `refusal` event.
       - name: Compose logs
         if: failure()
         run: docker compose logs --no-color
