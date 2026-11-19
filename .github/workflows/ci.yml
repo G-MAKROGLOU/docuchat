@@ -2,13 +2,14 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  frontend:
+  check:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1
@@ -26,5 +27,35 @@ jobs:
         run: npm run typecheck
       - name: Test
         run: npm test
+      - name: Contract types match the committed schema
+        run: npm run contract:check
       - name: Build
         run: npm run build
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Build and push the prod image to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build --target prod -t "$image:$GITHUB_SHA" -t "$image:latest" .
+          docker push --all-tags "$image"
+
+  # PLACEHOLDER: deploy. Target: pull ghcr.io/<owner>/docuchat-frontend:<sha> into the
+  # dev environment, set BACKEND_URL to the dev backend, and roll the frontend service.
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: publish
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Placeholder
+        run: echo "No deployment target configured."
