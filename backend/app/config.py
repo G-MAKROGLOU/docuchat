@@ -1,8 +1,9 @@
 """Application settings. Values come from the environment only."""
 
 from functools import lru_cache
+from typing import Literal, Self
 
-from pydantic import SecretStr, ValidationError
+from pydantic import SecretStr, ValidationError, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +29,27 @@ class Settings(BaseSettings):
     langfuse_public_key: SecretStr | None = None
     langfuse_secret_key: SecretStr | None = None
     langfuse_host: str | None = None
+
+    storage_backend: Literal["s3", "filesystem"]
+    # No endpoint URL means real AWS S3.
+    s3_endpoint_url: str | None = None
+    s3_bucket: str | None = None
+    s3_access_key: SecretStr | None = None
+    s3_secret_key: SecretStr | None = None
+    s3_region: str | None = None
+    storage_fs_root: str | None = None
+
+    @model_validator(mode="after")
+    def _storage_settings_complete(self) -> Self:
+        required = (
+            {"s3_bucket": self.s3_bucket, "s3_region": self.s3_region}
+            if self.storage_backend == "s3"
+            else {"storage_fs_root": self.storage_fs_root}
+        )
+        missing = [name.upper() for name, value in required.items() if not value]
+        if missing:
+            raise ValueError(f"STORAGE_BACKEND={self.storage_backend} needs {', '.join(missing)}")
+        return self
 
 
 def load_settings() -> Settings:
