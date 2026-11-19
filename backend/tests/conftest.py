@@ -16,3 +16,6 @@ TEST_ENV = {
 }
 for key, value in TEST_ENV.items():
     os.environ.setdefault(key, value)
+# Keys from a developer .env must not start a real Langfuse client in tests.
+for key in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST"):
+    os.environ.pop(key, None)
