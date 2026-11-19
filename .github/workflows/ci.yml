@@ -17,8 +17,16 @@ jobs:
           submodules: recursive
           # The submodules are private. Read-only token for docuchat-backend and docuchat-frontend.
           token: ${{ secrets.SUBMODULES_TOKEN }}
-      - name: Frontend types match the pinned backend schema
+      - name: Frontend schema copy matches the pinned backend schema
         run: sh scripts/check-contract.sh
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "24.22.3"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Frontend generated types match its schema copy
+        working-directory: frontend
+        run: npm ci && npm run contract:check
 
   smoke:
     runs-on: ubuntu-24.04
