@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: "0.13.9"
+          python-version: "3.13.18"
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Ruff lint
+        run: uv run --frozen ruff check .
+      - name: Ruff format
+        run: uv run --frozen ruff format --check .
+      - name: Mypy
+        run: uv run --frozen mypy
+      - name: Pytest
+        run: uv run --frozen pytest
+      - name: Bandit
+        run: uv run --frozen bandit -c pyproject.toml -r app
