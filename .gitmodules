@@ -1,0 +1,6 @@
+[submodule "backend"]
+	path = backend
+	url = ../docuchat-backend.git
+[submodule "frontend"]
+	path = frontend
+	url = ../docuchat-frontend.git
