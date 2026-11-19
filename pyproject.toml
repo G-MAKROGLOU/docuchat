@@ -1,0 +1,44 @@
+[project]
+name = "backend"
+version = "0.1.0"
+requires-python = "==3.13.*"
+dependencies = [
+    "fastapi==0.165.0",
+    "psycopg[binary]==3.3.9",
+    "pydantic-settings==2.16.3",
+    "uvicorn==0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "bandit==1.9.4",
+    "httpx==0.28.1",
+    "mypy==2.4.1",
+    "pytest==9.2.0",
+    "ruff==0.17.6",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "N", "S", "ASYNC", "RUF", "SIM", "PL"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004"]
+
+[tool.mypy]
+strict = true
+files = ["app", "tests", "evals"]
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
