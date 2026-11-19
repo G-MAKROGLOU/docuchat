@@ -83,4 +83,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Placeholder
+        # No checkout in this job, so the default working directory does not exist.
+        working-directory: .
         run: echo "No deployment target configured."
