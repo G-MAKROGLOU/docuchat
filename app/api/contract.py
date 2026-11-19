@@ -41,7 +41,7 @@ def contract_files(app: FastAPI) -> dict[Path, str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    from app.main import create_api  # noqa: PLC0415  # avoids an import cycle with app.main
+    from app.api.factory import create_api  # noqa: PLC0415  # factory imports this module
 
     parser = argparse.ArgumentParser(description="Write or check the files in contract/.")
     parser.add_argument("--check", action="store_true", help="fail if a file is out of date")
