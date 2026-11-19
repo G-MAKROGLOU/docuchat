@@ -8,7 +8,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
     volumes:
       - db_data:/var/lib/postgresql
-      - ./db/init:/docker-entrypoint-initdb.d:ro
+      # One file, so the image keeps its own bootstrap script in this folder.
+      - ./db/init/01-extensions.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
     ports:
       - "127.0.0.1:${DB_PORT:?set DB_PORT in .env}:5432"
     healthcheck:
