@@ -3,21 +3,22 @@
 
 services:
   # Checks the submodules and the required .env values. The other services wait for it.
-  # Compose stops before any build when a required value below is empty.
+  # Compose stops before any build when OPENROUTER_API_KEY is empty.
   preflight:
     image: busybox:1.37.0
     command: ["sh", "/workspace/preflight/check.sh"]
     environment:
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?OPENROUTER_API_KEY has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:?OPENROUTER_BASE_URL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      LLM_REWRITE_MODEL: ${LLM_REWRITE_MODEL:?LLM_REWRITE_MODEL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      LLM_GRADE_MODEL: ${LLM_GRADE_MODEL:?LLM_GRADE_MODEL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      LLM_GENERATE_MODEL: ${LLM_GENERATE_MODEL:?LLM_GENERATE_MODEL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      EMBEDDING_MODEL: ${EMBEDDING_MODEL:?EMBEDDING_MODEL has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:?EMBEDDING_DIMENSIONS has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
-      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB has no value. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      # One sentinel: without a prepared .env, Compose stops here with this single message.
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?is empty or .env is missing. Run ./setup.sh (Windows .\setup.ps1), then fill in .env}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-}
+      LLM_REWRITE_MODEL: ${LLM_REWRITE_MODEL:-}
+      LLM_GRADE_MODEL: ${LLM_GRADE_MODEL:-}
+      LLM_GENERATE_MODEL: ${LLM_GENERATE_MODEL:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-}
+      POSTGRES_USER: ${POSTGRES_USER:-}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-}
     volumes:
       - ./preflight:/workspace/preflight:ro
       - ./backend:/workspace/backend:ro
@@ -26,9 +27,9 @@ services:
   db:
     image: paradedb/paradedb:0.26.8-pg18
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-}
     volumes:
       - db_data:/var/lib/postgresql
       - ./backend/db/init:/docker-entrypoint-initdb.d:ro
@@ -53,7 +54,7 @@ services:
       - path: .env
         required: false
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-}:${POSTGRES_PASSWORD:-}@db:5432/${POSTGRES_DB:-}
     volumes:
       - ./backend:/app
       - /app/.venv
