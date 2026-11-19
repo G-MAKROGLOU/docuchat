@@ -17,5 +17,3 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Copied from pdfjs-dist by scripts/copy-pdf-worker.mjs
-public/pdf.worker.min.mjs

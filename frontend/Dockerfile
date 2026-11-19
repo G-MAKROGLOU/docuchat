@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/home/node/.npm,uid=1000 npm ci --no-audit --no-fu
 FROM deps AS dev
 COPY --chown=node:node . .
 # The .next volume takes its owner from this folder; without it Docker creates it as root.
-RUN mkdir -p .next public
+RUN mkdir -p .next
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
@@ -26,6 +26,5 @@ FROM base AS prod
 ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
-COPY --from=build /app/public ./public
 EXPOSE 3000
 CMD ["node", "server.js"]
