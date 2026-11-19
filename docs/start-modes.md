@@ -21,5 +21,17 @@ Image tags come from `BACKEND_IMAGE_TAG` and `FRONTEND_IMAGE_TAG` in `.env` (a c
 
 ## URLs
 
-- App: `http://localhost:${FRONTEND_PORT}` (default 3000)
-- API docs: `http://localhost:${BACKEND_PORT}/api/v1/docs` (default 8000)
+- App: `http://localhost:${FRONTEND_PORT}`
+- API docs: `http://localhost:${BACKEND_PORT}/api/v1/docs`
+
+## Reset without a prepared .env
+
+Compose stops every command while `OPENROUTER_API_KEY` is empty. To remove the stack and its volume anyway:
+
+```sh
+OPENROUTER_API_KEY=unused docker compose down -v
+```
+
+```powershell
+$env:OPENROUTER_API_KEY = 'unused'; docker compose down -v
+```
