@@ -1,5 +1,4 @@
-// Generates src/lib/contract/stream-events.ts from the backend stream event JSON Schema.
-// Source: first argument or CONTRACT_SOURCE, a URL or a file. Default: the committed copy.
+// Generates src/lib/contract/stream-events.ts from the backend stream schema (URL or file, arg or CONTRACT_SOURCE).
 // --check: generate from the committed copy and fail if the committed types differ.
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";

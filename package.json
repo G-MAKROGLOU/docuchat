@@ -15,7 +15,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "contract:generate": "node scripts/generate-contract.mjs",
+    "contract:generate": "node --env-file-if-exists=.env scripts/generate-contract.mjs",
     "contract:check": "node scripts/generate-contract.mjs --check"
   },
   "dependencies": {
