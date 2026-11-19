@@ -1,7 +1,5 @@
-from collections.abc import Callable
-from contextlib import AbstractAsyncContextManager
-
 from fastapi import FastAPI
+from starlette.types import Lifespan
 
 from app.api import contract
 from app.api.middleware import RequestIdMiddleware
@@ -10,9 +8,7 @@ from app.api.routers import health
 API_PREFIX = "/api/v1"
 
 
-def create_api(
-    lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]] | None = None,
-) -> FastAPI:
+def create_api(lifespan: Lifespan[FastAPI] | None = None) -> FastAPI:
     """Routes and OpenAPI metadata only. Needs no settings, so the contract export can use it."""
     app = FastAPI(
         title="backend",
