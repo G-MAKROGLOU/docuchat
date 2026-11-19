@@ -56,7 +56,8 @@ if (-not (Test-Path .env)) {
     Stop-Setup 'Values in .env are not filled in yet.' 'Edit .env, then run .\setup.ps1 again.'
 }
 $required = 'OPENROUTER_API_KEY', 'OPENROUTER_BASE_URL', 'LLM_REWRITE_MODEL', 'LLM_GRADE_MODEL', 'LLM_GENERATE_MODEL',
-    'EMBEDDING_MODEL', 'EMBEDDING_DIMENSIONS', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB'
+    'EMBEDDING_MODEL', 'EMBEDDING_DIMENSIONS', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB',
+    'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT'
 $missing = @($required | Where-Object { -not (Get-EnvValue $_) })
 if ($missing.Count -gt 0) {
     Stop-Setup "Required values in .env are empty: $($missing -join ' ')" 'Edit .env, then run .\setup.ps1 again.'
@@ -64,14 +65,13 @@ if ($missing.Count -gt 0) {
 Write-Host 'OK  .env has all required values.'
 
 # 4. Ports (skipped while this stack runs, because its own containers hold the ports)
-$running = docker compose ps -q 2>$null
+# Continue: in PowerShell 5.1, redirected stderr from a native command is an error record.
+$running = & { $ErrorActionPreference = 'Continue'; docker compose ps -q 2>$null }
 if ($running) {
     Write-Host 'OK  The stack is already running. Port check skipped.'
 } else {
-    $ports = [ordered]@{ FRONTEND_PORT = 3000; BACKEND_PORT = 8000; DB_PORT = 5432 }
-    foreach ($var in $ports.Keys) {
-        $value = Get-EnvValue $var
-        $port = if ($value) { [int]$value } else { $ports[$var] }
+    foreach ($var in 'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT') {
+        $port = [int](Get-EnvValue $var)
         $client = New-Object System.Net.Sockets.TcpClient
         try {
             $inUse = $client.ConnectAsync('127.0.0.1', $port).Wait(500)
@@ -84,8 +84,8 @@ if ($running) {
 }
 
 # 5. Next step
-$frontendPort = if (Get-EnvValue FRONTEND_PORT) { Get-EnvValue FRONTEND_PORT } else { 3000 }
-$backendPort = if (Get-EnvValue BACKEND_PORT) { Get-EnvValue BACKEND_PORT } else { 8000 }
+$frontendPort = Get-EnvValue FRONTEND_PORT
+$backendPort = Get-EnvValue BACKEND_PORT
 Write-Host ''
 Write-Host 'Ready. Run: docker compose up'
 Write-Host "  App:      http://localhost:$frontendPort"

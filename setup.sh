@@ -46,7 +46,8 @@ if [ ! -f .env ]; then
 fi
 missing=""
 for name in OPENROUTER_API_KEY OPENROUTER_BASE_URL LLM_REWRITE_MODEL LLM_GRADE_MODEL LLM_GENERATE_MODEL \
-  EMBEDDING_MODEL EMBEDDING_DIMENSIONS POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB; do
+  EMBEDDING_MODEL EMBEDDING_DIMENSIONS POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB \
+  FRONTEND_PORT BACKEND_PORT DB_PORT; do
   [ -n "$(env_value "$name")" ] || missing="$missing $name"
 done
 [ -z "$missing" ] || fail "Required values in .env are empty:$missing" "Edit .env, then run ./setup.sh again."
@@ -56,10 +57,8 @@ echo "OK  .env has all required values."
 if [ -n "$(docker compose ps -q 2>/dev/null)" ]; then
   echo "OK  The stack is already running. Port check skipped."
 else
-  for pair in FRONTEND_PORT:3000 BACKEND_PORT:8000 DB_PORT:5432; do
-    var="${pair%%:*}"
+  for var in FRONTEND_PORT BACKEND_PORT DB_PORT; do
     port="$(env_value "$var")"
-    port="${port:-${pair##*:}}"
     if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
       fail "Port $port is in use." "Stop the program that uses port $port, or set $var to a free port in .env."
     fi
@@ -72,5 +71,5 @@ frontend_port="$(env_value FRONTEND_PORT)"
 backend_port="$(env_value BACKEND_PORT)"
 echo ""
 echo "Ready. Run: docker compose up"
-echo "  App:      http://localhost:${frontend_port:-3000}"
-echo "  API docs: http://localhost:${backend_port:-8000}/api/v1/docs"
+echo "  App:      http://localhost:$frontend_port"
+echo "  API docs: http://localhost:$backend_port/api/v1/docs"
