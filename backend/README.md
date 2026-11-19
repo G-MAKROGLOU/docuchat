@@ -2,13 +2,13 @@
 
 FastAPI service for document question answering. API routes are under `/api/v1`.
 
-The full system (backend, frontend, database) runs from the umbrella repository: [docuchat](https://github.com/G-MAKROGLOU/docuchat).
+The full system (backend, frontend, database, storage) runs from the repository root: see the root `docker-compose.yml`.
 
 ## Local commands
 
 ```sh
 cp .env.example .env                       # then fill in the required values
-docker compose -f compose.dev.yml up       # backend and db, hot reload
+docker compose -f compose.dev.yml up       # backend, db and storage, hot reload
 ```
 
 - Health: http://localhost:8000/api/v1/health

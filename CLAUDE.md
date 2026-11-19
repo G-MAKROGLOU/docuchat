@@ -1,44 +1,38 @@
 # Project rules
 
-This umbrella repository is for the reviewer. It holds the backend and the frontend as git submodules in `backend/` and `frontend/`. The backend and the frontend are independent deployable units with their own CI and images.
+One private monorepo. `backend/` and `frontend/` are independent deployable units with path-filtered pipelines. `mcp/`, `corpus/` and `docs/` support them.
+
+## How to work
+- Before you use LangChain, LangGraph, ParadeDB (pg_search, pgvector), SeaweedFS, assistant-ui, Next.js, Langfuse, FastMCP or the OpenRouter API, read the current official documentation. Do not rely on memory. Pin exact versions. LangChain and LangGraph: 1.x APIs only.
+- Write the test first for: chunking, fusion, drug detection, routing functions, citation parsing, validation rules.
+- Small commits, Conventional Commits, one concern each.
+- No new dependency without approval from the author.
+- Do not write README.md or DECISIONS.md prose. The author writes them. Record facts (what was built, measured values, problems, choices) in `docs/agent-log.md` with a date.
+- No client or company name in code, comments, commits or file names.
+- After each task, run lint, type check and tests, then report: what changed, the check output, open points, and items marked VERIFIED or ASSUMED.
+- Stop and ask when a done check fails two times, or when the task does not cover a decision.
 
 ## Architecture (backend)
-- `backend/app/domain` imports nothing from `application`, `infrastructure` or `api`. It has no framework imports.
-- `backend/app/application` depends on domain interfaces (ports) only.
-- Only `backend/app/infrastructure` imports provider SDKs.
-- All model and embedding access goes through the factory in `infrastructure`. No provider class in graph nodes or services.
+- `app/domain` imports nothing from `application`, `infrastructure` or `api`. It has no framework imports.
+- `app/application` depends on domain interfaces (ports) only.
+- Only `app/infrastructure` imports provider SDKs (OpenRouter, S3, Langfuse, PDF parsing).
+- All model and embedding access goes through one factory in `app/infrastructure`. No provider class in graph nodes or services.
 - Each graph node is a pure function of state plus injected ports. Each node has a unit test.
 
 ## Architecture (frontend)
-- The browser calls only the frontend. The proxy route `frontend/src/app/api/[...path]/route.ts` forwards `/api/*` to `BACKEND_URL`.
+- The browser calls only the frontend. The proxy route `frontend/src/app/api/[...path]/route.ts` forwards `/api/*` to `BACKEND_URL` and streams SSE without buffering.
 
 ## API contract
-- All API routes are under `/api/v1`.
-- Contract changes are additive only. A removed or renamed field requires a new version (`/api/v2`).
-- The backend is the source of truth. After a schema change, run `python -m app.api.contract` in the backend and commit `backend/contract/`.
-- Then run `npm run contract:generate -- <backend schema URL or file>` in the frontend and commit `contract/` and `src/lib/contract/`.
-- Do not edit `frontend/src/lib/contract/stream-events.ts`. It is generated.
-
-## Submodules
-- After each push in the backend or frontend repository, make a commit in this umbrella that moves the submodule pointer.
-- State the pointer status in each task report: the umbrella commit and the backend and frontend commits it points to, and whether each is pushed.
+- All API routes are under `/api/v1`. Contract changes are additive only. A removed or renamed field requires a new version.
+- The backend is the source of truth: `python -m app.api.contract` writes `backend/contract/`.
+- `npm run contract:generate` in `frontend/` writes `src/lib/contract/generated.ts`. Do not edit that file.
+- CI fails on a diff in either place.
 
 ## Configuration
 - No secrets in code. Configuration comes from the environment only.
 
-## Tests
-- Write the test first for chunking, retrieval and graph nodes.
-
-## Dependencies
-- Do not add a dependency without approval.
-
-## Documentation
-- Do not write README prose. The author writes it.
-
-## After each task
-Run lint, types and tests in the repository you changed, then report the results:
+## Checks after each task
 - Backend: `docker compose exec backend sh -c "ruff check . && ruff format --check . && mypy && pytest && bandit -c pyproject.toml -r app && python -m app.api.contract --check"`
-- Frontend: `npm run lint && npm run format:check && npm run typecheck && npm test && npm run contract:check`
-- Umbrella: `sh scripts/check-contract.sh`
+- Frontend (in `frontend/`): `npm run lint && npm run format:check && npm run typecheck && npm test && npm run contract:check`
 
 See `.claude/rules/` for more rules.

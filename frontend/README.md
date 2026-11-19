@@ -2,7 +2,7 @@
 
 Next.js chat interface for document question answering. A proxy route forwards `/api/*` to the backend at `BACKEND_URL`.
 
-The full system (backend, frontend, database) runs from the umbrella repository: [docuchat](https://github.com/G-MAKROGLOU/docuchat).
+The full system (backend, frontend, database, storage) runs from the repository root: see the root `docker-compose.yml`.
 
 ## Local commands
 
