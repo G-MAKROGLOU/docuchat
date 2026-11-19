@@ -17,7 +17,7 @@ export function HealthIndicator() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/health", { signal: controller.signal, cache: "no-store" })
+    fetch("/api/v1/health", { signal: controller.signal, cache: "no-store" })
       .then((res) => res.json() as Promise<{ status?: string }>)
       .then((body) =>
         setState(body.status === "ok" || body.status === "degraded" ? body.status : "unreachable"),
