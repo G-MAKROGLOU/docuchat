@@ -1,4 +1,4 @@
-# Backend and database only, with hot reload. Start: docker compose -f compose.dev.yml up
+# Backend, database and object storage, with hot reload. Start: docker compose -f compose.dev.yml up
 services:
   db:
     image: paradedb/paradedb:0.26.8-pg18
@@ -20,6 +20,24 @@ services:
       retries: 20
       start_period: 10s
 
+  # S3-compatible object store for development. The backend creates the bucket at startup.
+  storage:
+    image: chrislusf/seaweedfs:4.52
+    command: ["mini", "-dir=/data"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY in .env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in .env}
+    volumes:
+      - storage_data:/data
+    ports:
+      - "127.0.0.1:${STORAGE_PORT:?set STORAGE_PORT in .env}:8333"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8333/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
   backend:
     build:
       context: .
@@ -28,6 +46,7 @@ services:
     environment:
       # Built from the POSTGRES_* values, so the two cannot drift.
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      S3_ENDPOINT_URL: http://storage:8333
     volumes:
       - .:/app
       - /app/.venv
@@ -35,6 +54,8 @@ services:
       - "${BACKEND_PORT:?set BACKEND_PORT in .env}:8000"
     depends_on:
       db:
+        condition: service_healthy
+      storage:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
@@ -45,3 +66,4 @@ services:
 
 volumes:
   db_data:
+  storage_data:
