@@ -16,9 +16,7 @@ from app.infrastructure.tracing import build_tracer
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         # The S3 adapter creates the bucket here when it is absent.
-        app.state.document_store = await asyncio.to_thread(
-            build_document_store, app.state.settings
-        )
+        app.state.document_store = await asyncio.to_thread(build_document_store, app.state.settings)
         yield
     finally:
         # Flush buffered spans off the event loop; a slow or unreachable host must not block it.
