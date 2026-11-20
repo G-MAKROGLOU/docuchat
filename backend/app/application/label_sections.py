@@ -9,7 +9,27 @@ from app.domain.entities import LabelSection, PdfLine
 BODY_START = "FULL PRESCRIBING INFORMATION"
 BOXED_WARNING = "BW"
 _HEADING = re.compile(r"^(\d{1,2}(?:\.\d{1,2})*)\s+(\S.*)$")
-_MAX_TOP_LEVEL = 17
+_MIN_TITLE_LETTERS = 4
+# Top-level section titles fixed by the PLR format (21 CFR 201.57(c)).
+_TOP_LEVEL_TITLES = {
+    1: "INDICATIONS AND USAGE",
+    2: "DOSAGE AND ADMINISTRATION",
+    3: "DOSAGE FORMS AND STRENGTHS",
+    4: "CONTRAINDICATIONS",
+    5: "WARNINGS AND PRECAUTIONS",
+    6: "ADVERSE REACTIONS",
+    7: "DRUG INTERACTIONS",
+    8: "USE IN SPECIFIC POPULATIONS",
+    9: "DRUG ABUSE AND DEPENDENCE",
+    10: "OVERDOSAGE",
+    11: "DESCRIPTION",
+    12: "CLINICAL PHARMACOLOGY",
+    13: "NONCLINICAL TOXICOLOGY",
+    14: "CLINICAL STUDIES",
+    15: "REFERENCES",
+    16: "HOW SUPPLIED/STORAGE AND HANDLING",
+    17: "PATIENT COUNSELING INFORMATION",
+}
 # A guide title whose next letter is lower case is section 17 text ("Patient Information about").
 _END_TITLES = ("MEDICATION GUIDE", "PATIENT INFORMATION", "INSTRUCTIONS FOR USE")
 _END_PREFIXES = ("PACKAGE LABEL", "PRINCIPAL DISPLAY PANEL")
@@ -23,14 +43,26 @@ class LabelFormatError(ValueError):
 
 def _heading(line: PdfLine, last_top: int) -> tuple[str, str] | None:
     """A bold numbered line whose title starts upper case and whose number does not go back.
-    The last two rules reject bold table cells such as "10 mg" (phase 2 ingest report)."""
+    These rules and the standard top-level titles reject bold table cells ("10 mg", "6 Weeks")."""
     match = _HEADING.match(line.text) if line.bold else None
     if not match or not match[2][0].isupper():
         return None
     top = int(match[1].split(".")[0])
-    if not last_top <= top <= _MAX_TOP_LEVEL:
+    if not last_top <= top <= len(_TOP_LEVEL_TITLES):
+        return None
+    if "." not in match[1] and not _is_standard_title(top, match[2]):
         return None
     return match[1], match[2].rstrip("*").strip()
+
+
+def _is_standard_title(top: int, title: str) -> bool:
+    # Letters only. A long title can continue on the next line; some labels shorten it.
+    line, standard = (_letters(t) for t in (title, _TOP_LEVEL_TITLES[top]))
+    return len(line) >= _MIN_TITLE_LETTERS and (line in standard or line.startswith(standard))
+
+
+def _letters(text: str) -> str:
+    return "".join(c for c in text.upper() if c.isalpha())
 
 
 def _is_end(line: PdfLine) -> bool:

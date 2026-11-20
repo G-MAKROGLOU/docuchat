@@ -212,3 +212,35 @@ def test_guide_title_with_a_lower_case_note_in_brackets_is_section_text() -> Non
         "Medication Guide (see FDA-approved patient labeling)",
         "Advise patients.",
     ]
+
+
+def test_a_bold_table_row_is_not_a_top_level_heading() -> None:
+    sections = split_sections(
+        body(
+            L(3, "5.5 Metabolic Changes", bold=True),
+            L(3, "Mean weight gain by exposure:"),
+            L(3, "6 Weeks 6 Months 12 Months", bold=True),
+            L(3, "2.6 kg 4.2 kg 5.4 kg"),
+            L(4, "6 ADVERSE REACTIONS", bold=True),
+            L(4, "Most common: weight gain."),
+            L(4, "7 Drug Interactions", bold=True),
+            L(4, "None known."),
+            L(4, "9 ABUSE AND DEPENDENCE", bold=True),
+            L(4, "Not a controlled substance."),
+            L(4, "16 HOW SUPPLIED/STORAGE AND HANDLING", bold=True),
+            L(4, "Bottles of 30."),
+        )
+    )
+
+    assert [(s.number, s.title) for s in sections] == [
+        ("5.5", "Metabolic Changes"),
+        ("6", "ADVERSE REACTIONS"),
+        ("7", "Drug Interactions"),
+        ("9", "ABUSE AND DEPENDENCE"),
+        ("16", "HOW SUPPLIED/STORAGE AND HANDLING"),
+    ]
+    assert [line.text for line in sections[0].lines] == [
+        "Mean weight gain by exposure:",
+        "6 Weeks 6 Months 12 Months",
+        "2.6 kg 4.2 kg 5.4 kg",
+    ]
