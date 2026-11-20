@@ -56,9 +56,8 @@ class PostgresChunkSearch:
 
     async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]:
         where, params = _filter(drugs)
-        # ||| matches any token; ### adds a boosted score when the tokens appear in order, so an
-        # exact string such as "2.5 mg twice daily" ranks above "5 mg ... twice daily".
-        # Both tokenize the text; neither parses it as query syntax.
+        # ||| matches any token; ### boosts tokens in order, so "2.5 mg twice daily" ranks above
+        # "5 mg ... twice daily". Both tokenize the text and do not parse query syntax.
         statement = sql.SQL(
             "SELECT {} FROM chunks "
             "WHERE (content ||| %s OR content ### %s::pdb.boost(2)){} "

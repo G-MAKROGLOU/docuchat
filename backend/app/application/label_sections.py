@@ -1,7 +1,5 @@
 """Split the lines of a label PDF into the sections of the full prescribing information.
-
-Rules come from the PyMuPDF spike (docs/agent-log.md, 2026-11-20).
-"""
+Rules come from the PyMuPDF spike (docs/agent-log.md, 2026-11-20)."""
 
 import re
 from collections.abc import Sequence
@@ -25,9 +23,7 @@ class LabelFormatError(ValueError):
 
 def _heading(line: PdfLine, last_top: int) -> tuple[str, str] | None:
     """A bold numbered line whose title starts upper case and whose number does not go back.
-
-    The last two rules reject bold table cells such as "10 mg" (phase 2 ingest report).
-    """
+    The last two rules reject bold table cells such as "10 mg" (phase 2 ingest report)."""
     match = _HEADING.match(line.text) if line.bold else None
     if not match or not match[2][0].isupper():
         return None

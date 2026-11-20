@@ -10,11 +10,8 @@ class RangeNotSatisfiableError(ValueError):
 
 
 def parse_range(header: str | None, size: int) -> tuple[int, int] | None:
-    """Return (start, end), both inclusive, or None to send the whole object.
-
-    A missing, malformed or multi-range header gives None. Raises RangeNotSatisfiableError
-    when the range starts past the end of the object.
-    """
+    """(start, end), both inclusive, or None (no, bad or multi-range header): whole object.
+    Raises RangeNotSatisfiableError when the range starts past the end of the object."""
     if not header:
         return None
     match = _SINGLE.fullmatch(header.strip())

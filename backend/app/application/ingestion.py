@@ -1,7 +1,5 @@
 """Ingest one stored label: parse, split into sections and chunks, embed, store. Idempotent.
-
-The corpus command uses it now; the upload endpoint will use the same service.
-"""
+The corpus command and the upload endpoint use this service."""
 
 import asyncio
 import logging

@@ -20,12 +20,8 @@ class _Part:
 
 
 class PyMuPdfParser:
-    """Lines in page position order.
-
-    DailyMed PDFs store list-item text after all other blocks of the page, so the content
-    order is not the reading order. The pages are single-column (phase 2 spike), so sorting
-    by position and joining the parts of one row restores it: "•" + item text, table rows.
-    """
+    """Lines in page position order: DailyMed PDFs store list items after the other blocks.
+    The pages are single-column, so a sort by position and a join per row restore the order."""
 
     def extract_lines(self, data: bytes) -> tuple[int, list[PdfLine]]:
         lines: list[PdfLine] = []

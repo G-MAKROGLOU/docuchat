@@ -1,7 +1,5 @@
 """Rebuild retrieval_fixture.json with live embeddings (needs the OpenRouter key).
-
-Usage: python -m tests.fixtures.build_retrieval_fixture
-"""
+Usage: python -m tests.fixtures.build_retrieval_fixture"""
 
 import asyncio
 import json
