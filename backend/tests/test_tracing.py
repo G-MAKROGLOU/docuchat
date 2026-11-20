@@ -174,3 +174,13 @@ def test_shutdown_error_does_not_raise() -> None:
     tracer_with(fake).shutdown()
 
     assert fake.shutdowns == 1
+
+
+def test_the_app_starts_again_after_a_shutdown(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(main, "build_document_store", lambda settings: None)
+    app = main.create_app(load_settings())
+
+    for _ in range(2):
+        with TestClient(app):
+            pass

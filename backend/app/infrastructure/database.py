@@ -10,6 +10,8 @@ import psycopg
 from psycopg.rows import TupleRow
 from psycopg_pool import AsyncConnectionPool
 
+from app.config import Settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,9 +19,11 @@ class Connections(Protocol):
     def connection(self) -> AbstractAsyncContextManager[psycopg.AsyncConnection[Any]]: ...
 
 
-def build_pool(conninfo: str) -> AsyncConnectionPool[psycopg.AsyncConnection[TupleRow]]:
-    # Closed: the owner opens it in its own event loop (the lifespan, or async with).
-    return AsyncConnectionPool(conninfo, open=False)
+def build_pool(settings: Settings) -> AsyncConnectionPool[psycopg.AsyncConnection[TupleRow]]:
+    # Closed: the owner opens it in its own event loop. One retrieval uses 2 connections at once.
+    return AsyncConnectionPool(
+        settings.database_url.get_secret_value(), min_size=2, max_size=10, open=False
+    )
 
 
 @dataclass(frozen=True, slots=True)

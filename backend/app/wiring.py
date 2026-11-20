@@ -2,10 +2,6 @@
 
 from collections.abc import Iterable
 
-from psycopg import AsyncConnection
-from psycopg.rows import TupleRow
-from psycopg_pool import AsyncConnectionPool
-
 from app.application.drug_detection import DrugDetector, DrugEntry
 from app.application.ingestion import IngestionService
 from app.application.retrieval import RetrievalService
@@ -13,17 +9,13 @@ from app.config import Settings
 from app.domain.documents import Document, DocumentStatus
 from app.infrastructure.chunk_repository import PostgresChunkRepository
 from app.infrastructure.chunk_search import PostgresChunkSearch
-from app.infrastructure.database import Connections, build_pool
+from app.infrastructure.database import Connections
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.models import ModelFactory
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
 from app.infrastructure.pdf_parser import PyMuPdfParser
 from app.infrastructure.storage import build_document_store
 from app.infrastructure.text_splitting import SentenceTokenSplitter, TiktokenCounter
-
-
-def database_pool(settings: Settings) -> AsyncConnectionPool[AsyncConnection[TupleRow]]:
-    return build_pool(settings.database_url.get_secret_value())
 
 
 def drug_detector(documents: Iterable[Document]) -> DrugDetector:

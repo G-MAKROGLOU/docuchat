@@ -10,11 +10,12 @@ from pathlib import Path
 from app.application.ingestion import IngestResult
 from app.config import Settings, get_settings
 from app.domain.documents import Document
+from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.migrations import apply_migrations
 from app.infrastructure.models import ModelFactory
-from app.wiring import database_pool, ingestion_service
+from app.wiring import ingestion_service
 
 DEFAULT_MANIFEST = Path("/corpus/manifest.json")
 
@@ -22,7 +23,7 @@ DEFAULT_MANIFEST = Path("/corpus/manifest.json")
 async def run(
     settings: Settings, quick_ids: set[str] | None, *, force: bool
 ) -> list[tuple[Document, IngestResult]]:
-    async with database_pool(settings) as pool:
+    async with build_pool(settings) as pool:
         documents = await PostgresDocumentRepository(pool).list_all()
         if quick_ids is not None:
             documents = [d for d in documents if d.source_id in quick_ids]
