@@ -118,3 +118,25 @@ def test_missing_stored_object_is_404(document: Document, tmp_path: Path) -> Non
 
     assert client.get(url(document)).status_code == 404
     assert client.get(url(document), headers={"Range": "bytes=0-9"}).status_code == 404
+
+
+class CountingStore(FileSystemDocumentStore):
+    def __init__(self, root: Path) -> None:
+        super().__init__(root)
+        self.exists_calls = 0
+
+    def exists(self, key: str) -> bool:
+        self.exists_calls += 1
+        return super().exists(key)
+
+
+def test_range_request_reads_the_object_without_an_existence_check(
+    document: Document, tmp_path: Path
+) -> None:
+    store = CountingStore(tmp_path)
+    app.dependency_overrides[get_document_store] = lambda: store
+
+    response = TestClient(app).get(url(document), headers={"Range": "bytes=0-9"})
+
+    assert response.status_code == 206
+    assert store.exists_calls == 0
