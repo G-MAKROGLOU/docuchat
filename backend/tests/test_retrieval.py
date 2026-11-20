@@ -105,3 +105,14 @@ def test_an_index_from_another_embedding_model_is_rejected() -> None:
 
     with pytest.raises(EmbeddingModelMismatchError, match="old/model"):
         asyncio.run(service.retrieve("q"))
+
+
+def test_an_empty_index_is_checked_again_on_the_next_query() -> None:
+    search = FakeSearch(models=set())
+    service = RetrievalService(search, FakeEmbedder(), "new/model")
+    asyncio.run(service.retrieve("q"))
+
+    search.models = {"old/model"}
+
+    with pytest.raises(EmbeddingModelMismatchError, match="old/model"):
+        asyncio.run(service.retrieve("q"))

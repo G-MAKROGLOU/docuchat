@@ -50,7 +50,8 @@ class RetrievalService:
                 f"The index holds embeddings from {sorted(indexed)}, but queries use "
                 f"{self._model!r}. Ingest again with: python -m app.ingest --all --force"
             )
-        self._model_checked = True
+        # An empty index proves nothing; a later ingest can still use another model.
+        self._model_checked = bool(indexed)
 
     async def _vector(self, query: str, drugs: Sequence[str]) -> list[Chunk]:
         return await self._search.vector_search(
