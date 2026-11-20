@@ -50,6 +50,8 @@ services:
     volumes:
       - .:/app
       - /app/.venv
+      # The corpus manifest of the monorepo, for python -m app.corpus_download.
+      - ../corpus:/corpus:ro
     ports:
       - "${BACKEND_PORT:?set BACKEND_PORT in .env}:8000"
     depends_on:

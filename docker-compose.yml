@@ -86,6 +86,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/.venv
+      - ./corpus:/corpus:ro
     ports:
       - "${BACKEND_PORT:-}:8000"
     depends_on:

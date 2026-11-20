@@ -29,6 +29,12 @@ class Document:
     ingested_at: datetime | None = None
 
 
+class LabelSource(Protocol):
+    """A public source of label PDFs, addressed by its own document ID."""
+
+    def fetch_pdf(self, source_id: str) -> bytes: ...
+
+
 class DocumentRepository(Protocol):
     async def add(self, document: Document) -> None: ...
 
