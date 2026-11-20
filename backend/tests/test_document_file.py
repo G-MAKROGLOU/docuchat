@@ -130,13 +130,13 @@ class CountingStore(FileSystemDocumentStore):
         return super().exists(key)
 
 
-def test_range_request_reads_the_object_without_an_existence_check(
+def test_file_requests_read_the_object_without_an_existence_check(
     document: Document, tmp_path: Path
 ) -> None:
     store = CountingStore(tmp_path)
     app.dependency_overrides[get_document_store] = lambda: store
+    client = TestClient(app)
 
-    response = TestClient(app).get(url(document), headers={"Range": "bytes=0-9"})
-
-    assert response.status_code == 206
+    assert client.get(url(document)).content == PDF
+    assert client.get(url(document), headers={"Range": "bytes=0-9"}).status_code == 206
     assert store.exists_calls == 0

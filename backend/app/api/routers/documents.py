@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 from typing import Annotated
 from uuid import UUID
 
@@ -48,11 +49,14 @@ async def get_document_file(
         )
 
     if byte_range is None:
-        # Check before the headers go out; a stream cannot change its status later.
-        if not await asyncio.to_thread(store.exists, document.storage_key):
-            raise HTTPException(status.HTTP_404_NOT_FOUND, "Document file not found")
+        # Read the first chunk before the headers go out; a stream cannot change its status later.
+        stream = store.get_stream(document.storage_key)
+        try:
+            first = await asyncio.to_thread(next, stream, b"")
+        except ObjectNotFoundError as exc:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Document file not found") from exc
         return StreamingResponse(
-            store.get_stream(document.storage_key),
+            itertools.chain([first], stream),
             media_type="application/pdf",
             headers={**headers, "Content-Length": str(size)},
         )
