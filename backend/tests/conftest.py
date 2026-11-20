@@ -1,7 +1,8 @@
 import os
 import tempfile
 
-# Test values only. app.main reads settings at import time.
+# Test values only, set unconditionally so a developer .env cannot leak into tests.
+# app.main reads settings at import time.
 TEST_ENV = {
     "OPENROUTER_API_KEY": "test-key",
     "OPENROUTER_BASE_URL": "http://openrouter.test/api/v1",
@@ -15,7 +16,7 @@ TEST_ENV = {
     "STORAGE_FS_ROOT": tempfile.mkdtemp(prefix="storage-"),
 }
 for key, value in TEST_ENV.items():
-    os.environ.setdefault(key, value)
+    os.environ[key] = value
 # Keys from a developer .env must not start a real Langfuse client in tests.
 for key in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST"):
     os.environ.pop(key, None)

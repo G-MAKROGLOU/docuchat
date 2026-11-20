@@ -158,6 +158,9 @@ def test_application_error_propagates_and_closes_the_span() -> None:
 def test_app_shutdown_flushes_the_tracer(monkeypatch: pytest.MonkeyPatch) -> None:
     fake = FakeLangfuse()
     monkeypatch.setattr(main, "build_tracer", lambda settings: tracer_with(fake))
+    # Only the tracer is under test: skip the database and storage startup steps.
+    monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(main, "build_document_store", lambda settings: None)
 
     with TestClient(main.create_app(load_settings())):
         assert fake.shutdowns == 0
