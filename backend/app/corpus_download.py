@@ -10,11 +10,11 @@ from pathlib import Path
 from app.application.corpus import CorpusEntry, DownloadReport, download_corpus, parse_manifest
 from app.config import Settings, get_settings
 from app.infrastructure.dailymed import DailyMedClient
-from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.migrations import apply_migrations
 from app.infrastructure.storage import build_document_store
+from app.wiring import database_pool
 
 DEFAULT_MANIFEST = Path("/corpus/manifest.json")
 
@@ -22,7 +22,7 @@ DEFAULT_MANIFEST = Path("/corpus/manifest.json")
 async def run(
     settings: Settings, entries: list[CorpusEntry], source: DailyMedClient
 ) -> DownloadReport:
-    async with build_pool(settings.database_url.get_secret_value()) as pool:
+    async with database_pool(settings) as pool:
         return await download_corpus(
             entries, source, build_document_store(settings), PostgresDocumentRepository(pool)
         )

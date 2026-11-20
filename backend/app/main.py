@@ -6,12 +6,13 @@ from fastapi import FastAPI
 
 from app.api.factory import create_api
 from app.config import Settings, get_settings
-from app.infrastructure.database import PostgresProbe, build_pool
+from app.infrastructure.database import PostgresProbe
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.migrations import apply_migrations
 from app.infrastructure.storage import build_document_store
 from app.infrastructure.tracing import build_tracer
+from app.wiring import database_pool
 
 
 @asynccontextmanager
@@ -36,7 +37,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.settings = settings
     database_url = settings.database_url.get_secret_value()
     app.state.database_probe = PostgresProbe(database_url)
-    app.state.pool = build_pool(database_url)
+    app.state.pool = database_pool(settings)
     app.state.document_repository = PostgresDocumentRepository(app.state.pool)
     app.state.tracer = build_tracer(settings)
     return app

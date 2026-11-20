@@ -4,15 +4,11 @@ import argparse
 import asyncio
 import sys
 
-from app.application.drug_detection import DrugDetector, DrugEntry
+from app.application.drug_detection import DrugDetector
 from app.application.retrieval import RetrievalService, SearchMode
 from app.config import get_settings
-from app.domain.documents import DocumentStatus
-from app.infrastructure.chunk_search import PostgresChunkSearch
-from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
-from app.infrastructure.models import ModelFactory
-from app.infrastructure.name_similarity import RapidFuzzSimilarity
+from app.wiring import database_pool, drug_detector, retrieval_service
 
 SAMPLE_QUESTIONS = [
     "What is the recommended starting dose of Lipitor?",
@@ -25,23 +21,9 @@ SAMPLE_QUESTIONS = [
 
 async def run(questions: list[str], mode: SearchMode) -> None:
     settings = get_settings()
-    async with build_pool(settings.database_url.get_secret_value()) as pool:
-        documents = await PostgresDocumentRepository(pool).list_all()
-        service = RetrievalService(
-            PostgresChunkSearch(pool),
-            ModelFactory(settings).embedder(),
-            settings.embedding_model,
-        )
-        detector = DrugDetector(
-            [
-                DrugEntry(
-                    name=d.brand_name or d.generic_name, brand=d.brand_name, generic=d.generic_name
-                )
-                for d in documents
-                if d.status is DocumentStatus.INGESTED
-            ],
-            RapidFuzzSimilarity(),
-        )
+    async with database_pool(settings) as pool:
+        detector = drug_detector(await PostgresDocumentRepository(pool).list_all())
+        service = retrieval_service(settings, pool)
         for question in questions:
             await _print_question(service, detector, question, mode)
 

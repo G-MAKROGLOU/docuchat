@@ -7,18 +7,14 @@ import sys
 import time
 from pathlib import Path
 
-from app.application.ingestion import IngestionService, IngestResult
+from app.application.ingestion import IngestResult
 from app.config import Settings, get_settings
 from app.domain.documents import Document
-from app.infrastructure.chunk_repository import PostgresChunkRepository
-from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.migrations import apply_migrations
 from app.infrastructure.models import ModelFactory
-from app.infrastructure.pdf_parser import PyMuPdfParser
-from app.infrastructure.storage import build_document_store
-from app.infrastructure.text_splitting import SentenceTokenSplitter, TiktokenCounter
+from app.wiring import database_pool, ingestion_service
 
 DEFAULT_MANIFEST = Path("/corpus/manifest.json")
 
@@ -26,22 +22,11 @@ DEFAULT_MANIFEST = Path("/corpus/manifest.json")
 async def run(
     settings: Settings, quick_ids: set[str] | None, *, force: bool
 ) -> list[tuple[Document, IngestResult]]:
-    async with build_pool(settings.database_url.get_secret_value()) as pool:
-        repository = PostgresDocumentRepository(pool)
-        documents = await repository.list_all()
+    async with database_pool(settings) as pool:
+        documents = await PostgresDocumentRepository(pool).list_all()
         if quick_ids is not None:
             documents = [d for d in documents if d.source_id in quick_ids]
-        service = IngestionService(
-            store=build_document_store(settings),
-            documents=repository,
-            chunks=PostgresChunkRepository(pool),
-            parser=PyMuPdfParser(),
-            splitter=SentenceTokenSplitter(chunk_tokens=500, overlap_tokens=50),
-            counter=TiktokenCounter(),
-            embedder=ModelFactory(settings).embedder(),
-            embedding_model=settings.embedding_model,
-            embedding_prefix=settings.embedding_prefix,
-        )
+        service = ingestion_service(settings, pool)
         return [(d, await service.ingest(d, force=force)) for d in documents]
 
 
