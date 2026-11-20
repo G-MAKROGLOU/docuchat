@@ -35,8 +35,22 @@ class LabelSource(Protocol):
     def fetch_pdf(self, source_id: str) -> bytes: ...
 
 
-class DocumentRepository(Protocol):
+class IngestionStatusRepository(Protocol):
+    async def update_ingestion(
+        self,
+        document_id: UUID,
+        status: DocumentStatus,
+        page_count: int | None = None,
+        ingested_at: datetime | None = None,
+    ) -> None:
+        """Set the status; set page_count and ingested_at only when given."""
+        ...
+
+
+class DocumentRepository(IngestionStatusRepository, Protocol):
     async def add(self, document: Document) -> None: ...
+
+    async def list_all(self) -> list[Document]: ...
 
     async def get(self, document_id: UUID) -> Document | None: ...
 

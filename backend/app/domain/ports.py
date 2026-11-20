@@ -2,10 +2,10 @@
 
 from collections.abc import AsyncIterator, Mapping, Sequence
 from contextlib import AbstractContextManager
-from pathlib import Path
 from typing import Protocol
+from uuid import UUID
 
-from app.domain.entities import Chunk, Message, ModelRole, ParsedPage, ScoredChunk
+from app.domain.entities import Chunk, Message, ModelRole, PdfLine, TextSpan
 
 
 class ChatModel(Protocol):
@@ -25,15 +25,25 @@ class Embedder(Protocol):
 
 
 class ChunkRepository(Protocol):
-    async def upsert(self, chunks: Sequence[Chunk]) -> None: ...
+    async def replace_for_document(self, document_id: UUID, chunks: Sequence[Chunk]) -> None:
+        """Delete the document's chunks and insert these, in one transaction."""
+        ...
 
-    async def search(
-        self, query_text: str, query_embedding: Sequence[float], limit: int
-    ) -> list[ScoredChunk]: ...
+    async def embedding_models(self, document_id: UUID) -> set[str]: ...
 
 
 class DocumentParser(Protocol):
-    def parse(self, path: Path) -> list[ParsedPage]: ...
+    def extract_lines(self, data: bytes) -> tuple[int, list[PdfLine]]:
+        """Return the page count and the text lines in reading order."""
+        ...
+
+
+class TextSplitter(Protocol):
+    def split(self, text: str) -> list[TextSpan]: ...
+
+
+class TokenCounter(Protocol):
+    def count(self, text: str) -> int: ...
 
 
 class Span(Protocol):

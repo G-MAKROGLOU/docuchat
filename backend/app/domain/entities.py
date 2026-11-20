@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import StrEnum
+from uuid import UUID
 
 
 class ModelRole(StrEnum):
@@ -23,21 +24,43 @@ class Message:
 
 
 @dataclass(frozen=True, slots=True)
-class ParsedPage:
-    document: str
+class PdfLine:
+    """One text line of a PDF page, as the parser reads it."""
+
     page: int
+    text: str
+    bold: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class LabelSection:
+    """A numbered label section ("2.1"), or "BW" for the boxed warning."""
+
+    number: str
+    title: str
+    lines: tuple[PdfLine, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class TextSpan:
+    start: int
     text: str
 
 
 @dataclass(frozen=True, slots=True)
 class Chunk:
-    id: str
-    document: str
-    drug: str
-    section: str
-    page: int
-    text: str
+    id: UUID
+    document_id: UUID
+    drug_name: str
+    section_number: str
+    section_title: str
+    page_start: int
+    page_end: int
+    content: str
+    anchor: str
+    token_count: int
     embedding: tuple[float, ...] | None = field(default=None, repr=False)
+    embedding_model: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
