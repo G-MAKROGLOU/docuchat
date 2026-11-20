@@ -36,12 +36,17 @@ target-version = "py313"
 select = ["E", "W", "F", "I", "B", "UP", "N", "S", "ASYNC", "RUF", "SIM", "PL"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "PLR2004"]
+"tests/**" = ["S101", "PLR2004", "PLR0913"]
 
 [tool.mypy]
 strict = true
 files = ["app", "tests", "evals"]
 plugins = ["pydantic.mypy"]
+
+# PyMuPDF has no type hints; only these modules call it.
+[[tool.mypy.overrides]]
+module = ["app.infrastructure.pdf_parser", "tests.test_pdf_parser"]
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
