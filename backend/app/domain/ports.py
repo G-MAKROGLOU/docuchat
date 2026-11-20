@@ -32,6 +32,18 @@ class ChunkRepository(Protocol):
     async def embedding_models(self, document_id: UUID) -> set[str]: ...
 
 
+class ChunkSearch(Protocol):
+    """The two retrieval lists. An empty drugs sequence means no drug filter."""
+
+    async def vector_search(
+        self, embedding: Sequence[float], drugs: Sequence[str], limit: int
+    ) -> list[Chunk]: ...
+
+    async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]: ...
+
+    async def embedding_models(self) -> set[str]: ...
+
+
 class DocumentParser(Protocol):
     def extract_lines(self, data: bytes) -> tuple[int, list[PdfLine]]:
         """Return the page count and the text lines in reading order."""
