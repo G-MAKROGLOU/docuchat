@@ -42,19 +42,6 @@
       }
     },
     {
-      "brand_name": "Diflucan",
-      "generic_name": "fluconazole",
-      "manufacturer": "Roerig",
-      "source_id": "f694c617-3383-416c-91b6-b94fda371204",
-      "quick_start": false,
-      "tags": {
-        "class": "azole antifungal",
-        "pair": "",
-        "lookalike_of": "",
-        "boxed_warning": false
-      }
-    },
-    {
       "brand_name": "Pristiq",
       "generic_name": "desvenlafaxine",
       "manufacturer": "Wyeth Pharmaceuticals LLC, a subsidiary of Pfizer Inc.",
@@ -289,19 +276,6 @@
       }
     },
     {
-      "brand_name": "Klonopin",
-      "generic_name": "clonazepam",
-      "manufacturer": "H2-Pharma, LLC",
-      "source_id": "cfa0d79a-843c-4b88-95a1-e9511d649ca1",
-      "quick_start": false,
-      "tags": {
-        "class": "benzodiazepine",
-        "pair": "benzodiazepine",
-        "lookalike_of": "clonidine",
-        "boxed_warning": true
-      }
-    },
-    {
       "brand_name": "Seroquel",
       "generic_name": "quetiapine",
       "manufacturer": "AstraZeneca Pharmaceuticals LP",
@@ -351,45 +325,6 @@
         "pair": "",
         "lookalike_of": "Celebrex",
         "boxed_warning": true
-      }
-    },
-    {
-      "brand_name": "",
-      "generic_name": "hydroxyzine hydrochloride",
-      "manufacturer": "Teva Pharmaceuticals USA, Inc.",
-      "source_id": "80309ec1-e5d5-4454-b8ce-67d7e6805e44",
-      "quick_start": false,
-      "tags": {
-        "class": "H1 antihistamine (anxiolytic)",
-        "pair": "",
-        "lookalike_of": "hydralazine",
-        "boxed_warning": false
-      }
-    },
-    {
-      "brand_name": "",
-      "generic_name": "hydralazine hydrochloride",
-      "manufacturer": "Strides Pharma Science Limited",
-      "source_id": "b3d1786d-c3ff-42f1-a09f-37a9c9021e5a",
-      "quick_start": false,
-      "tags": {
-        "class": "arterial vasodilator",
-        "pair": "",
-        "lookalike_of": "hydroxyzine",
-        "boxed_warning": false
-      }
-    },
-    {
-      "brand_name": "",
-      "generic_name": "clonidine hydrochloride",
-      "manufacturer": "Alembic Pharmaceuticals Limited",
-      "source_id": "cf493e6a-1603-4c7d-a442-69a119bec843",
-      "quick_start": false,
-      "tags": {
-        "class": "central alpha-2 agonist",
-        "pair": "",
-        "lookalike_of": "Klonopin",
-        "boxed_warning": false
       }
     },
     {
@@ -481,19 +416,6 @@
         "pair": "",
         "lookalike_of": "",
         "boxed_warning": true
-      }
-    },
-    {
-      "brand_name": "Lasix",
-      "generic_name": "furosemide",
-      "manufacturer": "Validus Pharmaceuticals LLC",
-      "source_id": "2c9b4d8f-0770-482d-a9e6-9c616a440b1a",
-      "quick_start": false,
-      "tags": {
-        "class": "loop diuretic",
-        "pair": "",
-        "lookalike_of": "",
-        "boxed_warning": false
       }
     },
     {
@@ -634,8 +556,8 @@
       "quick_start": false,
       "tags": {
         "class": "beta-1 blocker",
-        "pair": "",
-        "lookalike_of": "",
+        "pair": "beta-blocker",
+        "lookalike_of": "Topamax",
         "boxed_warning": false
       }
     },
@@ -648,6 +570,84 @@
       "tags": {
         "class": "bisphosphonate",
         "pair": "",
+        "lookalike_of": "",
+        "boxed_warning": false
+      }
+    },
+    {
+      "brand_name": "Vfend",
+      "generic_name": "voriconazole",
+      "manufacturer": "Roerig",
+      "source_id": "ce3ef5cf-3087-4d92-9d94-9eb8287228db",
+      "quick_start": false,
+      "tags": {
+        "class": "azole antifungal",
+        "pair": "",
+        "lookalike_of": "",
+        "boxed_warning": false
+      }
+    },
+    {
+      "brand_name": "Topamax",
+      "generic_name": "topiramate",
+      "manufacturer": "Janssen Pharmaceuticals, Inc.",
+      "source_id": "21628112-0c47-11df-95b3-498d55d89593",
+      "quick_start": false,
+      "tags": {
+        "class": "anticonvulsant",
+        "pair": "",
+        "lookalike_of": "Toprol XL",
+        "boxed_warning": false
+      }
+    },
+    {
+      "brand_name": "Zyprexa",
+      "generic_name": "olanzapine",
+      "manufacturer": "H2-Pharma LLC",
+      "source_id": "b418946a-1ab4-4d89-a012-d94fc361a3c4",
+      "quick_start": false,
+      "tags": {
+        "class": "atypical antipsychotic",
+        "pair": "",
+        "lookalike_of": "Celexa",
+        "boxed_warning": true
+      }
+    },
+    {
+      "brand_name": "Prozac",
+      "generic_name": "fluoxetine hydrochloride",
+      "manufacturer": "Dista Products Company",
+      "source_id": "c88f33ed-6dfb-4c5e-bc01-d8e36dd97299",
+      "quick_start": false,
+      "tags": {
+        "class": "SSRI",
+        "pair": "ssri",
+        "lookalike_of": "",
+        "boxed_warning": true
+      }
+    },
+    {
+      "brand_name": "Valium",
+      "generic_name": "diazepam",
+      "manufacturer": "Waylis Therapeutics LLC",
+      "source_id": "260e2041-2bb3-482f-850e-b5d47a7bdbe6",
+      "quick_start": false,
+      "tags": {
+        "class": "benzodiazepine",
+        "pair": "benzodiazepine",
+        "lookalike_of": "",
+        "boxed_warning": true
+      }
+    },
+    {
+      "brand_name": "Bystolic",
+      "generic_name": "nebivolol hydrochloride",
+      "manufacturer": "Allergan, Inc.",
+      "source_id": "8b8ad213-1dc8-454e-a524-075685c0e1a8",
+      "quick_start": false,
+      "tags": {
+        "class": "beta blocker",
+        "pair": "beta-blocker",
         "lookalike_of": "",
         "boxed_warning": false
       }
