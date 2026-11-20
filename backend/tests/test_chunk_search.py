@@ -110,3 +110,7 @@ def test_the_drug_filter_applies_to_both_searches(search: PostgresChunkSearch) -
     assert vector
     assert bm25
     assert {c.drug_name for c in vector + bm25} == {"Fixtorvan"}
+
+
+def test_a_query_without_tokens_gives_no_rows(search: PostgresChunkSearch) -> None:
+    assert asyncio.run(search.text_search("?? --", DRUGS, 20)) == []
