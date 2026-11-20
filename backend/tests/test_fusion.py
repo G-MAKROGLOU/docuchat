@@ -127,3 +127,17 @@ def test_a_chunk_over_the_budget_is_skipped_not_the_end() -> None:
     )
 
     assert names(select(fused, drugs=())) == ["a", "c"]
+
+
+def test_each_drug_gets_its_first_chunk_even_over_the_budget() -> None:
+    fused = fuse(
+        vector=[
+            chunk("a", drug="Eliquis", tokens=3000),
+            chunk("b", drug="Eliquis", tokens=400),
+            chunk("h", drug="Xarelto", tokens=600),
+            chunk("i", drug="Xarelto", tokens=300),
+        ],
+        bm25=[],
+    )
+
+    assert names(select(fused, drugs=("Eliquis", "Xarelto"))) == ["a", "h"]

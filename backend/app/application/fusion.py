@@ -58,7 +58,8 @@ def fuse(
 def select(fused: Sequence[FusedChunk], *, drugs: Sequence[str]) -> list[FusedChunk]:
     """Top chunks within the count and token limits; with 2+ drugs, a minimum per drug."""
     chosen: list[FusedChunk] = []
-    if len(drugs) >= 2:  # noqa: PLR2004  # a comparison question
+    comparison = len(drugs) >= 2  # noqa: PLR2004
+    if comparison:
         # Round robin over the drugs, so the token budget cannot use up one drug's share first.
         per_drug = [[f for f in fused if f.chunk.drug_name == d][:MIN_PER_DRUG] for d in drugs]
         for rank in range(MIN_PER_DRUG):
@@ -69,12 +70,17 @@ def select(fused: Sequence[FusedChunk], *, drugs: Sequence[str]) -> list[FusedCh
 
     selected: list[FusedChunk] = []
     tokens = 0
+    covered: set[str] = set()
     for item in chosen:
         if len(selected) == MAX_CHUNKS:
             break
-        if selected and tokens + item.chunk.token_count > TOKEN_BUDGET:
+        drug = item.chunk.drug_name
+        # Like the first chunk overall, the first chunk of each compared drug may pass the budget.
+        first_of_drug = comparison and drug in drugs and drug not in covered
+        if selected and not first_of_drug and tokens + item.chunk.token_count > TOKEN_BUDGET:
             continue  # a smaller chunk later can still fit
         selected.append(item)
         tokens += item.chunk.token_count
+        covered.add(drug)
     order = {id(f): i for i, f in enumerate(fused)}
     return sorted(selected, key=lambda f: order[id(f)])
