@@ -1,5 +1,7 @@
 import uuid
 from collections.abc import Iterator
+from dataclasses import replace
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -29,6 +31,20 @@ class FakeRepository:
 
     async def find_by_sha256(self, sha256: str) -> Document | None:
         return next((d for d in self._by_id.values() if d.sha256 == sha256), None)
+
+    async def list_all(self) -> list[Document]:
+        return list(self._by_id.values())
+
+    async def update_ingestion(
+        self,
+        document_id: uuid.UUID,
+        status: DocumentStatus,
+        page_count: int | None = None,
+        ingested_at: datetime | None = None,
+    ) -> None:
+        self._by_id[document_id] = replace(
+            self._by_id[document_id], status=status, page_count=page_count, ingested_at=ingested_at
+        )
 
 
 @pytest.fixture

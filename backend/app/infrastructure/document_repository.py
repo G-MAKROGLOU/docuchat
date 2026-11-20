@@ -1,5 +1,6 @@
 """Postgres adapter for DocumentRepository."""
 
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -72,3 +73,28 @@ class PostgresDocumentRepository:
 
     async def find_by_sha256(self, sha256: str) -> Document | None:
         return await self._one("sha256", sha256)
+
+    async def list_all(self) -> list[Document]:
+        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+            cursor = conn.cursor(row_factory=dict_row)
+            await cursor.execute(
+                sql.SQL("SELECT {} FROM documents ORDER BY brand_name, generic_name").format(
+                    _COLUMNS
+                )
+            )
+            return [_to_document(row) for row in await cursor.fetchall()]
+
+    async def update_ingestion(
+        self,
+        document_id: UUID,
+        status: DocumentStatus,
+        page_count: int | None = None,
+        ingested_at: datetime | None = None,
+    ) -> None:
+        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+            await conn.execute(
+                "UPDATE documents SET status = %s, "
+                "page_count = COALESCE(%s, page_count), ingested_at = COALESCE(%s, ingested_at) "
+                "WHERE id = %s",
+                (status.value, page_count, ingested_at, document_id),
+            )
