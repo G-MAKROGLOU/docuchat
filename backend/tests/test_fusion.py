@@ -119,3 +119,11 @@ def test_large_chunks_still_give_each_drug_a_chunk() -> None:
     selected = select(fuse(vector=[*eliquis, *xarelto], bm25=[]), drugs=("Eliquis", "Xarelto"))
 
     assert names(selected) == ["a", "h"]
+
+
+def test_a_chunk_over_the_budget_is_skipped_not_the_end() -> None:
+    fused = fuse(
+        vector=[chunk("a", tokens=3000), chunk("b", tokens=600), chunk("c", tokens=400)], bm25=[]
+    )
+
+    assert names(select(fused, drugs=())) == ["a", "c"]

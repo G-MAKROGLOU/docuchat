@@ -73,7 +73,7 @@ def select(fused: Sequence[FusedChunk], *, drugs: Sequence[str]) -> list[FusedCh
         if len(selected) == MAX_CHUNKS:
             break
         if selected and tokens + item.chunk.token_count > TOKEN_BUDGET:
-            break
+            continue  # a smaller chunk later can still fit
         selected.append(item)
         tokens += item.chunk.token_count
     order = {id(f): i for i, f in enumerate(fused)}
