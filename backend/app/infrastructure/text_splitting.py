@@ -9,8 +9,9 @@ from app.domain.entities import TextSpan
 
 # text-embedding-3-small uses this encoding.
 ENCODING = "cl100k_base"
-# Sentence ends first; smaller units only for a sentence longer than the chunk size.
-SEPARATORS = [". ", "; ", ", ", " ", ""]
+# Lines (paragraphs, list items, table rows) first, then sentence ends; smaller units only
+# for a sentence longer than the chunk size.
+SEPARATORS = ["\n", ". ", "; ", ", ", " ", ""]
 
 
 @cache

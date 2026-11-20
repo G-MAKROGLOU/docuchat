@@ -1,10 +1,16 @@
 import re
 import uuid
+from collections.abc import Sequence
 
 from app.application.chunking import anchor_of, build_chunks, embedding_input
-from app.domain.entities import LabelSection, PdfLine, TextSpan
+from app.domain.documents import Document, DocumentStatus
+from app.domain.entities import LabelSection, TextSpan
 
 DOC = uuid.uuid4()
+
+
+def document(brand: str, generic: str = "generic") -> Document:
+    return Document(DOC, brand, generic, "M", "s1", "key", "a" * 64, 1, DocumentStatus.STORED)
 
 
 class SentenceSplitter:
@@ -23,29 +29,27 @@ class WordCounter:
         return len(text.split())
 
 
-def section(number: str, title: str, *lines: tuple[int, str]) -> LabelSection:
-    return LabelSection(
-        number=number,
-        title=title,
-        lines=tuple(PdfLine(page=p, text=t, bold=False) for p, t in lines),
-    )
+def section(number: str, title: str, text: str = "") -> LabelSection:
+    return LabelSection(number=number, title=title, text=text)
+
+
+def pages_of(contents: Sequence[str]) -> list[tuple[int, int]]:
+    """Fake page lookup: the chunk with "crush" crosses from page 4 to page 5."""
+    return [(4, 5) if "crush" in c else (4, 4) for c in contents]
 
 
 def test_chunks_carry_section_pages_anchor_and_tokens() -> None:
     sections = [
-        section(
-            "2.1",
-            "Recommended Dosage",
-            (4, "Take 10 mg once daily. Do not"),
-            (5, "crush the tablet."),
-        ),
+        section("2.1", "Recommended Dosage", "Take 10 mg once daily. Do not\ncrush the tablet.")
     ]
 
-    chunks = build_chunks(DOC, "Lipitor", sections, SentenceSplitter(), WordCounter())
+    chunks = build_chunks(
+        document("Lipitor"), sections, SentenceSplitter(), WordCounter(), pages_of
+    )
 
     assert [(c.content, c.page_start, c.page_end) for c in chunks] == [
         ("Take 10 mg once daily.", 4, 4),
-        ("Do not crush the tablet.", 4, 5),
+        ("Do not\ncrush the tablet.", 4, 5),
     ]
     first = chunks[0]
     assert (first.document_id, first.drug_name) == (DOC, "Lipitor")
@@ -55,23 +59,20 @@ def test_chunks_carry_section_pages_anchor_and_tokens() -> None:
 
 
 def test_sections_without_content_give_no_chunks() -> None:
-    sections = [
-        section("2", "DOSAGE AND ADMINISTRATION"),
-        section("2.1", "Dose", (4, "One tablet.")),
-    ]
+    sections = [section("2", "DOSAGE AND ADMINISTRATION"), section("2.1", "Dose", "One tablet.")]
 
-    chunks = build_chunks(DOC, "X", sections, SentenceSplitter(), WordCounter())
+    chunks = build_chunks(document("X"), sections, SentenceSplitter(), WordCounter(), pages_of)
 
     assert [c.section_number for c in chunks] == ["2.1"]
 
 
 def test_chunks_never_cross_sections() -> None:
     sections = [
-        section("4", "CONTRAINDICATIONS", (5, "None.")),
-        section("5", "WARNINGS", (5, "Liver injury.")),
+        section("4", "CONTRAINDICATIONS", "None."),
+        section("5", "WARNINGS", "Liver injury."),
     ]
 
-    chunks = build_chunks(DOC, "X", sections, SentenceSplitter(), WordCounter())
+    chunks = build_chunks(document("X"), sections, SentenceSplitter(), WordCounter(), pages_of)
 
     assert [(c.section_number, c.content) for c in chunks] == [
         ("4", "None."),
@@ -97,3 +98,27 @@ def test_embedding_input_prefix_is_switchable() -> None:
     assert embedding_input("", "hydralazine", "1 USE", "Text.", prefix=True).startswith(
         "Drug: hydralazine. Section: 1 USE."
     )
+
+
+def test_a_label_without_a_brand_uses_the_generic_name() -> None:
+    sections = [section("1", "USE", "Treats fungus.")]
+
+    chunks = build_chunks(
+        document("", "terbinafine"), sections, SentenceSplitter(), WordCounter(), pages_of
+    )
+
+    assert chunks[0].drug_name == "terbinafine"
+
+
+def test_the_first_chunk_of_a_section_is_located_with_its_heading() -> None:
+    seen: list[str] = []
+
+    def record(contents: Sequence[str]) -> list[tuple[int, int]]:
+        seen.extend(contents)
+        return [(1, 1)] * len(contents)
+
+    sections = [section("4", "CONTRAINDICATIONS", "None. Really none.")]
+    chunks = build_chunks(document("X"), sections, SentenceSplitter(), WordCounter(), record)
+
+    assert seen == ["4 CONTRAINDICATIONS\nNone.", "Really none."]
+    assert chunks[0].content == "None."

@@ -1,5 +1,5 @@
-"""Ingest one stored label: parse, split into sections and chunks, embed, store. Idempotent.
-The corpus command and the upload endpoint use this service."""
+"""Ingest one stored label: sections from the SPL XML, pages from the PDF, then chunks,
+embeddings and storage. Idempotent."""
 
 import asyncio
 import logging
@@ -9,11 +9,22 @@ from uuid import UUID
 
 from app.application.chunking import build_chunks, embedding_input
 from app.application.label_sections import split_sections
+from app.application.page_locator import PageLocator
 from app.domain.documents import Document, DocumentStatus, IngestionStatusRepository
-from app.domain.ports import ChunkRepository, DocumentParser, Embedder, TextSplitter, TokenCounter
-from app.domain.storage import DocumentStore
+from app.domain.entities import Chunk
+from app.domain.ports import (
+    ChunkRepository,
+    DocumentParser,
+    Embedder,
+    LabelParser,
+    TextSplitter,
+    TokenCounter,
+)
+from app.domain.storage import DocumentStore, ObjectNotFoundError, label_key
 
 logger = logging.getLogger(__name__)
+# More chunks than this share without a page match means the PDF is another version.
+MAX_PAGE_MISSES = 0.2
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,7 +41,8 @@ class IngestionService:
     store: DocumentStore
     documents: IngestionStatusRepository
     chunks: ChunkRepository
-    parser: DocumentParser
+    pdf_parser: DocumentParser
+    label_parser: LabelParser
     splitter: TextSplitter
     counter: TokenCounter
     embedder: Embedder
@@ -55,16 +67,7 @@ class IngestionService:
             return IngestResult(document.id, error=f"{type(exc).__name__}: {exc}")
 
     async def _ingest(self, document: Document) -> IngestResult:
-        data = await asyncio.to_thread(
-            lambda: b"".join(self.store.get_stream(document.storage_key))
-        )
-        page_count, lines = await asyncio.to_thread(self.parser.extract_lines, data)
-        drug_name = document.brand_name or document.generic_name
-        drafts = build_chunks(
-            document.id, drug_name, split_sections(lines), self.splitter, self.counter
-        )
-        if not drafts:
-            raise ValueError("The label gave no chunks")
+        page_count, drafts = await asyncio.to_thread(self._chunks, document)
 
         inputs = [
             embedding_input(
@@ -88,3 +91,28 @@ class IngestionService:
         return IngestResult(
             document.id, chunks=len(chunks), tokens=sum(self.counter.count(t) for t in inputs)
         )
+
+    def _chunks(self, document: Document) -> tuple[int, list[Chunk]]:
+        """Parse, split and locate in a worker thread: this is CPU work."""
+        pdf = b"".join(self.store.get_stream(document.storage_key))
+        try:
+            label = b"".join(self.store.get_stream(label_key(document.id)))
+        except ObjectNotFoundError as exc:
+            raise ValueError("The label XML is not stored; run the corpus download") from exc
+        pages = self.pdf_parser.page_texts(pdf)
+        sections = split_sections(self.label_parser.sections(label))
+        locator = PageLocator(pages)
+        drafts = build_chunks(document, sections, self.splitter, self.counter, locator.locate_all)
+        if not drafts:
+            raise ValueError("The label gave no chunks")
+        if locator.misses > MAX_PAGE_MISSES * len(drafts):
+            raise ValueError(
+                f"The PDF does not match the label XML: {locator.misses} of {len(drafts)} "
+                "chunks are not in the PDF"
+            )
+        if locator.misses:
+            logger.info(
+                "chunk pages not found",
+                extra={"document_id": str(document.id), "misses": locator.misses},
+            )
+        return len(pages), drafts

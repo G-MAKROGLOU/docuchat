@@ -14,6 +14,7 @@ from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.models import ModelFactory
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
 from app.infrastructure.pdf_parser import PyMuPdfParser
+from app.infrastructure.spl_parser import SplXmlParser
 from app.infrastructure.storage import build_document_store
 from app.infrastructure.text_splitting import SentenceTokenSplitter, TiktokenCounter
 
@@ -45,7 +46,8 @@ def ingestion_service(settings: Settings, connections: Connections) -> Ingestion
         store=build_document_store(settings),
         documents=PostgresDocumentRepository(connections),
         chunks=PostgresChunkRepository(connections),
-        parser=PyMuPdfParser(),
+        pdf_parser=PyMuPdfParser(),
+        label_parser=SplXmlParser(),
         splitter=SentenceTokenSplitter(chunk_tokens=500, overlap_tokens=50),
         counter=TiktokenCounter(),
         embedder=ModelFactory(settings).embedder(),

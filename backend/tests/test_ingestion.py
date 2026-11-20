@@ -9,19 +9,27 @@ import pytest
 
 from app.application.ingestion import IngestionService
 from app.domain.documents import Document, DocumentStatus
-from app.domain.entities import Chunk, PdfLine
-from app.domain.storage import document_key
+from app.domain.entities import Chunk, LabelNode
+from app.domain.storage import document_key, label_key
 from app.infrastructure.storage import FileSystemDocumentStore
 from tests.test_chunking import SentenceSplitter, WordCounter
 
-LINES = [
-    PdfLine(2, "FULL PRESCRIBING INFORMATION: CONTENTS*", bold=True),
-    PdfLine(3, "FULL PRESCRIBING INFORMATION", bold=True),
-    PdfLine(3, "1 INDICATIONS AND USAGE", bold=True),
-    PdfLine(3, "Treats high cholesterol. Lowers stroke risk."),
-    PdfLine(4, "2 DOSAGE AND ADMINISTRATION", bold=True),
-    PdfLine(4, "2.1 Recommended Dosage", bold=True),
-    PdfLine(4, "Take 10 mg once daily."),
+NODES = [
+    LabelNode("48780-1", "Highlights", "Take 10 mg once daily."),
+    LabelNode("34067-9", "1 INDICATIONS AND USAGE", "Treats high cholesterol. Lowers stroke risk."),
+    LabelNode(
+        "34068-7",
+        "2 DOSAGE AND ADMINISTRATION",
+        "",
+        (LabelNode("42229-5", "2.1 Recommended Dosage", "Take 10 mg once daily."),),
+    ),
+]
+PAGES = [
+    "HIGHLIGHTS\nTake 10 mg once daily.",
+    "FULL PRESCRIBING INFORMATION: CONTENTS*",
+    "FULL PRESCRIBING INFORMATION\n1 INDICATIONS AND USAGE\nTreats high cholesterol.\n"
+    "Lowers stroke risk.",
+    "2 DOSAGE AND ADMINISTRATION\n2.1 Recommended Dosage\nTake 10 mg once daily.",
 ]
 
 
@@ -57,14 +65,24 @@ class FakeChunks:
         return {c.embedding_model or "" for c in self.by_document.get(document_id, [])}
 
 
-class FakeParser:
-    def __init__(self, lines: list[PdfLine]) -> None:
-        self.lines = lines
+class FakePdfParser:
+    def __init__(self, pages: list[str]) -> None:
+        self.pages = pages
+
+    def page_texts(self, data: bytes) -> list[str]:
+        assert data.startswith(b"%PDF-")
+        return self.pages
+
+
+class FakeLabelParser:
+    def __init__(self, nodes: list[LabelNode]) -> None:
+        self.nodes = nodes
         self.calls = 0
 
-    def extract_lines(self, data: bytes) -> tuple[int, list[PdfLine]]:
+    def sections(self, data: bytes) -> list[LabelNode]:
+        assert data.startswith(b"<document")
         self.calls += 1
-        return 4, self.lines
+        return self.nodes
 
 
 class FakeEmbedder:
@@ -95,6 +113,7 @@ def setup(tmp_path: Path) -> tuple[FakeDocuments, FileSystemDocumentStore]:
     )
     store = FileSystemDocumentStore(tmp_path)
     store.put(document.storage_key, b"%PDF-1.7 test", "application/pdf")
+    store.put(label_key(doc_id), b"<document/>", "application/xml")
     return FakeDocuments(document), store
 
 
@@ -102,16 +121,18 @@ def service(
     documents: FakeDocuments,
     store: FileSystemDocumentStore,
     chunks: FakeChunks,
-    parser: FakeParser,
+    parser: FakeLabelParser,
     embedder: FakeEmbedder,
     *,
     model: str = "openai/text-embedding-3-small",
+    pages: list[str] = PAGES,
 ) -> IngestionService:
     return IngestionService(
         store=store,
         documents=documents,
         chunks=chunks,
-        parser=parser,
+        pdf_parser=FakePdfParser(pages),
+        label_parser=parser,
         splitter=SentenceSplitter(),
         counter=WordCounter(),
         embedder=embedder,
@@ -127,14 +148,16 @@ def test_ingest_stores_embedded_chunks_and_marks_the_document(
     chunks, embedder = FakeChunks(), FakeEmbedder()
 
     result = asyncio.run(
-        service(documents, store, chunks, FakeParser(LINES), embedder).ingest(documents.document)
+        service(documents, store, chunks, FakeLabelParser(NODES), embedder).ingest(
+            documents.document
+        )
     )
 
     stored = chunks.by_document[documents.document.id]
-    assert [(c.section_number, c.content) for c in stored] == [
-        ("1", "Treats high cholesterol."),
-        ("1", "Lowers stroke risk."),
-        ("2.1", "Take 10 mg once daily."),
+    assert [(c.section_number, c.content, c.page_start, c.page_end) for c in stored] == [
+        ("1", "Treats high cholesterol.", 3, 3),
+        ("1", "Lowers stroke risk.", 3, 3),
+        ("2.1", "Take 10 mg once daily.", 4, 4),
     ]
     assert all(c.embedding and c.embedding_model == "openai/text-embedding-3-small" for c in stored)
     assert embedder.inputs[2] == (
@@ -151,7 +174,7 @@ def test_second_ingest_of_the_same_document_does_nothing(
     setup: tuple[FakeDocuments, FileSystemDocumentStore],
 ) -> None:
     documents, store = setup
-    chunks, parser = FakeChunks(), FakeParser(LINES)
+    chunks, parser = FakeChunks(), FakeLabelParser(NODES)
     ingestion = service(documents, store, chunks, parser, FakeEmbedder())
     asyncio.run(ingestion.ingest(documents.document))
 
@@ -165,7 +188,7 @@ def test_a_new_embedding_model_ingests_again(
     setup: tuple[FakeDocuments, FileSystemDocumentStore],
 ) -> None:
     documents, store = setup
-    chunks, parser = FakeChunks(), FakeParser(LINES)
+    chunks, parser = FakeChunks(), FakeLabelParser(NODES)
     asyncio.run(
         service(documents, store, chunks, parser, FakeEmbedder()).ingest(documents.document)
     )
@@ -184,10 +207,10 @@ def test_a_parse_failure_marks_the_document_failed(
     setup: tuple[FakeDocuments, FileSystemDocumentStore],
 ) -> None:
     documents, store = setup
-    no_body = [PdfLine(1, "HIGHLIGHTS OF PRESCRIBING INFORMATION", bold=True)]
+    no_body = [NODES[0]]
 
     result = asyncio.run(
-        service(documents, store, FakeChunks(), FakeParser(no_body), FakeEmbedder()).ingest(
+        service(documents, store, FakeChunks(), FakeLabelParser(no_body), FakeEmbedder()).ingest(
             documents.document
         )
     )
@@ -198,7 +221,7 @@ def test_a_parse_failure_marks_the_document_failed(
 
 def test_force_ingests_again(setup: tuple[FakeDocuments, FileSystemDocumentStore]) -> None:
     documents, store = setup
-    parser = FakeParser(LINES)
+    parser = FakeLabelParser(NODES)
     ingestion = service(documents, store, FakeChunks(), parser, FakeEmbedder())
     asyncio.run(ingestion.ingest(documents.document))
 
@@ -206,3 +229,40 @@ def test_force_ingests_again(setup: tuple[FakeDocuments, FileSystemDocumentStore
 
     assert not result.skipped
     assert parser.calls == 2
+
+
+def test_a_pdf_that_does_not_match_the_label_fails(
+    setup: tuple[FakeDocuments, FileSystemDocumentStore],
+) -> None:
+    documents, store = setup
+    other = [
+        "FULL PRESCRIBING INFORMATION: CONTENTS",
+        "FULL PRESCRIBING INFORMATION",
+        "Other text.",
+    ]
+
+    result = asyncio.run(
+        service(
+            documents, store, FakeChunks(), FakeLabelParser(NODES), FakeEmbedder(), pages=other
+        ).ingest(documents.document)
+    )
+
+    assert result.error is not None
+    assert "does not match" in result.error
+    assert documents.statuses[-1] is DocumentStatus.FAILED
+
+
+def test_a_missing_label_xml_fails_with_a_hint(
+    setup: tuple[FakeDocuments, FileSystemDocumentStore],
+) -> None:
+    documents, store = setup
+    store.delete(label_key(documents.document.id))
+
+    result = asyncio.run(
+        service(documents, store, FakeChunks(), FakeLabelParser(NODES), FakeEmbedder()).ingest(
+            documents.document
+        )
+    )
+
+    assert result.error is not None
+    assert "corpus download" in result.error

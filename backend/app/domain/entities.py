@@ -24,12 +24,13 @@ class Message:
 
 
 @dataclass(frozen=True, slots=True)
-class PdfLine:
-    """One text line of a PDF page, as the parser reads it."""
+class LabelNode:
+    """One section of a structured label: section code, title, own text and subsections."""
 
-    page: int
+    code: str
+    title: str
     text: str
-    bold: bool = False
+    children: tuple["LabelNode", ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,7 +39,7 @@ class LabelSection:
 
     number: str
     title: str
-    lines: tuple[PdfLine, ...]
+    text: str
 
 
 @dataclass(frozen=True, slots=True)

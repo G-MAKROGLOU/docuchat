@@ -5,7 +5,7 @@ from contextlib import AbstractContextManager
 from typing import Protocol
 from uuid import UUID
 
-from app.domain.entities import Chunk, Message, ModelRole, PdfLine, TextSpan
+from app.domain.entities import Chunk, LabelNode, Message, ModelRole, TextSpan
 
 
 class ChatModel(Protocol):
@@ -45,8 +45,14 @@ class ChunkSearch(Protocol):
 
 
 class DocumentParser(Protocol):
-    def extract_lines(self, data: bytes) -> tuple[int, list[PdfLine]]:
-        """Return the page count and the text lines in reading order."""
+    def page_texts(self, data: bytes) -> list[str]:
+        """Return the text of each page in reading order."""
+        ...
+
+
+class LabelParser(Protocol):
+    def sections(self, data: bytes) -> list[LabelNode]:
+        """Return the top-level sections of the label body in document order."""
         ...
 
 

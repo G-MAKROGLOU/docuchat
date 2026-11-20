@@ -2,7 +2,6 @@
 
 import pymupdf
 
-from app.domain.entities import PdfLine
 from app.infrastructure.pdf_parser import PyMuPdfParser
 
 
@@ -17,7 +16,7 @@ def pdf(*items: tuple[float, float, str, str], pages: int = 1) -> bytes:
     return data
 
 
-def test_lines_follow_the_page_position_not_the_content_order() -> None:
+def test_text_follows_the_page_position_not_the_content_order() -> None:
     # Written in the order DailyMed uses: heading, bullets, then the item texts at the end.
     data = pdf(
         (41, 100, "4 CONTRAINDICATIONS", "hebo"),
@@ -28,26 +27,17 @@ def test_lines_follow_the_page_position_not_the_content_order() -> None:
         (41, 170, "5 WARNINGS AND PRECAUTIONS", "hebo"),
     )
 
-    page_count, lines = PyMuPdfParser().extract_lines(data)
-
-    assert page_count == 1
-    assert lines == [
-        PdfLine(1, "4 CONTRAINDICATIONS", bold=True),
-        PdfLine(1, "- Acute liver failure.", bold=False),
-        PdfLine(1, "- Hypersensitivity to the drug.", bold=False),
-        PdfLine(1, "5 WARNINGS AND PRECAUTIONS", bold=True),
+    assert PyMuPdfParser().page_texts(data) == [
+        "4 CONTRAINDICATIONS\n- Acute liver failure.\n- Hypersensitivity to the drug.\n"
+        "5 WARNINGS AND PRECAUTIONS"
     ]
 
 
-def test_parts_on_one_row_become_one_line_and_bold_ignores_the_bullet() -> None:
+def test_parts_on_one_row_become_one_line() -> None:
     data = pdf((51, 100, "-", "helv"), (70, 100, "Bold item", "hebo"), (200, 100, "tail", "hebo"))
 
-    _, lines = PyMuPdfParser().extract_lines(data)
-
-    assert lines == [PdfLine(1, "- Bold item tail", bold=True)]
+    assert PyMuPdfParser().page_texts(data) == ["- Bold item tail"]
 
 
-def test_page_numbers_start_at_one() -> None:
-    _, lines = PyMuPdfParser().extract_lines(pdf((41, 100, "Text", "helv"), pages=2))
-
-    assert [line.page for line in lines] == [1]
+def test_every_page_has_a_text_even_when_empty() -> None:
+    assert PyMuPdfParser().page_texts(pdf((41, 100, "Text", "helv"), pages=2)) == ["Text", ""]
