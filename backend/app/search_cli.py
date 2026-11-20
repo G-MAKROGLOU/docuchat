@@ -11,6 +11,7 @@ from app.domain.documents import DocumentStatus
 from app.infrastructure.chunk_search import PostgresChunkSearch
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.models import ModelFactory
+from app.infrastructure.name_similarity import RapidFuzzSimilarity
 
 SAMPLE_QUESTIONS = [
     "What is the recommended starting dose of Lipitor?",
@@ -32,7 +33,8 @@ async def run(questions: list[str], mode: SearchMode) -> None:
             )
             for d in documents
             if d.status is DocumentStatus.INGESTED
-        ]
+        ],
+        RapidFuzzSimilarity(),
     )
     service = RetrievalService(
         PostgresChunkSearch(database_url),

@@ -1,6 +1,7 @@
 import pytest
 
 from app.application.drug_detection import DrugDetector, DrugEntry
+from app.infrastructure.name_similarity import RapidFuzzSimilarity
 
 CATALOG = [
     DrugEntry(name="Lipitor", brand="Lipitor", generic="atorvastatin"),
@@ -17,7 +18,7 @@ CATALOG = [
 
 @pytest.fixture
 def detector() -> DrugDetector:
-    return DrugDetector(CATALOG)
+    return DrugDetector(CATALOG, RapidFuzzSimilarity())
 
 
 def test_exact_brand_name_any_case(detector: DrugDetector) -> None:

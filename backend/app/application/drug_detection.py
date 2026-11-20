@@ -1,13 +1,11 @@
-"""Drug detection in a question: exact names first, then fuzzy (rapidfuzz), plain code.
-
-Thresholds are starting values from measured look-alike scores; phase 7 calibrates them.
-"""
+"""Drug detection in a question: exact names first, then fuzzy, plain code.
+Thresholds are starting values from measured look-alike scores; phase 7 calibrates them."""
 
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from rapidfuzz import fuzz
+from app.domain.ports import NameSimilarity
 
 # A generic name is also matched without these salt or form words ("hydralazine").
 _SALT_WORDS = {
@@ -46,11 +44,13 @@ class DrugDetector:
     def __init__(
         self,
         entries: list[DrugEntry],
+        similarity: NameSimilarity,
         *,
         fuzzy_threshold: float = 85.0,
         candidate_floor: float = 75.0,
         ambiguity_margin: float = 12.0,
     ) -> None:
+        self._similarity = similarity
         self._threshold = fuzzy_threshold
         self._floor = candidate_floor
         self._margin = ambiguity_margin
@@ -104,7 +104,7 @@ class DrugDetector:
         """Canonical names whose best key scores at least the floor, best first."""
         best: dict[str, float] = {}
         for key, name in self._single_word_keys.items():
-            score = fuzz.ratio(word, key)
+            score = self._similarity.ratio(word, key)
             if score >= self._floor and score > best.get(name, 0):
                 best[name] = score
         return sorted(best.items(), key=lambda kv: -kv[1])

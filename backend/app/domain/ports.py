@@ -54,6 +54,12 @@ class TextSplitter(Protocol):
     def split(self, text: str) -> list[TextSpan]: ...
 
 
+class NameSimilarity(Protocol):
+    def ratio(self, a: str, b: str) -> float:
+        """Similarity of two names, 0 to 100."""
+        ...
+
+
 class TokenCounter(Protocol):
     def count(self, text: str) -> int: ...
 
