@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     llm_generate_model: str
     embedding_model: str
     embedding_dimensions: int
+    # Switch for the ablation: the drug and section prefix on each embedded chunk.
+    embedding_prefix: bool = True
     database_url: SecretStr
 
     langfuse_public_key: SecretStr | None = None
