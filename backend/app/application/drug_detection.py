@@ -96,7 +96,7 @@ class DrugDetector:
         return DrugDetection(
             drugs=drugs,
             fuzzy=_unique(name for _, name in fuzzy if name in drugs),
-            ambiguous=_unique(ambiguous) if not drugs else (),
+            ambiguous=_unique(ambiguous),
             not_in_corpus=_unique(outside),
         )
 

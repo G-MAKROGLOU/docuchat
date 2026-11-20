@@ -93,3 +93,10 @@ def test_common_words_do_not_fuzzy_match(detector: DrugDetector) -> None:
     result = detector.detect("Can I take this tablet with water after a meal?")
 
     assert (result.drugs, result.ambiguous) == ((), ())
+
+
+def test_ambiguous_word_is_kept_when_another_drug_matches(detector: DrugDetector) -> None:
+    result = detector.detect("Compare Lipitor and hydrazine")
+
+    assert result.drugs == ("Lipitor",)
+    assert result.ambiguous == ("hydralazine hydrochloride", "hydroxyzine hydrochloride")
