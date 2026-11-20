@@ -24,6 +24,8 @@ jobs:
             -e 's/^NEXT_WATCH_POLL_INTERVAL_MS=.*/NEXT_WATCH_POLL_INTERVAL_MS=/' \
             -e 's/^WATCHPACK_POLLING=.*/WATCHPACK_POLLING=/' \
             .env
+      - name: Give the bind-mounted folders to uid 1000 (the dev containers' user)
+        run: sudo chown -R 1000:1000 backend frontend
       - name: Start the stack and wait for health
         run: docker compose up -d --build --wait --wait-timeout 300
       - name: GET /api/v1/health on the backend
