@@ -197,3 +197,18 @@ def test_guide_title_variants_end_the_body() -> None:
         )
 
         assert [line.text for line in sections[-1].lines] == ["Advise patients."], title
+
+
+def test_guide_title_with_a_lower_case_note_in_brackets_is_section_text() -> None:
+    sections = split_sections(
+        body(
+            L(3, "17 PATIENT COUNSELING INFORMATION", bold=True),
+            L(3, "Medication Guide (see FDA-approved patient labeling)", bold=True),
+            L(3, "Advise patients."),
+        )
+    )
+
+    assert [line.text for line in sections[-1].lines] == [
+        "Medication Guide (see FDA-approved patient labeling)",
+        "Advise patients.",
+    ]

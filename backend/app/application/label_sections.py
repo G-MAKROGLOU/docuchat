@@ -10,7 +10,7 @@ BODY_START = "FULL PRESCRIBING INFORMATION"
 BOXED_WARNING = "BW"
 _HEADING = re.compile(r"^(\d{1,2}(?:\.\d{1,2})*)\s+(\S.*)$")
 _MAX_TOP_LEVEL = 17
-# A guide title followed by a lower-case word is section 17 text ("Patient Information about").
+# A guide title whose next letter is lower case is section 17 text ("Patient Information about").
 _END_TITLES = ("MEDICATION GUIDE", "PATIENT INFORMATION", "INSTRUCTIONS FOR USE")
 _END_PREFIXES = ("PACKAGE LABEL", "PRINCIPAL DISPLAY PANEL")
 # A heading line that ends like this continues on the next bold line.
@@ -42,8 +42,8 @@ def _is_end(line: PdfLine) -> bool:
 
 def _is_guide_title(text: str) -> bool:
     title = next((t for t in _END_TITLES if text.upper().startswith(t)), None)
-    rest = text[len(title) :].strip(" *:") if title else ""
-    return title is not None and not rest[:1].islower()
+    letters = [c for c in text[len(title) :] if c.isalpha()] if title else []
+    return title is not None and not (letters and letters[0].islower())
 
 
 def split_sections(lines: Sequence[PdfLine]) -> list[LabelSection]:
