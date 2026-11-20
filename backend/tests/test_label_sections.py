@@ -183,3 +183,17 @@ def test_display_panel_ends_the_body_as_a_prefix() -> None:
     )
 
     assert [line.text for line in sections[-1].lines] == ["Advise patients."]
+
+
+def test_guide_title_variants_end_the_body() -> None:
+    for title in ("Patient Information Leaflet", "MEDICATION GUIDE:", "Instructions for Use*"):
+        sections = split_sections(
+            body(
+                L(3, "17 PATIENT COUNSELING INFORMATION", bold=True),
+                L(3, "Advise patients."),
+                L(4, title, bold=True),
+                L(4, "What is Drug X?"),
+            )
+        )
+
+        assert [line.text for line in sections[-1].lines] == ["Advise patients."], title
