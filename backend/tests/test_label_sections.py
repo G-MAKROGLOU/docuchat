@@ -153,3 +153,33 @@ def test_top_level_numbers_never_go_back() -> None:
 
     assert [s.number for s in sections] == ["12", "13"]
     assert [line.text for line in sections[0].lines] == ["Text.", "2 Table Of Doses"]
+
+
+def test_guide_titles_end_the_body_only_as_a_whole_line() -> None:
+    sections = split_sections(
+        body(
+            L(3, "17 PATIENT COUNSELING INFORMATION", bold=True),
+            L(3, "Patient Information about sun exposure", bold=True),
+            L(3, "Advise patients to avoid the sun."),
+            L(4, "Patient Information", bold=True),
+            L(4, "What is Drug X?"),
+        )
+    )
+
+    assert [line.text for line in sections[-1].lines] == [
+        "Patient Information about sun exposure",
+        "Advise patients to avoid the sun.",
+    ]
+
+
+def test_display_panel_ends_the_body_as_a_prefix() -> None:
+    sections = split_sections(
+        body(
+            L(3, "17 PATIENT COUNSELING INFORMATION", bold=True),
+            L(3, "Advise patients."),
+            L(4, "PRINCIPAL DISPLAY PANEL - 5 mg Tablet Bottle Label", bold=True),
+            L(4, "NDC 0000-0000"),
+        )
+    )
+
+    assert [line.text for line in sections[-1].lines] == ["Advise patients."]

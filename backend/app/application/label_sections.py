@@ -12,13 +12,9 @@ BODY_START = "FULL PRESCRIBING INFORMATION"
 BOXED_WARNING = "BW"
 _HEADING = re.compile(r"^(\d{1,2}(?:\.\d{1,2})*)\s+(\S.*)$")
 _MAX_TOP_LEVEL = 17
-_END_MARKERS = (
-    "MEDICATION GUIDE",
-    "PATIENT INFORMATION",
-    "INSTRUCTIONS FOR USE",
-    "PACKAGE LABEL",
-    "PRINCIPAL DISPLAY PANEL",
-)
+# Guide titles end the body only as a whole line: section 17 can have bold lines that start so.
+_END_TITLES = ("MEDICATION GUIDE", "PATIENT INFORMATION", "INSTRUCTIONS FOR USE")
+_END_PREFIXES = ("PACKAGE LABEL", "PRINCIPAL DISPLAY PANEL")
 # A heading line that ends like this continues on the next bold line.
 _CONTINUES = (",", " and", " of", " with", " in", " for", " to", " or", "-", "/")
 
@@ -42,8 +38,9 @@ def _heading(line: PdfLine, last_top: int) -> tuple[str, str] | None:
 
 
 def _is_end(line: PdfLine) -> bool:
+    text = line.text.strip().upper()
     return line.text.startswith("Revised:") or (
-        line.bold and line.text.upper().startswith(_END_MARKERS)
+        line.bold and (text in _END_TITLES or text.startswith(_END_PREFIXES))
     )
 
 
