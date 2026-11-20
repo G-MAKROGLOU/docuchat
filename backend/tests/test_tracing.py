@@ -184,3 +184,21 @@ def test_the_app_starts_again_after_a_shutdown(monkeypatch: pytest.MonkeyPatch) 
     for _ in range(2):
         with TestClient(app):
             pass
+
+
+def test_a_failed_start_keeps_no_pool_from_an_earlier_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(main, "build_document_store", lambda settings: None)
+    app = main.create_app(load_settings())
+    with TestClient(app):
+        pass
+
+    def fail(conninfo: str) -> list[str]:
+        raise RuntimeError("database down")
+
+    monkeypatch.setattr(main, "apply_migrations", fail)
+    with pytest.raises(RuntimeError, match="database down"), TestClient(app):
+        pass
+
+    assert app.state.pool is None
+    assert app.state.document_repository is None

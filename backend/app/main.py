@@ -16,6 +16,7 @@ from app.infrastructure.tracing import build_tracer
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    app.state.pool = app.state.document_repository = None
     try:
         await asyncio.to_thread(
             apply_migrations, app.state.settings.database_url.get_secret_value()
@@ -27,8 +28,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.document_store = await asyncio.to_thread(build_document_store, app.state.settings)
         yield
     finally:
-        if pool := getattr(app.state, "pool", None):
-            await pool.close()
+        if app.state.pool is not None:
+            await app.state.pool.close()
         # Flush buffered spans off the event loop; a slow or unreachable host must not block it.
         await asyncio.to_thread(app.state.tracer.shutdown)
 
