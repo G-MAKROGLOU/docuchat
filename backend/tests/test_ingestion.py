@@ -19,6 +19,7 @@ LINES = [
     PdfLine(3, "FULL PRESCRIBING INFORMATION", bold=True),
     PdfLine(3, "1 INDICATIONS AND USAGE", bold=True),
     PdfLine(3, "Treats high cholesterol. Lowers stroke risk."),
+    PdfLine(4, "2 DOSAGE AND ADMINISTRATION", bold=True),
     PdfLine(4, "2.1 Recommended Dosage", bold=True),
     PdfLine(4, "Take 10 mg once daily."),
 ]

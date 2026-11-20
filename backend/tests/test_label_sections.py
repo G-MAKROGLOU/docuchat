@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from app.application.label_sections import LabelFormatError, split_sections
@@ -244,3 +246,74 @@ def test_a_bold_table_row_is_not_a_top_level_heading() -> None:
         "6 Weeks 6 Months 12 Months",
         "2.6 kg 4.2 kg 5.4 kg",
     ]
+
+
+def test_a_number_with_a_dot_is_a_heading() -> None:
+    sections = split_sections(
+        body(
+            L(3, "2 DOSAGE AND ADMINISTRATION", bold=True),
+            L(3, "Take 5 mg."),
+            L(4, "3. DOSAGE FORMS AND STRENGTHS", bold=True),
+            L(4, "Tablets: 2.5 mg."),
+        )
+    )
+
+    assert [(s.number, s.title) for s in sections] == [
+        ("2", "DOSAGE AND ADMINISTRATION"),
+        ("3", "DOSAGE FORMS AND STRENGTHS"),
+    ]
+
+
+def test_a_one_word_part_of_a_title_is_not_a_heading() -> None:
+    sections = split_sections(
+        body(
+            L(3, "12 CLINICAL PHARMACOLOGY", bold=True),
+            L(3, "14 Studies", bold=True),
+            L(3, "pooled."),
+        )
+    )
+
+    assert [s.number for s in sections] == ["12"]
+    assert [line.text for line in sections[0].lines] == ["14 Studies", "pooled."]
+
+
+def test_a_subsection_must_be_in_the_current_section() -> None:
+    sections = split_sections(
+        body(
+            L(3, "5.5 Metabolic Changes", bold=True),
+            L(3, "8.5 Hours", bold=True),
+            L(3, "6 ADVERSE REACTIONS", bold=True),
+        )
+    )
+
+    assert [s.number for s in sections] == ["5.5", "6"]
+    assert [line.text for line in sections[0].lines] == ["8.5 Hours"]
+
+
+def test_a_top_level_title_continues_until_it_is_complete() -> None:
+    sections = split_sections(
+        body(
+            L(3, "8 USE IN SPECIFIC", bold=True),
+            L(3, "POPULATIONS", bold=True),
+            L(3, "8.1 Pregnancy", bold=True),
+            L(4, "16 HOW", bold=True),
+            L(4, "SUPPLIED/STORAGE AND", bold=True),
+            L(4, "HANDLING", bold=True),
+            L(4, "Bottles of 30."),
+        )
+    )
+
+    assert [(s.number, s.title) for s in sections] == [
+        ("8", "USE IN SPECIFIC POPULATIONS"),
+        ("8.1", "Pregnancy"),
+        ("16", "HOW SUPPLIED/STORAGE AND HANDLING"),
+    ]
+    assert [line.text for line in sections[-1].lines] == ["Bottles of 30."]
+
+
+def test_a_rejected_top_level_heading_is_logged(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.INFO, logger="app.application.label_sections"):
+        split_sections(body(L(3, "6 ADVERSE REACTIONS", bold=True), L(3, "17 Weeks", bold=True)))
+
+    assert [r.getMessage() for r in caplog.records] == ["top-level heading rejected"]
+    assert caplog.records[0].line == "17 Weeks"  # type: ignore[attr-defined]

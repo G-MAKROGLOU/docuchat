@@ -1,6 +1,7 @@
 """Split the lines of a label PDF into the sections of the full prescribing information.
 Rules come from the PyMuPDF spike (docs/agent-log.md, 2026-11-20)."""
 
+import logging
 import re
 from collections.abc import Sequence
 
@@ -8,8 +9,11 @@ from app.domain.entities import LabelSection, PdfLine
 
 BODY_START = "FULL PRESCRIBING INFORMATION"
 BOXED_WARNING = "BW"
-_HEADING = re.compile(r"^(\d{1,2}(?:\.\d{1,2})*)\s+(\S.*)$")
-_MIN_TITLE_LETTERS = 4
+_HEADING = re.compile(r"^(\d{1,2}(?:\.\d{1,2})*)\.?\s+(\S.*)$")  # "3 TITLE" or "3. TITLE"
+_WORD = re.compile(r"[A-Z]+")
+# A title cut at the end of a line keeps a partial last word of at least this many letters.
+_MIN_PARTIAL_WORD = 4
+_MIN_SHORTENED_WORDS = 2
 # Top-level section titles fixed by the PLR format (21 CFR 201.57(c)).
 _TOP_LEVEL_TITLES = {
     1: "INDICATIONS AND USAGE",
@@ -37,32 +41,49 @@ _END_PREFIXES = ("PACKAGE LABEL", "PRINCIPAL DISPLAY PANEL")
 _CONTINUES = (",", " and", " of", " with", " in", " for", " to", " or", "-", "/")
 
 
+logger = logging.getLogger(__name__)
+
+
 class LabelFormatError(ValueError):
     pass
 
 
-def _heading(line: PdfLine, last_top: int) -> tuple[str, str] | None:
+def _heading(line: PdfLine, current: int | None) -> tuple[str, str] | None:
     """A bold numbered line whose title starts upper case and whose number does not go back.
     These rules and the standard top-level titles reject bold table cells ("10 mg", "6 Weeks")."""
     match = _HEADING.match(line.text) if line.bold else None
     if not match or not match[2][0].isupper():
         return None
     top = int(match[1].split(".")[0])
-    if not last_top <= top <= len(_TOP_LEVEL_TITLES):
+    if not (current or 1) <= top <= len(_TOP_LEVEL_TITLES):
         return None
-    if "." not in match[1] and not _is_standard_title(top, match[2]):
+    if "." in match[1]:
+        # A subsection opens only inside its own section; a jump ahead is a table cell.
+        return (match[1], match[2].rstrip("*").strip()) if current in {None, top} else None
+    if not _is_standard_title(top, match[2]):
+        logger.info("top-level heading rejected", extra={"line": line.text})
         return None
     return match[1], match[2].rstrip("*").strip()
 
 
+def _words(text: str) -> list[str]:
+    return _WORD.findall(text.upper().replace("-", ""))
+
+
 def _is_standard_title(top: int, title: str) -> bool:
-    # Letters only. A long title can continue on the next line; some labels shorten it.
-    line, standard = (_letters(t) for t in (title, _TOP_LEVEL_TITLES[top]))
-    return len(line) >= _MIN_TITLE_LETTERS and (line in standard or line.startswith(standard))
-
-
-def _letters(text: str) -> str:
-    return "".join(c for c in text.upper() if c.isalpha())
+    line, standard = _words(title), _words(_TOP_LEVEL_TITLES[top])
+    n = len(line)
+    if not line or line[: len(standard)] == standard:
+        return bool(line)
+    # The start of the title, cut at the end of the line, maybe inside its last word.
+    if n <= len(standard) and line[:-1] == standard[: n - 1]:
+        last, expected = line[-1], standard[n - 1]
+        if last == expected or (len(last) >= _MIN_PARTIAL_WORD and expected.startswith(last)):
+            return True
+    # A shortened title of two or more words, such as "ABUSE AND DEPENDENCE".
+    return n >= _MIN_SHORTENED_WORDS and any(
+        standard[i : i + n] == line for i in range(len(standard) - n + 1)
+    )
 
 
 def _is_end(line: PdfLine) -> bool:
@@ -96,8 +117,8 @@ def split_sections(lines: Sequence[PdfLine]) -> list[LabelSection]:
     for line in lines[starts[0] + 1 :]:
         if number is not None and _is_end(line):
             break
-        last_top = int(number.split(".")[0]) if number and number != BOXED_WARNING else 1
-        heading = _heading(line, last_top)
+        current = int(number.split(".")[0]) if number and number != BOXED_WARNING else None
+        heading = _heading(line, current)
         if heading:
             close()
             (number, title), content, in_title = heading, [], True
@@ -121,4 +142,8 @@ def _title_continues(number: str, title: str, line: PdfLine) -> bool:
         # The boxed warning title is the upper-case heading; its body is bold sentence text.
         letters = [c for c in line.text if c.isalpha()]
         return sum(c.isupper() for c in letters) > 0.6 * max(len(letters), 1)
+    if "." not in number:
+        # A top-level title continues while it is only the start of its standard title.
+        title_words, standard = _words(title), _words(_TOP_LEVEL_TITLES[int(number)])
+        return len(title_words) < len(standard) and title_words == standard[: len(title_words)]
     return title.endswith(_CONTINUES)
