@@ -2,12 +2,17 @@
 
 import argparse
 import asyncio
-import json
 import sys
 import time
 from pathlib import Path
 
-from app.application.corpus import CorpusEntry, DownloadReport, download_corpus, parse_manifest
+from app.application.corpus import (
+    CorpusEntry,
+    DownloadReport,
+    download_corpus,
+    parse_manifest,
+    parse_sources,
+)
 from app.config import Settings, get_settings
 from app.infrastructure.dailymed import DailyMedClient
 from app.infrastructure.database import build_pool
@@ -41,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     apply_migrations(settings.database_url.get_secret_value())
     text = args.manifest.read_text(encoding="utf-8")
     entries = parse_manifest(text, quick=args.quick)
-    source = DailyMedClient(json.loads(text)["pdf_url_template"])
+    source = DailyMedClient(*parse_sources(text))
 
     started = time.perf_counter()
     report = asyncio.run(run(settings, entries, source))

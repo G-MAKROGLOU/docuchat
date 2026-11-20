@@ -1,6 +1,7 @@
 {
   "source": "DailyMed",
   "pdf_url_template": "https://dailymed.nlm.nih.gov/dailymed/downloadpdffile.cfm?setId={source_id}",
+  "label_url_template": "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/{source_id}.xml",
   "documents": [
     {
       "brand_name": "Xeljanz",

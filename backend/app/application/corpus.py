@@ -1,4 +1,5 @@
-"""Corpus download: manifest entries to stored PDFs and document rows. Idempotent by source ID."""
+"""Corpus download: manifest entries to stored PDFs, SPL XML and document rows.
+Idempotent by source ID."""
 
 import asyncio
 import hashlib
@@ -9,11 +10,12 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.domain.documents import Document, DocumentRepository, DocumentStatus, LabelSource
-from app.domain.storage import DocumentStore, document_key
+from app.domain.storage import DocumentStore, document_key, label_key
 
 logger = logging.getLogger(__name__)
 
 PDF_MAGIC = b"%PDF-"
+SPL_NAMESPACE = b"urn:hl7-org:v3"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,6 +53,15 @@ def parse_manifest(text: str, *, quick: bool) -> list[CorpusEntry]:
     return [e for e in entries if e.quick_start] if quick else entries
 
 
+def parse_sources(text: str) -> tuple[str, str]:
+    """The PDF and the SPL XML URL templates of the manifest."""
+    try:
+        manifest = json.loads(text)
+        return manifest["pdf_url_template"], manifest["label_url_template"]
+    except (KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Invalid corpus manifest: {exc!r}") from exc
+
+
 async def download_corpus(
     entries: Sequence[CorpusEntry],
     source: LabelSource,
@@ -84,7 +95,11 @@ class _Downloader:
         if known is not None:
             stored: bool = await asyncio.to_thread(self.store.exists, known.storage_key)
             if stored:
-                report.skipped += 1
+                if await asyncio.to_thread(self.store.exists, label_key(known.id)):
+                    report.skipped += 1
+                else:
+                    await self._store_label(entry, label_key(known.id), report)
+                    report.downloaded += 1
                 return
 
         data = await asyncio.to_thread(self.source.fetch_pdf, entry.source_id)
@@ -98,6 +113,7 @@ class _Downloader:
             if known.sha256 != sha256:
                 raise ValueError(f"{entry.source_id}: label changed since it was stored")
             await asyncio.to_thread(self.store.put, known.storage_key, data, "application/pdf")
+            await self._store_label(entry, label_key(known.id), report)
         elif await self.repository.find_by_sha256(sha256):
             logger.info("same PDF already stored", extra={"source_id": entry.source_id})
             report.skipped += 1
@@ -115,8 +131,25 @@ class _Downloader:
                 size_bytes=len(data),
                 status=DocumentStatus.STORED,
             )
-            # Object first, row second: a row never points to a missing object.
+            label = await self._fetch_label(entry)
+            # Objects first, row second: a row never points to a missing object.
             await asyncio.to_thread(self.store.put, document.storage_key, data, "application/pdf")
+            await asyncio.to_thread(
+                self.store.put, label_key(document_id), label, "application/xml"
+            )
             await self.repository.add(document)
+            report.bytes_downloaded += len(label)
         report.downloaded += 1
         report.bytes_downloaded += len(data)
+
+    async def _fetch_label(self, entry: CorpusEntry) -> bytes:
+        label = await asyncio.to_thread(self.source.fetch_label, entry.source_id)
+        await asyncio.sleep(self.delay_seconds)
+        if SPL_NAMESPACE not in label[:4096]:
+            raise ValueError(f"{entry.source_id}: response is not an SPL document")
+        return label
+
+    async def _store_label(self, entry: CorpusEntry, key: str, report: DownloadReport) -> None:
+        label = await self._fetch_label(entry)
+        await asyncio.to_thread(self.store.put, key, label, "application/xml")
+        report.bytes_downloaded += len(label)

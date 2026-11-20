@@ -30,9 +30,13 @@ class Document:
 
 
 class LabelSource(Protocol):
-    """A public source of label PDFs, addressed by its own document ID."""
+    """A public source of labels, addressed by its own document ID."""
 
     def fetch_pdf(self, source_id: str) -> bytes: ...
+
+    def fetch_label(self, source_id: str) -> bytes:
+        """The structured label (SPL XML)."""
+        ...
 
 
 class IngestionStatusRepository(Protocol):

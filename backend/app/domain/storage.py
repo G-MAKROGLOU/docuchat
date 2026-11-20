@@ -13,6 +13,11 @@ def document_key(document_id: UUID, sha256: str) -> str:
     return f"documents/{document_id}/{sha256}.pdf"
 
 
+def label_key(document_id: UUID) -> str:
+    """The structured label (SPL XML) of the same document."""
+    return f"documents/{document_id}/label.xml"
+
+
 class DocumentStore(Protocol):
     def put(self, key: str, data: bytes, content_type: str) -> None: ...
 
