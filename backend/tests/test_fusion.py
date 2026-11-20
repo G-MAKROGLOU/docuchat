@@ -110,3 +110,12 @@ def test_a_drug_with_fewer_chunks_gives_what_it_has() -> None:
 
     assert [s.chunk.drug_name for s in selected].count("Xarelto") == 1
     assert len(selected) == 8
+
+
+def test_large_chunks_still_give_each_drug_a_chunk() -> None:
+    eliquis = [chunk(n, drug="Eliquis", tokens=1200) for n in "abcd"]
+    xarelto = [chunk(n, drug="Xarelto", tokens=1200) for n in "hij"]
+
+    selected = select(fuse(vector=[*eliquis, *xarelto], bm25=[]), drugs=("Eliquis", "Xarelto"))
+
+    assert names(selected) == ["a", "h"]

@@ -59,8 +59,10 @@ def select(fused: Sequence[FusedChunk], *, drugs: Sequence[str]) -> list[FusedCh
     """Top chunks within the count and token limits; with 2+ drugs, a minimum per drug."""
     chosen: list[FusedChunk] = []
     if len(drugs) >= 2:  # noqa: PLR2004  # a comparison question
-        for drug in drugs:
-            chosen.extend([f for f in fused if f.chunk.drug_name == drug][:MIN_PER_DRUG])
+        # Round robin over the drugs, so the token budget cannot use up one drug's share first.
+        per_drug = [[f for f in fused if f.chunk.drug_name == d][:MIN_PER_DRUG] for d in drugs]
+        for rank in range(MIN_PER_DRUG):
+            chosen.extend(items[rank] for items in per_drug if rank < len(items))
     for item in fused:
         if item not in chosen:
             chosen.append(item)
