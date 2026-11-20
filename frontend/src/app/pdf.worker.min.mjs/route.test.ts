@@ -2,7 +2,7 @@
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
-import { PDF_WORKER_SRC } from "../../lib/pdf";
+import { PDF_WORKER_SRC } from "@/lib/pdf";
 import { GET } from "./route";
 
 describe("pdf.js worker route", () => {
