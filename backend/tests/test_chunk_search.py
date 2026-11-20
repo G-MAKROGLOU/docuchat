@@ -17,6 +17,7 @@ from app.infrastructure.chunk_repository import PostgresChunkRepository
 from app.infrastructure.chunk_search import PostgresChunkSearch
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.migrations import apply_migrations
+from tests.db import DirectConnections
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("TEST_DATABASE_URL"), reason="TEST_DATABASE_URL is not set"
@@ -36,7 +37,7 @@ def search() -> Iterator[PostgresChunkSearch]:
         conn.execute("DELETE FROM documents WHERE brand_name = ANY(%s)", (list(DRUGS),))
 
     async def load() -> None:
-        repo = PostgresDocumentRepository(conninfo)
+        repo = PostgresDocumentRepository(DirectConnections(conninfo))
         for name, doc_id in documents.items():
             sha = uuid.uuid4().hex * 2
             await repo.add(
@@ -52,7 +53,7 @@ def search() -> Iterator[PostgresChunkSearch]:
                     status=DocumentStatus.INGESTED,
                 )
             )
-        chunks = PostgresChunkRepository(conninfo)
+        chunks = PostgresChunkRepository(DirectConnections(conninfo))
         for name, doc_id in documents.items():
             await chunks.replace_for_document(
                 doc_id,
@@ -77,7 +78,7 @@ def search() -> Iterator[PostgresChunkSearch]:
             )
 
     asyncio.run(load())
-    yield PostgresChunkSearch(conninfo)
+    yield PostgresChunkSearch(DirectConnections(conninfo))
     with psycopg.connect(conninfo) as conn:
         conn.execute("DELETE FROM documents WHERE brand_name = ANY(%s)", (list(DRUGS),))
 

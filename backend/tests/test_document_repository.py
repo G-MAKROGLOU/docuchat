@@ -9,6 +9,7 @@ import pytest
 from app.domain.documents import Document, DocumentStatus
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.migrations import apply_migrations
+from tests.db import DirectConnections
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("TEST_DATABASE_URL"), reason="TEST_DATABASE_URL is not set"
@@ -20,7 +21,7 @@ def test_migrations_are_idempotent_and_repository_round_trips() -> None:
     apply_migrations(conninfo)
     assert apply_migrations(conninfo) == []
 
-    repository = PostgresDocumentRepository(conninfo)
+    repository = PostgresDocumentRepository(DirectConnections(conninfo))
     sha = uuid.uuid4().hex * 2
     doc = Document(
         id=uuid.uuid4(),

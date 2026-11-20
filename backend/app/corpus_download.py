@@ -7,15 +7,25 @@ import sys
 import time
 from pathlib import Path
 
-from app.application.corpus import download_corpus, parse_manifest
-from app.config import get_settings
+from app.application.corpus import CorpusEntry, DownloadReport, download_corpus, parse_manifest
+from app.config import Settings, get_settings
 from app.infrastructure.dailymed import DailyMedClient
+from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.migrations import apply_migrations
 from app.infrastructure.storage import build_document_store
 
 DEFAULT_MANIFEST = Path("/corpus/manifest.json")
+
+
+async def run(
+    settings: Settings, entries: list[CorpusEntry], source: DailyMedClient
+) -> DownloadReport:
+    async with build_pool(settings.database_url.get_secret_value()) as pool:
+        return await download_corpus(
+            entries, source, build_document_store(settings), PostgresDocumentRepository(pool)
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -28,21 +38,13 @@ def main(argv: list[str] | None = None) -> int:
 
     configure_logging()
     settings = get_settings()
-    database_url = settings.database_url.get_secret_value()
-    apply_migrations(database_url)
+    apply_migrations(settings.database_url.get_secret_value())
     text = args.manifest.read_text(encoding="utf-8")
     entries = parse_manifest(text, quick=args.quick)
     source = DailyMedClient(json.loads(text)["pdf_url_template"])
 
     started = time.perf_counter()
-    report = asyncio.run(
-        download_corpus(
-            entries,
-            source,
-            build_document_store(settings),
-            PostgresDocumentRepository(database_url),
-        )
-    )
+    report = asyncio.run(run(settings, entries, source))
     print(
         f"labels: {len(entries)}  downloaded: {report.downloaded}  skipped: {report.skipped}  "
         f"failed: {report.failed}  bytes: {report.bytes_downloaded}  "

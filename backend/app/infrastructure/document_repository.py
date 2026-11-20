@@ -4,11 +4,11 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-import psycopg
 from psycopg import sql
 from psycopg.rows import dict_row
 
 from app.domain.documents import Document, DocumentStatus
+from app.infrastructure.database import Connections
 
 _FIELDS = (
     "id",
@@ -31,11 +31,11 @@ def _to_document(row: dict[str, Any]) -> Document:
 
 
 class PostgresDocumentRepository:
-    def __init__(self, conninfo: str) -> None:
-        self._conninfo = conninfo
+    def __init__(self, connections: Connections) -> None:
+        self._connections = connections
 
     async def _one(self, where: str, value: object) -> Document | None:
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with self._connections.connection() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             query = sql.SQL("SELECT {} FROM documents WHERE {} = %s").format(
                 _COLUMNS, sql.Identifier(where)
@@ -45,7 +45,7 @@ class PostgresDocumentRepository:
         return _to_document(row) if row else None
 
     async def add(self, document: Document) -> None:
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with self._connections.connection() as conn:
             await conn.execute(
                 sql.SQL("INSERT INTO documents ({}) VALUES ({})").format(
                     _COLUMNS, sql.SQL(", ").join(sql.Placeholder() * len(_FIELDS))
@@ -75,7 +75,7 @@ class PostgresDocumentRepository:
         return await self._one("sha256", sha256)
 
     async def list_all(self) -> list[Document]:
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with self._connections.connection() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             await cursor.execute(
                 sql.SQL("SELECT {} FROM documents ORDER BY brand_name, generic_name").format(
@@ -91,7 +91,7 @@ class PostgresDocumentRepository:
         page_count: int | None = None,
         ingested_at: datetime | None = None,
     ) -> None:
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with self._connections.connection() as conn:
             await conn.execute(
                 "UPDATE documents SET status = %s, "
                 "page_count = COALESCE(%s, page_count), ingested_at = COALESCE(%s, ingested_at) "

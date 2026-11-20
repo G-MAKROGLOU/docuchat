@@ -1,12 +1,25 @@
-"""Database connectivity check."""
+"""Database connections: the shared pool and the connectivity check."""
 
 import asyncio
 import logging
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
+from typing import Any, Protocol
 
 import psycopg
+from psycopg.rows import TupleRow
+from psycopg_pool import AsyncConnectionPool
 
 logger = logging.getLogger(__name__)
+
+
+class Connections(Protocol):
+    def connection(self) -> AbstractAsyncContextManager[psycopg.AsyncConnection[Any]]: ...
+
+
+def build_pool(conninfo: str) -> AsyncConnectionPool[psycopg.AsyncConnection[TupleRow]]:
+    # Closed: the owner opens it in its own event loop (the lifespan, or async with).
+    return AsyncConnectionPool(conninfo, open=False)
 
 
 @dataclass(frozen=True, slots=True)

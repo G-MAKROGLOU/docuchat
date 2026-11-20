@@ -3,12 +3,12 @@
 from collections.abc import Sequence
 from typing import Any
 
-import psycopg
 from psycopg import sql
 from psycopg.rows import dict_row
 
 from app.domain.entities import Chunk
 from app.infrastructure.chunk_repository import vector_literal
+from app.infrastructure.database import Connections
 
 _FIELDS = (
     "id",
@@ -33,8 +33,8 @@ def _filter(drugs: Sequence[str]) -> tuple[sql.Composable, tuple[Any, ...]]:
 
 
 class PostgresChunkSearch:
-    def __init__(self, conninfo: str) -> None:
-        self._conninfo = conninfo
+    def __init__(self, connections: Connections) -> None:
+        self._connections = connections
 
     async def vector_search(
         self, embedding: Sequence[float], drugs: Sequence[str], limit: int
@@ -44,7 +44,7 @@ class PostgresChunkSearch:
             "SELECT {} FROM chunks WHERE TRUE{} ORDER BY embedding <=> %s::vector LIMIT %s"
         ).format(_COLUMNS, where)
         async with (
-            await psycopg.AsyncConnection.connect(self._conninfo) as conn,
+            self._connections.connection() as conn,
             conn.transaction(),
         ):
             # With a drug filter, keep scanning the HNSW graph until enough rows match.
@@ -64,13 +64,13 @@ class PostgresChunkSearch:
             "WHERE (content ||| %s OR content ### %s::pdb.boost(2)){} "
             "ORDER BY pdb.score(id) DESC LIMIT %s"
         ).format(_COLUMNS, where)
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with self._connections.connection() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             await cursor.execute(statement, (query, query, *params, limit))
             rows = await cursor.fetchall()
         return [Chunk(**row) for row in rows]
 
     async def embedding_models(self) -> set[str]:
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with self._connections.connection() as conn:
             cursor = await conn.execute("SELECT DISTINCT embedding_model FROM chunks")
             return {str(row[0]) for row in await cursor.fetchall()}

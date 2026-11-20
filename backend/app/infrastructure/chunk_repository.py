@@ -3,9 +3,8 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-import psycopg
-
 from app.domain.entities import Chunk
+from app.infrastructure.database import Connections
 
 
 def vector_literal(values: Sequence[float]) -> str:
@@ -14,14 +13,14 @@ def vector_literal(values: Sequence[float]) -> str:
 
 
 class PostgresChunkRepository:
-    def __init__(self, conninfo: str) -> None:
-        self._conninfo = conninfo
+    def __init__(self, connections: Connections) -> None:
+        self._connections = connections
 
     async def replace_for_document(self, document_id: UUID, chunks: Sequence[Chunk]) -> None:
         if any(c.document_id != document_id or c.embedding is None for c in chunks):
             raise ValueError("Every chunk must belong to the document and have an embedding")
         async with (
-            await psycopg.AsyncConnection.connect(self._conninfo) as conn,
+            self._connections.connection() as conn,
             conn.transaction(),
             conn.cursor() as cursor,
         ):
@@ -51,7 +50,7 @@ class PostgresChunkRepository:
             )
 
     async def embedding_models(self, document_id: UUID) -> set[str]:
-        async with await psycopg.AsyncConnection.connect(self._conninfo) as conn:
+        async with self._connections.connection() as conn:
             cursor = await conn.execute(
                 "SELECT DISTINCT embedding_model FROM chunks WHERE document_id = %s", (document_id,)
             )

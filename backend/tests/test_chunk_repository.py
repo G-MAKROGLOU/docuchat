@@ -12,6 +12,7 @@ from app.domain.entities import Chunk
 from app.infrastructure.chunk_repository import PostgresChunkRepository
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.migrations import apply_migrations
+from tests.db import DirectConnections
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("TEST_DATABASE_URL"), reason="TEST_DATABASE_URL is not set"
@@ -50,10 +51,10 @@ def test_replace_for_document_swaps_chunks_and_the_indexes_accept_them() -> None
         size_bytes=1,
         status=DocumentStatus.STORED,
     )
-    repository = PostgresChunkRepository(conninfo)
+    repository = PostgresChunkRepository(DirectConnections(conninfo))
 
     async def scenario() -> None:
-        await PostgresDocumentRepository(conninfo).add(doc)
+        await PostgresDocumentRepository(DirectConnections(conninfo)).add(doc)
         await repository.replace_for_document(doc.id, [chunk(doc.id, "Take 10 mg daily.")])
         await repository.replace_for_document(
             doc.id,
