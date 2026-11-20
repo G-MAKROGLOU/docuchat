@@ -110,3 +110,11 @@ def test_unknown_document_is_404(document: Document) -> None:
     response = TestClient(app).get(f"/api/v1/documents/{uuid.uuid4()}/file")
 
     assert response.status_code == 404
+
+
+def test_missing_stored_object_is_404(document: Document, tmp_path: Path) -> None:
+    FileSystemDocumentStore(tmp_path).delete(document.storage_key)
+    client = TestClient(app)
+
+    assert client.get(url(document)).status_code == 404
+    assert client.get(url(document), headers={"Range": "bytes=0-9"}).status_code == 404

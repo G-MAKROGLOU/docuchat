@@ -32,6 +32,9 @@ async def get_document_file(
     document = await repository.get(document_id)
     if document is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
+    # Check before the headers go out; a stream cannot change its status later.
+    if not await asyncio.to_thread(store.exists, document.storage_key):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Document file not found")
 
     size = document.size_bytes
     headers = {
