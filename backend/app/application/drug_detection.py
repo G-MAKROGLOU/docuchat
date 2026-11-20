@@ -74,7 +74,7 @@ class DrugDetector:
                 found.append((match.start(), name))
 
         fuzzy: list[tuple[int, str]] = []
-        ambiguous: list[list[str]] = []
+        ambiguous: list[tuple[int, list[str]]] = []
         outside: list[str] = []
         for match in _WORD.finditer(text):
             if any(a < match.end() and match.start() < b for a, b in taken):
@@ -88,18 +88,25 @@ class DrugDetector:
             ):
                 fuzzy.append((match.start(), ranked[0][0]))
             elif len(ranked) > 1 and ranked[1][1] >= ranked[0][1] - self._margin:
-                ambiguous.append([name for name, _ in ranked])
+                ambiguous.append((match.start(), [name for name, _ in ranked]))
             elif word.endswith(_DRUG_ENDINGS) and not any(word == e for e in _DRUG_ENDINGS):
                 outside.append(word)
+
+        named = {name for _, name in found + fuzzy}
+        unresolved: list[str] = []
+        for start, group in ambiguous:
+            rest = [name for name in group if name not in named]
+            # Close to a drug the question names and to one other: the word means the other.
+            if len(rest) == 1 and len(group) > 1:
+                fuzzy.append((start, rest[0]))
+            else:
+                unresolved.extend(rest)
 
         drugs = _unique(name for _, name in sorted(found + fuzzy))
         return DrugDetection(
             drugs=drugs,
-            fuzzy=_unique(name for _, name in fuzzy if name in drugs),
-            # A word close to a drug the question already names refers to that drug.
-            ambiguous=_unique(
-                n for group in ambiguous if not set(group) & set(drugs) for n in group
-            ),
+            fuzzy=_unique(name for _, name in sorted(fuzzy) if name in drugs),
+            ambiguous=_unique(unresolved),
             not_in_corpus=_unique(outside),
         )
 

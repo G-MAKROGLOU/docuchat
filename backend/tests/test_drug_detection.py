@@ -103,8 +103,9 @@ def test_ambiguous_word_is_kept_when_another_drug_matches(detector: DrugDetector
     assert result.ambiguous == ("hydralazine hydrochloride", "hydroxyzine hydrochloride")
 
 
-def test_ambiguous_word_close_to_a_named_drug_is_not_ambiguous(detector: DrugDetector) -> None:
+def test_ambiguous_word_next_to_a_named_drug_means_the_other_one(detector: DrugDetector) -> None:
     result = detector.detect("Compare hydralazine and hydrazine")
 
-    assert result.drugs == ("hydralazine hydrochloride",)
+    assert result.drugs == ("hydralazine hydrochloride", "hydroxyzine hydrochloride")
+    assert result.fuzzy == ("hydroxyzine hydrochloride",)
     assert result.ambiguous == ()
