@@ -12,4 +12,6 @@ Thumbs.db
 .vscode/
 .idea/
 
-.claude/worktrees/
+
+# Local agent configuration and skills.
+.claude/
