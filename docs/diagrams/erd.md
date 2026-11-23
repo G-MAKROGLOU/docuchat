@@ -1,6 +1,6 @@
 # Data model
 
-Tables from the migrations `backend/app/infrastructure/sql/0001_documents.sql` to `0013_table_header_and_title_search.sql`, and the SeaweedFS objects from `backend/app/domain/storage.py`. `migrations.py` applies each file once, in name order, at the start of the backend, the ingest worker and the commands. It records each applied file in `schema_migrations`.
+Tables from the one schema file `backend/app/infrastructure/sql/0001_schema.sql`, and the SeaweedFS objects from `backend/app/domain/storage.py`. `migrations.py` applies each SQL file once, in name order, at the start of the backend, the ingest worker and corpus-init. It records each applied file in `schema_migrations`.
 
 ## Library
 
@@ -23,8 +23,8 @@ erDiagram
         integer page_count "NULL, CHECK > 0"
         timestamptz ingested_at "NULL"
         text status "stored | ingesting | ingested | failed"
-        text failure_reason "NULL (0004)"
-        text dosage_form "NOT NULL DEFAULT empty, SPL formCode (0012)"
+        text failure_reason "NULL"
+        text dosage_form "NOT NULL DEFAULT empty, SPL formCode"
     }
 
     chunks {
@@ -32,15 +32,15 @@ erDiagram
         uuid document_id FK "NOT NULL, BM25 field, index chunks_document_id_idx"
         text drug_name "NOT NULL"
         text section_number "NOT NULL, BM25 literal field"
-        text section_title "NOT NULL, BM25 stemmer=english (0013)"
+        text section_title "NOT NULL, BM25 stemmer=english"
         integer page_start "NOT NULL, CHECK > 0"
         integer page_end "NOT NULL, CHECK >= page_start"
         text content "NOT NULL, BM25 stemmer=english"
         text anchor "NOT NULL, first 8 words"
-        vector_1536 embedding "vector(1536) NOT NULL, HNSW vector_cosine_ops"
+        vector_1536 embedding "vector(1536) NOT NULL, HNSW on the halfvec(1536) cast"
         text embedding_model "NOT NULL"
         integer token_count "NOT NULL, CHECK > 0"
-        text table_header "NOT NULL DEFAULT empty, table caption and header row (0013)"
+        text table_header "NOT NULL DEFAULT empty, table caption and header row"
     }
 
     label_queue {
@@ -99,7 +99,7 @@ erDiagram
     }
 
     schema_migrations {
-        text version PK "file stem, for example 0013_table_header_and_title_search"
+        text version PK "file stem: 0001_schema"
         timestamptz applied_at "NOT NULL DEFAULT now()"
     }
 ```
@@ -110,21 +110,10 @@ erDiagram
 
 | Index | Table | Type | Definition |
 |---|---|---|---|
-| `chunks_embedding_idx` | `chunks` | HNSW (pgvector) | `embedding vector_cosine_ops` |
+| `chunks_embedding_half_idx` | `chunks` | HNSW (pgvector) | `(embedding::halfvec(1536)) halfvec_cosine_ops`; half the size of a full-precision index; the query sets `hnsw.ef_search` to `SEARCH_HNSW_EF_SEARCH` (at least 2 times the limit) |
 | `chunks_search_idx` | `chunks` | BM25 (pg_search, `USING paradedb`) | `id`, `content::pdb.simple('stemmer=english')`, `section_title::pdb.simple('stemmer=english')`, `document_id`, `section_number::pdb.literal`; `WITH (mutable_segment_rows = 0)` |
 | `chunks_document_id_idx` | `chunks` | B-tree | `document_id` |
 | `documents_source_id_idx` | `documents` | B-tree | `source_id` |
 | `conversation_turns_conversation_idx` | `conversation_turns` | B-tree | `conversation_id, created_at` |
-
-History of the search indexes:
-
-| Migration | Change |
-|---|---|
-| `0008_bm25_no_mutable_segment` | `mutable_segment_rows = 0` on `chunks_search_idx`, then `REINDEX` |
-| `0009_bm25_drop_key_field` | `RESET (key_field)`; the first index column (`id`) is the key |
-| `0010_chunks_drug_name_idx` | adds `chunks_drug_name_idx` on `drug_name` |
-| `0011_drop_unused_extensions` | drops `postgis_tiger_geocoder`, `postgis_topology`, `postgis`, `fuzzystrmatch`, `pg_ivm` |
-| `0012_label_filter` | adds `documents.dosage_form`; rebuilds `chunks_search_idx` with `document_id` instead of `drug_name`; drops `chunks_drug_name_idx` |
-| `0013_table_header_and_title_search` | adds `chunks.table_header`; rebuilds `chunks_search_idx` with `section_title` |
 
 `chunks.drug_name` is still stored and sent to the model, but no index and no search filter use it now.
