@@ -1,0 +1,10 @@
+.tile {
+  display: inline-flex;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.mark {
+  transform: scale(1.6);
+}

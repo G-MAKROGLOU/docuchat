@@ -3,11 +3,67 @@
 
 /**
  * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "DocumentStatus".
+ */
+export type DocumentStatus = "stored" | "ingesting" | "ingested" | "failed";
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
  * via the `definition` "StreamEvent".
  */
-export type StreamEvent = StatusEvent | SourcesEvent | TokenEvent | FinalEvent | RefusalEvent | ErrorEvent;
+export type StreamEvent =
+  StatusEvent | SourcesEvent | TokenEvent | FinalEvent | RefusalEvent | ClarifyEvent | SuggestionsEvent | ErrorEvent;
 
 export interface Contract {}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "AddLabelRequest".
+ */
+export interface AddLabelRequest {
+  set_id: string;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "AskRequest".
+ */
+export interface AskRequest {
+  text: string;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "CatalogLabelResponse".
+ */
+export interface CatalogLabelResponse {
+  set_id: string;
+  title: string;
+  version: number;
+  published: string;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "ConversationCreated".
+ */
+export interface ConversationCreated {
+  id: string;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "ConversationOut".
+ */
+export interface ConversationOut {
+  id: string;
+  turns: TurnOut[];
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "TurnOut".
+ */
+export interface TurnOut {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  citations: string[];
+  created_at: string;
+}
 /**
  * This interface was referenced by `Contract`'s JSON-Schema
  * via the `definition` "DatabaseHealth".
@@ -15,6 +71,29 @@ export interface Contract {}
 export interface DatabaseHealth {
   connected: boolean;
   extensions: string[];
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "DocumentListResponse".
+ */
+export interface DocumentListResponse {
+  items: DocumentSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "DocumentSummary".
+ */
+export interface DocumentSummary {
+  id: string;
+  brand_name: string;
+  generic_name: string;
+  page_count: number | null;
+  status: DocumentStatus;
+  ingested_at: string | null;
+  failure_reason: string | null;
 }
 /**
  * This interface was referenced by `Contract`'s JSON-Schema
@@ -44,6 +123,143 @@ export interface HealthResponse {
 }
 /**
  * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "IngestionStarted".
+ */
+export interface IngestionStarted {
+  running: boolean;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "QueueEntryResponse".
+ */
+export interface QueueEntryResponse {
+  set_id: string;
+  title: string;
+  status: "queued" | "added" | "failed";
+  failure_reason: string | null;
+  created_at: string;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "QueueResponse".
+ */
+export interface QueueResponse {
+  items: QueueEntryResponse[];
+  total: number;
+  queued_total: number;
+  added_total: number;
+  failed_total: number;
+  labels_per_pass: number;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "ReadyCheck".
+ */
+export interface ReadyCheck {
+  name: string;
+  ok: boolean;
+  required: boolean;
+  detail: string | null;
+  duration_ms: number;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "ReadyResponse".
+ */
+export interface ReadyResponse {
+  status: "ready" | "not_ready";
+  checks: ReadyCheck[];
+}
+/**
+ * The values that the dropdowns offer. An empty chat_models: OpenRouter was not reachable.
+ *
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "SettingsOptions".
+ */
+export interface SettingsOptions {
+  chat_models: string[];
+  embedding_models: string[];
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "SettingsResponse".
+ */
+export interface SettingsResponse {
+  chunk_tokens: number;
+  overlap_tokens: number;
+  top_k: number;
+  embedding_model: string;
+  chat_model: string;
+  rewrite_model: string;
+  grade_model: string;
+  generate_model: string;
+  reasoning_effort: "low" | "medium" | "high";
+  grader_mode: "off" | "rule" | "llm";
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "SettingsSaved".
+ */
+export interface SettingsSaved {
+  chunk_tokens: number;
+  overlap_tokens: number;
+  top_k: number;
+  embedding_model: string;
+  chat_model: string;
+  rewrite_model: string;
+  grade_model: string;
+  generate_model: string;
+  reasoning_effort: "low" | "medium" | "high";
+  grader_mode: "off" | "rule" | "llm";
+  reingest_started: boolean;
+}
+/**
+ * A change of a chunk field or of the embedding model needs reingest_confirmed: it embeds
+ * every document again. Without embedding_model, the model stays as it is.
+ *
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "SettingsUpdate".
+ */
+export interface SettingsUpdate {
+  chunk_tokens: number;
+  overlap_tokens: number;
+  top_k: number;
+  embedding_model?: string | null;
+  chat_model: string;
+  rewrite_model: string;
+  grade_model: string;
+  generate_model: string;
+  reasoning_effort: "low" | "medium" | "high";
+  grader_mode: "off" | "rule" | "llm";
+  reingest_confirmed?: boolean;
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "StatusResponse".
+ */
+export interface StatusResponse {
+  chunk_count: number;
+  token_count: number;
+  embedding_models: string[];
+  ingestion_running: boolean;
+  ingestion_phase: "idle" | "checking" | "downloading" | "ingesting";
+  next_run_at: string | null;
+  document_counts: {
+    [k: string]: number;
+  };
+}
+/**
+ * The drug name matches more than one label; a final event with the question follows.
+ *
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "ClarifyEvent".
+ */
+export interface ClarifyEvent {
+  type: "clarify";
+  candidates: string[];
+}
+/**
+ * This interface was referenced by `Contract`'s JSON-Schema
  * via the `definition` "ErrorEvent".
  */
 export interface ErrorEvent {
@@ -65,7 +281,8 @@ export interface FinalEvent {
  */
 export interface RefusalEvent {
   type: "refusal";
-  reason: "no_relevant_context" | "no_valid_citation" | "out_of_scope";
+  reason: "no_relevant_context" | "no_valid_citation" | "out_of_scope" | "drug_not_in_corpus";
+  available_drugs: string[] | null;
 }
 /**
  * This interface was referenced by `Contract`'s JSON-Schema
@@ -78,6 +295,7 @@ export interface Source {
   section: string;
   page: number;
   text: string;
+  anchor: string;
 }
 /**
  * This interface was referenced by `Contract`'s JSON-Schema
@@ -93,8 +311,18 @@ export interface SourcesEvent {
  */
 export interface StatusEvent {
   type: "status";
-  stage: "rewrite" | "retrieve" | "grade" | "generate";
+  stage: "rewrite" | "retrieve" | "grade" | "generate" | "verify";
   message: string;
+}
+/**
+ * Follow-up questions; sent after the final event of an answer or a reply.
+ *
+ * This interface was referenced by `Contract`'s JSON-Schema
+ * via the `definition` "SuggestionsEvent".
+ */
+export interface SuggestionsEvent {
+  type: "suggestions";
+  items: string[];
 }
 /**
  * This interface was referenced by `Contract`'s JSON-Schema

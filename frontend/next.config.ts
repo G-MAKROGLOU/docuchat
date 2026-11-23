@@ -9,6 +9,19 @@ if (pollIntervalMs !== undefined && !(Number.isInteger(pollIntervalMs) && pollIn
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  poweredByHeader: false,
+  // Basic headers for every route. A full Content-Security-Policy needs nonces and is not set here.
+  headers: async () => [
+    {
+      source: "/:path*",
+      headers: [
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "X-Frame-Options", value: "DENY" },
+        { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      ],
+    },
+  ],
   // Project rules live in the umbrella repository; do not write AGENTS.md here.
   agentRules: false,
   // Turbopack polls only through this option. Set the variable for bind mounts in Docker.

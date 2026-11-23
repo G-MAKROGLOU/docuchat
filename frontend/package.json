@@ -16,10 +16,11 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "contract:generate": "node --env-file-if-exists=.env scripts/generate-contract.mjs",
-    "contract:check": "node scripts/generate-contract.mjs --check"
+    "contract:check": "node scripts/generate-contract.mjs --check",
+    "eval:anchors": "node scripts/anchor-hit-rate.mjs"
   },
   "dependencies": {
-    "@geomak/ui": "7.21.0",
+    "@geomak/ui": "7.22.0",
     "next": "16.4.6",
     "pdfjs-dist": "6.5.438",
     "react": "19.3.1",

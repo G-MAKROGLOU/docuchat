@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { GET, HEAD } from "./route";
 
 let server: Server;
@@ -24,7 +24,7 @@ beforeAll(async () => {
       return;
     }
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ path: req.url }));
+    res.end(JSON.stringify({ path: req.url, forwardedHost: req.headers["x-forwarded-host"] }));
   });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   process.env.BACKEND_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -49,7 +49,10 @@ describe("API proxy route", () => {
     const response = await call(["v1", "health"], "?x=1");
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ path: "/api/v1/health?x=1" });
+    expect(await response.json()).toEqual({
+      path: "/api/v1/health?x=1",
+      forwardedHost: "frontend.test",
+    });
   });
 
   it("passes SSE events through one by one", async () => {
@@ -85,6 +88,35 @@ describe("API proxy route", () => {
     try {
       const response = await call(["v1", "health"]);
       expect(response.status).toBe(502);
+    } finally {
+      process.env.BACKEND_URL = saved;
+    }
+  });
+
+  it("returns 504 when the backend sends no headers in time", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    vi.stubGlobal(
+      "fetch",
+      (_url: string, init: RequestInit) =>
+        new Promise((_, reject) => {
+          init.signal?.addEventListener("abort", () => reject(new Error("aborted")));
+        }),
+    );
+    try {
+      const pending = call(["v1", "slow"]);
+      await vi.advanceTimersByTimeAsync(35_000);
+      expect((await pending).status).toBe(504);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
+  it("fails with a clear error when BACKEND_URL is not set", async () => {
+    const saved = process.env.BACKEND_URL;
+    delete process.env.BACKEND_URL;
+    try {
+      await expect(call(["v1", "health"])).rejects.toThrow("BACKEND_URL is not set.");
     } finally {
       process.env.BACKEND_URL = saved;
     }
