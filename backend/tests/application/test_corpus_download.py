@@ -17,8 +17,7 @@ from tests.support.fakes_ingestion import FakeDocumentRepository, FakeSource
 from tests.support.tuning import CHUNK_BYTES
 
 MANIFEST = """
-{"source": "DailyMed", "pdf_url_template": "https://example.test/{source_id}",
- "label_url_template": "https://example.test/{source_id}.xml",
+{"source": "DailyMed",
  "documents": [
   {"brand_name": "Alpha", "generic_name": "alphamab", "manufacturer": "M1", "source_id": "s1",
    "tags": {"class": "x"}},
