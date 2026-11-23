@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any, cast
@@ -9,7 +10,7 @@ from langfuse import Langfuse
 from app import main
 from app.config import load_settings
 from app.infrastructure import tracing
-from app.infrastructure.tracing import LangfuseTracer, NoopTracer, build_tracer
+from app.infrastructure.tracing import LangfuseTracer, NoopTracer, NoopTurn, build_tracer
 
 LANGFUSE_ENV = {
     "LANGFUSE_PUBLIC_KEY": "pk-test",
@@ -30,6 +31,26 @@ class FakeObservation:
         return self
 
 
+class FakeRoot:
+    trace_id = "t1"
+    id = "r1"
+
+    def __init__(self) -> None:
+        self.updates: list[dict[str, Any]] = []
+        self.ended = 0
+
+    def update(self, **kwargs: Any) -> None:
+        self.updates.append(kwargs)
+
+    def end(self) -> None:
+        self.ended += 1
+
+
+class FakeHandler:
+    def __init__(self, trace_context: dict[str, str]) -> None:
+        self.trace_context = trace_context
+
+
 class FakeLangfuse:
     def __init__(
         self,
@@ -42,6 +63,7 @@ class FakeLangfuse:
         self.fail_on_exit = fail_on_exit
         self.fail_on_shutdown = fail_on_shutdown
         self.observation = FakeObservation(fail_on_update)
+        self.root = FakeRoot()
         self.started: list[dict[str, Any]] = []
         self.exits = 0
         self.shutdowns = 0
@@ -54,6 +76,12 @@ class FakeLangfuse:
             self.exits += 1
             if self.fail_on_exit:
                 raise RuntimeError("sdk exit failed")
+
+    def start_observation(self, **kwargs: Any) -> "FakeRoot":
+        if self.fail_on_start:
+            raise RuntimeError("sdk start failed")
+        self.started.append(kwargs)
+        return self.root
 
     def start_as_current_observation(self, **kwargs: Any) -> Any:
         if self.fail_on_start:
@@ -155,12 +183,22 @@ def test_application_error_propagates_and_closes_the_span() -> None:
     assert fake.exits == 1
 
 
+class NoSavedSettings:
+    def __init__(self, connections: object) -> None:
+        pass
+
+    async def load(self) -> dict[str, object]:
+        return {}
+
+
 def test_app_shutdown_flushes_the_tracer(monkeypatch: pytest.MonkeyPatch) -> None:
     fake = FakeLangfuse()
     monkeypatch.setattr(main, "build_tracer", lambda settings: tracer_with(fake))
     # Only the tracer is under test: skip the database and storage startup steps.
     monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(main, "check_vector_size", lambda conninfo, size: None)
     monkeypatch.setattr(main, "build_document_store", lambda settings: None)
+    monkeypatch.setattr(main, "PostgresRuntimeSettingsRepository", NoSavedSettings)
 
     with TestClient(main.create_app(load_settings())):
         assert fake.shutdowns == 0
@@ -178,7 +216,9 @@ def test_shutdown_error_does_not_raise() -> None:
 
 def test_the_app_starts_again_after_a_shutdown(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(main, "check_vector_size", lambda conninfo, size: None)
     monkeypatch.setattr(main, "build_document_store", lambda settings: None)
+    monkeypatch.setattr(main, "PostgresRuntimeSettingsRepository", NoSavedSettings)
     app = main.create_app(load_settings())
 
     for _ in range(2):
@@ -188,7 +228,9 @@ def test_the_app_starts_again_after_a_shutdown(monkeypatch: pytest.MonkeyPatch) 
 
 def test_a_failed_start_keeps_no_pool_from_an_earlier_run(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(main, "check_vector_size", lambda conninfo, size: None)
     monkeypatch.setattr(main, "build_document_store", lambda settings: None)
+    monkeypatch.setattr(main, "PostgresRuntimeSettingsRepository", NoSavedSettings)
     app = main.create_app(load_settings())
     with TestClient(app):
         pass
@@ -202,3 +244,39 @@ def test_a_failed_start_keeps_no_pool_from_an_earlier_run(monkeypatch: pytest.Mo
 
     assert app.state.pool is None
     assert app.state.document_repository is None
+
+
+def test_a_turn_is_a_root_observation_with_the_graph_run_under_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(tracing, "CallbackHandler", FakeHandler)
+    fake = FakeLangfuse()
+    conversation_id = uuid.uuid4()
+
+    turn = tracer_with(fake).start_turn(conversation_id, "What is the dose?")
+    turn.end("10 mg [S1].", {"outcome": "answer"}, failed=False)
+
+    assert fake.started == [{"name": "chat-turn", "as_type": "agent", "input": "What is the dose?"}]
+    [handler] = cast(list[FakeHandler], turn.run_config["callbacks"])
+    assert handler.trace_context == {"trace_id": "t1", "parent_span_id": "r1"}
+    assert turn.run_config["metadata"] == {"langfuse_session_id": str(conversation_id)}
+    assert fake.root.updates == [{"output": "10 mg [S1].", "metadata": {"outcome": "answer"}}]
+    assert fake.root.ended == 1
+
+
+def test_a_failed_turn_is_marked_as_an_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(tracing, "CallbackHandler", FakeHandler)
+    fake = FakeLangfuse()
+
+    tracer_with(fake).start_turn(uuid.uuid4(), "q").end(None, {"outcome": "error"}, failed=True)
+
+    assert fake.root.updates == [
+        {"output": None, "metadata": {"outcome": "error"}, "level": "ERROR"}
+    ]
+
+
+def test_an_sdk_error_at_turn_start_gives_an_untraced_turn() -> None:
+    turn = tracer_with(FakeLangfuse(fail_on_start=True)).start_turn(uuid.uuid4(), "q")
+
+    assert isinstance(turn, NoopTurn)
+    assert turn.run_config == {}

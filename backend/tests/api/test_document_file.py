@@ -1,72 +1,28 @@
 import uuid
 from collections.abc import Iterator
-from dataclasses import replace
-from datetime import datetime
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.api.dependencies import get_document_repository, get_document_store
-from app.domain.documents import Document, DocumentStatus
-from app.domain.storage import document_key
+from app.domain.documents import Document
 from app.infrastructure.storage import FileSystemDocumentStore
 from app.main import app
+from tests.support.factories import make_document
+from tests.support.fakes_ingestion import FakeDocumentRepository
 
 PDF = b"%PDF-1.4\n" + bytes(range(256)) * 400
-
-
-class FakeRepository:
-    def __init__(self, *documents: Document) -> None:
-        self._by_id = {d.id: d for d in documents}
-
-    async def add(self, document: Document) -> None:
-        self._by_id[document.id] = document
-
-    async def get(self, document_id: uuid.UUID) -> Document | None:
-        return self._by_id.get(document_id)
-
-    async def find_by_source_id(self, source_id: str) -> Document | None:
-        return next((d for d in self._by_id.values() if d.source_id == source_id), None)
-
-    async def find_by_sha256(self, sha256: str) -> Document | None:
-        return next((d for d in self._by_id.values() if d.sha256 == sha256), None)
-
-    async def list_all(self) -> list[Document]:
-        return list(self._by_id.values())
-
-    async def update_ingestion(
-        self,
-        document_id: uuid.UUID,
-        status: DocumentStatus,
-        page_count: int | None = None,
-        ingested_at: datetime | None = None,
-    ) -> None:
-        self._by_id[document_id] = replace(
-            self._by_id[document_id], status=status, page_count=page_count, ingested_at=ingested_at
-        )
 
 
 @pytest.fixture
 def document(tmp_path: Path) -> Iterator[Document]:
     store = FileSystemDocumentStore(tmp_path)
-    doc_id = uuid.uuid4()
-    doc = Document(
-        id=doc_id,
-        brand_name="Brand",
-        generic_name="generic",
-        manufacturer="Maker",
-        source_id="set-1",
-        storage_key=document_key(doc_id, "a" * 64),
-        sha256="a" * 64,
-        size_bytes=len(PDF),
-        status=DocumentStatus.STORED,
-    )
+    doc = make_document(size_bytes=len(PDF))
     store.put(doc.storage_key, PDF, "application/pdf")
-    app.dependency_overrides[get_document_repository] = lambda: FakeRepository(doc)
+    app.dependency_overrides[get_document_repository] = lambda: FakeDocumentRepository(doc)
     app.dependency_overrides[get_document_store] = lambda: store
     yield doc
-    app.dependency_overrides.clear()
 
 
 def url(doc: Document) -> str:

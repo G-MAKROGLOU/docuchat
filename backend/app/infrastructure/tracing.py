@@ -5,11 +5,15 @@ from collections.abc import Iterator, Mapping
 from contextlib import AbstractContextManager, contextmanager
 from types import TracebackType
 from typing import Any
+from uuid import UUID
 
-from langfuse import Langfuse
+from langfuse import Langfuse, propagate_attributes
+from langfuse.langchain import CallbackHandler
 
 from app.config import Settings
-from app.domain.ports import Span
+from app.domain.ports import Span, TurnTrace
+
+TURN_NAME = "chat-turn"
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +23,18 @@ class NoopSpan:
         return None
 
 
+class NoopTurn:
+    run_config: Mapping[str, object] = {}
+
+    def end(self, output: str | None, metadata: Mapping[str, object], *, failed: bool) -> None:
+        return None
+
+
 class NoopTracer:
     """Used when Langfuse settings are absent."""
+
+    def start_turn(self, conversation_id: UUID, question: str) -> TurnTrace:
+        return NoopTurn()
 
     def span(
         self, name: str, attributes: Mapping[str, object] | None = None
@@ -86,9 +100,46 @@ class _GuardedObservation(AbstractContextManager[Span]):
             _log_sdk_error("end", sdk_exc)
 
 
+class _LangfuseTurn:
+    """A root observation for the turn; the graph run nests under it through the handler."""
+
+    def __init__(self, root: Any, session_id: str) -> None:
+        self._root = root
+        handler = CallbackHandler(
+            trace_context={"trace_id": root.trace_id, "parent_span_id": root.id}
+        )
+        self.run_config: Mapping[str, object] = {
+            "callbacks": [handler],
+            "metadata": {"langfuse_session_id": session_id},
+        }
+
+    def end(self, output: str | None, metadata: Mapping[str, object], *, failed: bool) -> None:
+        try:
+            if failed:
+                self._root.update(output=output, metadata=dict(metadata), level="ERROR")
+            else:
+                self._root.update(output=output, metadata=dict(metadata))
+            self._root.end()
+        except Exception as exc:
+            _log_sdk_error("end", exc)
+
+
 class LangfuseTracer:
     def __init__(self, client: Langfuse) -> None:
         self._client = client
+
+    def start_turn(self, conversation_id: UUID, question: str) -> TurnTrace:
+        """One trace per turn, grouped into a session per conversation."""
+        session_id = str(conversation_id)
+        try:
+            with propagate_attributes(session_id=session_id, trace_name=TURN_NAME):
+                root = self._client.start_observation(
+                    name=TURN_NAME, as_type="agent", input=question
+                )
+            return _LangfuseTurn(root, session_id)
+        except Exception as exc:
+            _log_sdk_error("start", exc)
+            return NoopTurn()
 
     def span(
         self, name: str, attributes: Mapping[str, object] | None = None

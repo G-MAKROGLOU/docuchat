@@ -1,6 +1,3 @@
-from collections.abc import Iterator
-
-import pytest
 from fastapi.testclient import TestClient
 
 from app.api.dependencies import get_database_probe
@@ -21,12 +18,6 @@ class FakeProbe:
 def client_with(status: DatabaseStatus) -> TestClient:
     app.dependency_overrides[get_database_probe] = lambda: FakeProbe(status)
     return TestClient(app)
-
-
-@pytest.fixture(autouse=True)
-def clear_overrides() -> Iterator[None]:
-    yield
-    app.dependency_overrides.clear()
 
 
 def test_health_reports_database_and_extensions() -> None:

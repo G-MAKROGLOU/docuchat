@@ -1,34 +1,149 @@
 import asyncio
 import itertools
-from typing import Annotated
+from collections.abc import Callable
+from typing import Annotated, Any
+from urllib.parse import quote
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
-from app.api.dependencies import get_document_repository, get_document_store
+from app.api.dependencies import (
+    get_cache,
+    get_document_repository,
+    get_document_store,
+    get_page_renderer,
+)
 from app.api.http_range import RangeNotSatisfiableError, parse_range
-from app.domain.documents import DocumentRepository
+from app.api.schemas.documents import DocumentListResponse, DocumentSummary
+from app.domain.documents import Document, DocumentRepository, PageRenderer
+from app.domain.ports import Cache
 from app.domain.storage import DocumentStore, ObjectNotFoundError
 
 router = APIRouter(tags=["documents"])
+
+THUMBNAIL_WIDTH = 320
+THUMBNAIL_CACHE_CONTROL = "public, max-age=86400"
+
+
+@router.get("/documents")
+async def list_documents(
+    repository: Annotated[DocumentRepository, Depends(get_document_repository)],
+    q: Annotated[str, Query(max_length=200)] = "",
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> DocumentListResponse:
+    result = await repository.search(q.strip(), limit=page_size, offset=(page - 1) * page_size)
+    return DocumentListResponse(
+        items=[
+            DocumentSummary(
+                id=d.id,
+                brand_name=d.brand_name,
+                generic_name=d.generic_name,
+                page_count=d.page_count,
+                status=d.status,
+                ingested_at=d.ingested_at,
+                failure_reason=d.failure_reason,
+            )
+            for d in result.items
+        ],
+        total=result.total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+def _content_disposition(document: Document, download: bool) -> str:
+    if not download:
+        return f'inline; filename="{document.id}.pdf"'
+    # ASCII fallback first; RFC 6266 clients use the UTF-8 title.
+    title = quote(f"{document.brand_name.strip() or document.generic_name}.pdf", safe="")
+    return f"attachment; filename=\"{document.id}.pdf\"; filename*=UTF-8''{title}"
+
+
+def _etag_matches(if_none_match: str | None, etag: str) -> bool:
+    if not if_none_match:
+        return False
+    tags = {t.strip().removeprefix("W/") for t in if_none_match.split(",")}
+    return "*" in tags or etag in tags
+
+
+# A cold thumbnail reads the whole PDF and renders it: a few at a time in each process, and
+# each PNG once for all processes (shared cache).
+THUMBNAIL_CONCURRENCY = 4
+# The key holds the file hash and the width, so a stored PNG never goes stale.
+THUMBNAIL_TTL_SECONDS = 30 * 24 * 3600
+_thumbnail_slots = asyncio.Semaphore(THUMBNAIL_CONCURRENCY)
+
+
+async def thumbnail_png(cache: Cache, key: str, render: Callable[[], bytes]) -> bytes:
+    """The PNG for the key (file and ETag, so a new PDF gets a new image), rendered once."""
+    if (cached := await cache.get(f"thumbnail:{key}")) is not None:
+        return cached
+    async with _thumbnail_slots:
+        png = await asyncio.to_thread(render)
+    await cache.set(f"thumbnail:{key}", png, THUMBNAIL_TTL_SECONDS)
+    return png
+
+
+@router.get(
+    "/documents/{document_id}/thumbnail",
+    response_class=Response,
+    responses={
+        200: {"content": {"image/png": {}}, "description": "Page 1 as a PNG."},
+        304: {"description": "The cached thumbnail is current."},
+        404: {"description": "Unknown document."},
+    },
+)
+async def get_document_thumbnail(  # noqa: PLR0913  # four injected ports
+    document_id: UUID,
+    request: Request,
+    *,
+    repository: Annotated[DocumentRepository, Depends(get_document_repository)],
+    store: Annotated[DocumentStore, Depends(get_document_store)],
+    renderer: Annotated[PageRenderer, Depends(get_page_renderer)],
+    cache: Annotated[Cache, Depends(get_cache)],
+) -> Response:
+    document = await repository.get(document_id)
+    if document is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
+
+    # The width is in the tag, so a new width does not revalidate to an old image.
+    etag = f'"{document.sha256}-w{THUMBNAIL_WIDTH}"'
+    headers = {"ETag": etag, "Cache-Control": THUMBNAIL_CACHE_CONTROL}
+    if _etag_matches(request.headers.get("if-none-match"), headers["ETag"]):
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
+
+    def render() -> bytes:
+        pdf = b"".join(store.get_stream(document.storage_key))
+        return renderer.render_first_page(pdf, THUMBNAIL_WIDTH)
+
+    try:
+        png = await thumbnail_png(cache, f"{document.storage_key}:{etag}", render)
+    except ObjectNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Document file not found") from exc
+    return Response(content=png, media_type="image/png", headers=headers)
+
+
+FILE_RESPONSES: dict[int | str, dict[str, Any]] = {
+    200: {"content": {"application/pdf": {}}, "description": "The whole PDF."},
+    206: {"content": {"application/pdf": {}}, "description": "One byte range."},
+    404: {"description": "Unknown document."},
+    416: {"description": "Range not satisfiable."},
+}
 
 
 @router.get(
     "/documents/{document_id}/file",
     response_class=StreamingResponse,
-    responses={
-        200: {"content": {"application/pdf": {}}, "description": "The whole PDF."},
-        206: {"content": {"application/pdf": {}}, "description": "One byte range."},
-        404: {"description": "Unknown document."},
-        416: {"description": "Range not satisfiable."},
-    },
+    responses=FILE_RESPONSES,
 )
 async def get_document_file(
     document_id: UUID,
     request: Request,
     repository: Annotated[DocumentRepository, Depends(get_document_repository)],
     store: Annotated[DocumentStore, Depends(get_document_store)],
+    download: bool = False,
 ) -> Response:
     document = await repository.get(document_id)
     if document is None:
@@ -38,7 +153,7 @@ async def get_document_file(
     headers = {
         "Accept-Ranges": "bytes",
         "ETag": f'"{document.sha256}"',
-        "Content-Disposition": f'inline; filename="{document.id}.pdf"',
+        "Content-Disposition": _content_disposition(document, download),
     }
     try:
         byte_range = parse_range(request.headers.get("range"), size)
@@ -71,3 +186,19 @@ async def get_document_file(
         media_type="application/pdf",
         headers={**headers, "Content-Range": f"bytes {start}-{end}/{size}"},
     )
+
+
+@router.get(
+    "/documents/{document_id}/file/{filename}",
+    response_class=StreamingResponse,
+    responses=FILE_RESPONSES,
+)
+async def get_named_document_file(
+    document_id: UUID,
+    filename: str,
+    request: Request,
+    repository: Annotated[DocumentRepository, Depends(get_document_repository)],
+    store: Annotated[DocumentStore, Depends(get_document_store)],
+) -> Response:
+    """The same PDF. The PDF viewer saves a download under the last path segment."""
+    return await get_document_file(document_id, request, repository, store)

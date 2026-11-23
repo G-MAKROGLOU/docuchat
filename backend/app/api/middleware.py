@@ -9,6 +9,7 @@ from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.infrastructure.logging import request_id_var
+from app.infrastructure.metrics import HTTP_REQUESTS, HTTP_SECONDS
 
 REQUEST_ID_HEADER = "x-request-id"
 # A client-supplied ID is kept only when it matches; otherwise a new one is generated.
@@ -41,13 +42,19 @@ class RequestIdMiddleware:
         try:
             await self.app(scope, receive, send_with_id)
         finally:
+            # The route template (without the /api/v1 prefix), not the path, so IDs do not
+            # make a series each.
+            route = getattr(scope.get("route"), "path", "unmatched")
+            seconds = time.perf_counter() - started
+            HTTP_REQUESTS.labels(scope["method"], route, str(status_code)).inc()
+            HTTP_SECONDS.labels(scope["method"], route).observe(seconds)
             logger.info(
                 "request completed",
                 extra={
                     "method": scope["method"],
                     "path": scope["path"],
                     "status_code": status_code,
-                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "duration_ms": round(seconds * 1000, 2),
                 },
             )
             request_id_var.reset(token)
