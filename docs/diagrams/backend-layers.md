@@ -22,7 +22,7 @@ flowchart TB
     end
 
     subgraph application["app/application"]
-        chat["chat.py<br/>ChatService, build_chat_graph()"]
+        chat["chat/ service.py ChatService,<br/>graph.py build_chat_graph()"]
         prompts["chat_prompts.py"]
         topics["topics.py section_hints()"]
         detection["drug_detection.py DrugDetector<br/>versioned_cache.py VersionedCache"]

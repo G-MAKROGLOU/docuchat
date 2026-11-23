@@ -20,7 +20,7 @@ Source material for the author, who writes `README.md`. Each fact names its evid
 
 ## How an answer is made
 
-- Graph (`backend/app/application/chat.py`): guard (plain-code prompt-injection check), intake (the chat model replies, or writes the search query and names the medicines), retrieve, clarify, grade (LLM grader, one retry), generate, validate, suggest.
+- Graph (`backend/app/application/chat/graph.py`): guard (plain-code prompt-injection check), intake (the chat model replies, or writes the search query and names the medicines), retrieve, clarify, grade (LLM grader, one retry), generate, validate, suggest.
 - Drug detection: exact names, then fuzzy names (rapidfuzz, thresholds calibrated on the library). A product is its ingredients plus its dosage form; several labels of one product use one preferred label (brand first, then newest). One name with several forms asks which form ("Ozempic": tablet or injection). A named medicine outside the library is refused with the library list (small libraries only).
 - Search: hybrid. pgvector HNSW (cosine) and ParadeDB BM25 (content and section titles), both filtered by label inside the index, fused with RRF, plus section hints from the question topic; at most 8 excerpts and 3500 tokens. A failed or slow search leg (5 s) leaves the other leg.
 - Chunks: sections from the SPL XML, pages from the PDF, about 500 tokens with 50 overlap, one section per chunk; a chunk inside a table keeps the table caption and header row as context.

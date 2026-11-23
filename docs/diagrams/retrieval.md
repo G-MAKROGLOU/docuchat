@@ -1,10 +1,10 @@
 # Retrieval
 
-The `retrieve` node of the chat graph (`app/application/chat.py`) runs this path for each search. `DrugDetector` maps the search query to products and their preferred labels. `RetrievalService.retrieve()` searches only those labels (document IDs), in both legs. It fuses the two lists with RRF and selects the context.
+The `retrieve` node of the chat graph (`app/application/chat/graph.py`) runs this path for each search. `DrugDetector` maps the search query to products and their preferred labels. `RetrievalService.retrieve()` searches only those labels (document IDs), in both legs. It fuses the two lists with RRF and selects the context.
 
 ## Chat turn graph
 
-`build_chat_graph()` in `chat.py` (LangGraph). `ChatService.ask()` runs it with the last 10 history messages and a 120 s deadline per turn. The nodes send stream events; the API sends them as SSE.
+`build_chat_graph()` in `chat/graph.py` (LangGraph). `ChatService.ask()` runs it with the last 10 history messages and a 120 s deadline per turn. The nodes send stream events; the API sends them as SSE.
 
 ```mermaid
 flowchart TD
