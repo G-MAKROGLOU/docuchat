@@ -1,16 +1,25 @@
 """Hybrid retrieval: vector and BM25 searches in parallel, fused and selected."""
 
 import asyncio
-from collections.abc import Sequence
+import logging
+from collections.abc import Awaitable, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import TypeVar
 from uuid import UUID
 
 from app.application.fusion import FusedChunk, fuse, select
 from app.domain.entities import Chunk
 from app.domain.ports import ChunkSearch, Embedder
 
+logger = logging.getLogger(__name__)
+
 TOP_K = 20
+# Each leg (the query embedding, a vector or a BM25 search) gets this long; then the turn goes on
+# without it. ASSUMED value: searches take milliseconds, the embedding call about one second.
+LEG_TIMEOUT_SECONDS = 5.0
+
+T = TypeVar("T")
 
 
 class SearchMode(StrEnum):
@@ -29,6 +38,26 @@ class RetrievalResult:
     mode: SearchMode
     candidates: list[FusedChunk] = field(default_factory=list)
     selected: list[FusedChunk] = field(default_factory=list)
+    # Legs that failed or timed out ("embedding", "vector", "bm25"); the others answered.
+    degraded: tuple[str, ...] = ()
+
+
+class _Legs:
+    """Runs the legs of one retrieval; a failed leg gives no rows and is recorded."""
+
+    def __init__(self) -> None:
+        self.failed: dict[str, BaseException] = {}
+        self.answered = 0
+
+    async def run(self, name: str, call: Awaitable[T]) -> T | None:
+        try:
+            result = await asyncio.wait_for(call, LEG_TIMEOUT_SECONDS)
+        except Exception as exc:  # any leg fault: the other leg may still answer
+            logger.warning("search leg failed", extra={"leg": name, "error": repr(exc)})
+            self.failed.setdefault(name, exc)
+            return None
+        self.answered += 1
+        return result
 
 
 class RetrievalService:
@@ -42,16 +71,19 @@ class RetrievalService:
         query: str,
         embedding: Sequence[float] | None,
         labels: Sequence[UUID],
+        legs: _Legs,
         *,
         use_bm25: bool,
     ) -> tuple[list[Chunk], list[Chunk]]:
         vector, bm25 = await asyncio.gather(
-            self._search.vector_search(embedding, labels, self._top_k)
+            legs.run("vector", self._search.vector_search(embedding, labels, self._top_k))
             if embedding is not None
             else _empty(),
-            self._search.text_search(query, labels, self._top_k) if use_bm25 else _empty(),
+            legs.run("bm25", self._search.text_search(query, labels, self._top_k))
+            if use_bm25
+            else _empty(),
         )
-        return vector, bm25
+        return vector or [], bm25 or []
 
     async def retrieve(
         self,
@@ -63,12 +95,19 @@ class RetrievalService:
     ) -> RetrievalResult:
         use_vector = mode in {SearchMode.VECTOR, SearchMode.HYBRID}
         use_bm25 = mode in {SearchMode.BM25, SearchMode.HYBRID}
-        embedding = await self._embedder.embed_query(query) if use_vector else None
+        legs = _Legs()
+        embedding = (
+            await legs.run("embedding", self._embedder.embed_query(query)) if use_vector else None
+        )
         # A comparison searches each label on its own, so one label cannot fill the candidates.
         groups = [[label] for label in labels] if len(labels) > 1 else [list(labels)]
         runs = await asyncio.gather(
-            *(self._search_drugs(query, embedding, g, use_bm25=use_bm25) for g in groups)
+            *(self._search_drugs(query, embedding, g, legs, use_bm25=use_bm25) for g in groups)
         )
+        searched = legs.answered - (embedding is not None)
+        if legs.failed and searched == 0:
+            # No search answered: the turn fails as before, with the first error.
+            raise next(iter(legs.failed.values()))
         vector = _interleave([vector for vector, _ in runs])
         bm25 = _interleave([bm25 for _, bm25 in runs])
         fused = fuse(vector=vector, bm25=bm25, section_hints=section_hints)
@@ -79,6 +118,7 @@ class RetrievalService:
             mode=mode,
             candidates=fused,
             selected=select(fused, labels=labels),
+            degraded=tuple(legs.failed),
         )
 
 

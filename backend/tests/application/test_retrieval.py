@@ -2,6 +2,9 @@ import asyncio
 from collections.abc import Sequence
 from uuid import UUID
 
+import pytest
+
+from app.application import retrieval
 from app.application.retrieval import (
     RetrievalService,
     SearchMode,
@@ -123,3 +126,63 @@ def test_one_drug_is_searched_once_with_its_filter() -> None:
     )
 
     assert sorted(search.calls) == [("bm25", ("A",)), ("vector", ("A",))]
+
+
+class FlakySearch(FakeSearch):
+    """The vector leg fails or hangs; the BM25 leg answers."""
+
+    def __init__(self, vector_error: Exception | None = None, vector_delay: float = 0.0) -> None:
+        super().__init__()
+        self.vector_error = vector_error
+        self.vector_delay = vector_delay
+
+    async def vector_search(
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
+    ) -> list[Chunk]:
+        await asyncio.sleep(self.vector_delay)
+        if self.vector_error:
+            raise self.vector_error
+        return await super().vector_search(embedding, labels, limit)
+
+
+def test_a_failed_search_leg_leaves_the_other_leg() -> None:
+    search = FlakySearch(vector_error=TimeoutError("statement timeout"))
+
+    result = asyncio.run(RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q"))
+
+    assert [f.chunk.content for f in result.candidates] == ["b"]
+    assert result.degraded == ("vector",)
+
+
+def test_a_slow_search_leg_is_cut_off(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(retrieval, "LEG_TIMEOUT_SECONDS", 0.05)
+    search = FlakySearch(vector_delay=1.0)
+
+    result = asyncio.run(RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q"))
+
+    assert [f.chunk.content for f in result.candidates] == ["b"]
+    assert result.degraded == ("vector",)
+
+
+def test_a_failed_embedding_searches_with_bm25_only() -> None:
+    class BrokenEmbedder(QueryEmbedder):
+        async def embed_query(self, text: str) -> list[float]:
+            raise ConnectionError("embedding API down")
+
+    search = FakeSearch()
+
+    result = asyncio.run(RetrievalService(search, BrokenEmbedder(), top_k=20).retrieve("q"))
+
+    assert [c[0] for c in search.calls] == ["bm25"]
+    assert result.degraded == ("embedding",)
+
+
+def test_the_turn_fails_when_both_legs_fail() -> None:
+    class DeadSearch(FlakySearch):
+        async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
+            raise ConnectionError("database down")
+
+    search = DeadSearch(vector_error=ConnectionError("database down"))
+
+    with pytest.raises(ConnectionError):
+        asyncio.run(RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q"))
