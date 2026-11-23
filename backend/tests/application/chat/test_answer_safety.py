@@ -283,3 +283,27 @@ def test_a_dose_from_the_table_header_of_a_cited_excerpt_is_supported() -> None:
     result = validate_answer(answer, [SourceRef("S1", row)])
 
     assert result.refusal is None
+
+
+# As in the Januvia label: two header rows, then "A1C (%)" as a row group label.
+A1C_TABLE = make_chunk(
+    "A1C (%) | N = 193 | N = 103\nBaseline (mean) | 8.0 | 8.1\nChange from baseline | -0.5 | 0.1",
+    table_header="Table 6. Glycemic parameters\n| JANUVIA 100 mg | Placebo",
+)
+
+
+def test_a_percent_figure_matches_a_bare_cell_of_a_table_with_a_percent_unit_label() -> None:
+    answer = "Baseline A1C was 8.0% with Januvia and 8.1% with placebo [S1]."
+
+    assert validate_answer(answer, [SourceRef("S1", A1C_TABLE)]).refusal is None
+
+
+def test_the_percent_rule_needs_the_unit_label_and_does_not_relax_other_units() -> None:
+    # A value such as "36%" in a cell is data, not a unit for the other cells.
+    no_percent = make_chunk("Baseline (mean) | 8.0 | 8.1\nA1C <7% | 69 (36%) | 16 (16%)")
+    wrong_figure = "Baseline A1C was 9.0% with Januvia [S1]."
+    as_mg = "Give 8.0 mg once daily [S1]."
+
+    assert validate_answer("A1C was 8.0% [S1].", [SourceRef("S1", no_percent)]).refusal
+    assert validate_answer(wrong_figure, [SourceRef("S1", A1C_TABLE)]).refusal
+    assert validate_answer(as_mg, [SourceRef("S1", A1C_TABLE)]).refusal

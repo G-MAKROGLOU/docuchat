@@ -408,6 +408,15 @@ def doses_in(text: str) -> set[Dose]:
     return found
 
 
+def table_percents(text: str) -> set[Dose]:
+    """Cells of a table with a "(%)" unit label ("A1C (%)") support the same figure with "%".
+    A value such as "36%" is data, not a label. Only "%" gets this; dose units stay strict."""
+    if "(%)" not in text:
+        return set()
+    rows = " ".join(line for line in text.split("\n") if " | " in line)
+    return {("%", _figure(f), ()) for f in re.findall(_FIGURE, rows)}
+
+
 # Ages and durations; a statement of absence may repeat one from the question.
 _TIME_KINDS = {"hour", "day", "week", "month", "year"}
 
@@ -416,7 +425,9 @@ def unsupported_facts(answer: str, cited: Sequence[SourceRef], question: str = "
     """Doses and links of the answer without a source. These refuse the answer. A dose needs
     an excerpt that its sentence cites; a statement of absence may use any cited excerpt, or an
     age or a duration of the question."""
-    by_id = {s.id: doses_in(excerpt_text(s.chunk)) for s in cited}
+    by_id = {
+        s.id: doses_in(excerpt_text(s.chunk)) | table_percents(excerpt_text(s.chunk)) for s in cited
+    }
     asked = {d for d in doses_in(question) if d[0] in _TIME_KINDS}
     anywhere = set().union(*by_id.values(), asked)
     doses: set[str] = set()
