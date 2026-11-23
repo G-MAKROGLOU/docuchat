@@ -331,14 +331,15 @@ def test_grade_off_keeps_every_excerpt_without_a_model_call(events: Events) -> N
     assert [s.chunk.drug_name for s in graded["sources"]] == ["Valium"]
 
 
-def test_generate_streams_the_tokens_and_returns_the_answer(events: Events) -> None:
+def test_generate_holds_back_the_tokens_and_returns_the_answer(events: Events) -> None:
     model = FakeModel(tokens=["Take ", "10 mg [S1]."])
     state: ChatState = {"query": "dose", "sources": [source()]}
 
     answer = run(chat.generate(state, models=FakeModels(generate=model)))
 
     assert answer == {"answer": "Take 10 mg [S1]."}
-    assert [e["text"] for e in events if e["type"] == "token"] == ["Take ", "10 mg [S1]."]
+    # Unchecked text never reaches the client; validate sends it after the check.
+    assert not [e for e in events if e["type"] == "token"]
     assert "[S1] Lipitor" in model.calls[0][-1].content
 
 
@@ -353,7 +354,10 @@ def test_validate_finalizes_a_cited_answer_and_refuses_an_uncited_one(events: Ev
     )
 
     assert cited["citations"] == ["S1"]
-    assert {"type": "final", "answer": cited["answer"], "citations": ["S1"]} in events
+    assert [e for e in events if e["type"] in {"token", "final"}] == [
+        {"type": "token", "text": cited["answer"]},
+        {"type": "final", "answer": cited["answer"], "citations": ["S1"]},
+    ]
     assert uncited == {"refusal": "no_valid_citation"}
 
 
