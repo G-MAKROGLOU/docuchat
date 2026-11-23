@@ -5,14 +5,18 @@ requires-python = "==3.13.*"
 dependencies = [
     "boto3==1.44.7",
     "fastapi==0.165.0",
+    "httpx==0.28.1",
     "langchain-openai==1.8.4",
     "langchain-text-splitters==1.1.3",
     "langfuse==5.2.0",
+    "langgraph==1.2.21",
+    "prometheus-client==0.26.0",
     "psycopg-pool==3.3.3",
     "psycopg[binary]==3.3.9",
     "pydantic-settings==2.16.3",
     "pymupdf==2.1",
     "rapidfuzz==3.14.6",
+    "redis==8.2.0",
     "tiktoken==0.14.0",
     "uvicorn==0.54.0",
 ]
@@ -42,17 +46,26 @@ select = ["E", "W", "F", "I", "B", "UP", "N", "S", "ASYNC", "RUF", "SIM", "PL"]
 
 [tool.mypy]
 strict = true
-files = ["app", "tests", "evals"]
+files = ["app", "tests", "evals", "loadtest"]
 plugins = ["pydantic.mypy"]
 
 # PyMuPDF has no type hints; only these modules call it.
 [[tool.mypy.overrides]]
-module = ["app.infrastructure.pdf_parser", "tests.test_pdf_parser"]
+module = [
+    "app.infrastructure.pdf_parser",
+    "app.infrastructure.pdf_thumbnail",
+    "tests.support.factories",
+    "tests.api.test_document_list",
+]
 disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra"
+addopts = "-ra --strict-markers"
+markers = [
+    "db: needs a real database at TEST_DATABASE_URL",
+    "s3: needs an S3 endpoint at S3_TEST_ENDPOINT_URL",
+]
 
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
