@@ -5,12 +5,13 @@ import logging
 import time
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime, timedelta
-from typing import Literal, Protocol
+from typing import Protocol
 
 from app.application.corpus_update import UpdateReport
 from app.application.ingestion import IngestionService, IngestResult
 from app.application.label_queue import QueueReport
 from app.domain.documents import Document, DocumentRepository
+from app.domain.ingestion_state import IngestionPhase
 
 logger = logging.getLogger(__name__)
 
@@ -62,12 +63,12 @@ class IngestionRunner:
         self._task: asyncio.Task[None] | None = None
         self._schedule_task: asyncio.Task[None] | None = None
         self._next_run_at: datetime | None = None
-        self._phase: Literal["idle", "checking", "downloading", "ingesting"] = "idle"
+        self._phase: IngestionPhase = "idle"
         # Called with each document's result and seconds, for the metrics.
         self.observe: Callable[[IngestResult, float], None] | None = None
 
     @property
-    def phase(self) -> Literal["idle", "checking", "downloading", "ingesting"]:
+    def phase(self) -> IngestionPhase:
         """What the running pass does now: check labels for updates, then ingest."""
         return self._phase
 

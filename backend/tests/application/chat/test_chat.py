@@ -6,7 +6,6 @@ from uuid import UUID
 from app.application import chat_prompts
 from app.application.chat import (
     ChatService,
-    GraderMode,
     SourceRef,
     cited_ids,
     grade_decision,
@@ -24,6 +23,7 @@ from app.application.chat import (
 from app.application.drug_detection import DrugDetection
 from app.application.retrieval import RetrievalResult
 from app.domain.entities import Message, MessageRole, ModelRole
+from app.domain.runtime_settings import GraderMode
 from tests.support.factories import label_of, make_chunk, sources_of
 from tests.support.fakes_models import NOTHING, BrokenModel, FakeModel, FakeModels, search_models
 from tests.support.fakes_ports import (

@@ -22,6 +22,7 @@ from app.application.topics import section_hints
 from app.domain.conversations import ConversationRepository, Turn
 from app.domain.entities import Chunk, Message, MessageRole, ModelRole
 from app.domain.ports import ChatModelProvider, TurnTracer
+from app.domain.runtime_settings import GraderMode
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +124,6 @@ _DAILY = re.compile(r"\s*,?\s*(?:once\s+)?(?:daily|a\s+day|each\s+day|every\s+da
 Dose = tuple[str, Decimal, tuple[str, ...]]
 _LINK = re.compile(r"https?://[^\s)\]]+|www\.[^\s)\]]+", re.IGNORECASE)
 
-GraderMode = Literal["off", "rule", "llm"]
 Verdict = Literal["sufficient", "partial", "insufficient"]
 
 
