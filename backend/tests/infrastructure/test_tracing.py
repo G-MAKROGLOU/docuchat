@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 from langfuse import Langfuse
 
-from app import main
+from app import bootstrap, main
 from app.config import load_settings
 from app.infrastructure import tracing
 from app.infrastructure.tracing import LangfuseTracer, NoopTracer, NoopTurn, build_tracer
@@ -113,10 +113,10 @@ def test_app_shutdown_flushes_the_tracer(monkeypatch: pytest.MonkeyPatch) -> Non
     fake = FakeLangfuse()
     monkeypatch.setattr(main, "build_tracer", lambda settings: tracer_with(fake))
     # Only the tracer is under test: skip the database and storage startup steps.
-    monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
-    monkeypatch.setattr(main, "check_vector_size", lambda conninfo, size: None)
+    monkeypatch.setattr(bootstrap, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(bootstrap, "check_vector_size", lambda conninfo, size: None)
     monkeypatch.setattr(main, "build_document_store", lambda settings: None)
-    monkeypatch.setattr(main, "PostgresRuntimeSettingsRepository", NoSavedSettings)
+    monkeypatch.setattr(bootstrap, "PostgresRuntimeSettingsRepository", NoSavedSettings)
 
     with TestClient(main.create_app(load_settings())):
         assert fake.shutdowns == 0
@@ -133,10 +133,10 @@ def test_shutdown_error_does_not_raise() -> None:
 
 
 def test_the_app_starts_again_after_a_shutdown(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
-    monkeypatch.setattr(main, "check_vector_size", lambda conninfo, size: None)
+    monkeypatch.setattr(bootstrap, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(bootstrap, "check_vector_size", lambda conninfo, size: None)
     monkeypatch.setattr(main, "build_document_store", lambda settings: None)
-    monkeypatch.setattr(main, "PostgresRuntimeSettingsRepository", NoSavedSettings)
+    monkeypatch.setattr(bootstrap, "PostgresRuntimeSettingsRepository", NoSavedSettings)
     app = main.create_app(load_settings())
 
     for _ in range(2):
@@ -145,10 +145,10 @@ def test_the_app_starts_again_after_a_shutdown(monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_a_failed_start_keeps_no_pool_from_an_earlier_run(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(main, "apply_migrations", lambda conninfo: [])
-    monkeypatch.setattr(main, "check_vector_size", lambda conninfo, size: None)
+    monkeypatch.setattr(bootstrap, "apply_migrations", lambda conninfo: [])
+    monkeypatch.setattr(bootstrap, "check_vector_size", lambda conninfo, size: None)
     monkeypatch.setattr(main, "build_document_store", lambda settings: None)
-    monkeypatch.setattr(main, "PostgresRuntimeSettingsRepository", NoSavedSettings)
+    monkeypatch.setattr(bootstrap, "PostgresRuntimeSettingsRepository", NoSavedSettings)
     app = main.create_app(load_settings())
     with TestClient(app):
         pass
@@ -156,7 +156,7 @@ def test_a_failed_start_keeps_no_pool_from_an_earlier_run(monkeypatch: pytest.Mo
     def fail(conninfo: str) -> list[str]:
         raise RuntimeError("database down")
 
-    monkeypatch.setattr(main, "apply_migrations", fail)
+    monkeypatch.setattr(bootstrap, "apply_migrations", fail)
     with pytest.raises(RuntimeError, match="database down"), TestClient(app):
         pass
 
