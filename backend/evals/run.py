@@ -1,5 +1,7 @@
 """Answer-quality eval: run each question as a new conversation and
 score it. Real model calls, so it costs credit. Writes evals/results/<time>-<label>.json.
+The default set is the golden set (golden_set.jsonl); --questions evals/questions.json runs the
+older 20-question set.
   python -m evals.run --label base
   python -m evals.run --label vector --search-mode vector
   python -m evals.run --label no-grader --grader-mode off
@@ -40,7 +42,7 @@ from evals.metrics import (
 from evals.search import CosineSearch, ModeRetriever, stored_chunks, unprefixed_vectors
 
 EVALS = Path(__file__).parent
-QUESTIONS = EVALS / "questions.json"
+QUESTIONS = EVALS / "golden_set.jsonl"
 CACHE = EVALS / "cache"
 
 
@@ -52,17 +54,64 @@ class Result:
     reason: str | None
 
 
+def load_questions(path: Path) -> list[dict[str, Any]]:
+    """The questions in the runner's fields. A .jsonl file is the golden set: one
+    case per line; its history turns run first, in the same conversation."""
+    if path.suffix != ".jsonl":
+        questions: list[dict[str, Any]] = json.loads(path.read_text(encoding="utf-8"))["questions"]
+        return questions
+    cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+    return [
+        {
+            "id": c["id"],
+            "text": c["question"],
+            "type": c["type"],
+            "expect": c["expected_outcome"],
+            "sections": c.get("expected_sections", {}),
+            "reference": c.get("reference_answer", ""),
+            "refusal": c.get("expected_refusal"),
+            "history": [text for role, text in c.get("history", []) if role == "user"],
+        }
+        for c in cases
+    ]
+
+
+def result_of(events: list[dict[str, Any]]) -> Result:
+    """The outcome of one turn. A clarify turn also sends its question as a final event; it
+    stays a clarify outcome."""
+    result = Result("none", "", [], None)
+    for event in events:
+        kind = event["type"]
+        if kind == "final" and result.outcome != "clarify":
+            result = Result("final", event["answer"], event["citations"], None)
+        elif kind in ("refusal", "clarify", "error"):
+            result = Result(kind, event.get("message", ""), [], event.get("reason"))
+    return result
+
+
+def _missing_outcome(question: dict[str, Any], result: Result) -> list[str] | None:
+    """For a question that expects no cited answer: what is wrong ([] when nothing). None for
+    an answer question."""
+    expect = question["expect"]
+    wanted = question.get("refusal")
+    if expect == "clarify":
+        return [] if result.outcome == "clarify" else ["clarify"]
+    if expect == "refusal":
+        if result.outcome != "refusal":
+            return ["refusal"]
+        return [f"refusal {wanted}"] if wanted and result.reason != wanted else []
+    if expect == "no_answer":
+        return ["no cited answer"] if result.outcome == "final" and result.citations else []
+    if expect == "reply":
+        return [] if result.outcome == "final" and not result.citations else ["reply"]
+    return None
+
+
 def score(question: dict[str, Any], result: Result) -> tuple[bool, list[str]]:
     """Pass or fail, and what was missing."""
-    expect = question["expect"]
-    cited = result.outcome == "final" and bool(result.citations)
-    if expect == "refusal":
-        return result.outcome == "refusal", [] if result.outcome == "refusal" else ["refusal"]
-    if expect == "no_answer":
-        return not cited, [] if not cited else ["no cited answer"]
-    if expect == "reply":
-        ok = result.outcome == "final" and not result.citations
-        return ok, [] if ok else ["reply"]
+    other = _missing_outcome(question, result)
+    if other is not None:
+        return not other, other
     if result.outcome != "final":
         return False, [f"outcome {result.outcome}"]
     if not result.citations:
@@ -107,7 +156,7 @@ def _outcome_ok(expect: str, result: Result) -> bool:
 
 async def run(args: argparse.Namespace) -> dict[str, Any]:
     settings = get_settings()
-    questions = json.loads(args.questions.read_text(encoding="utf-8"))["questions"]
+    questions = load_questions(args.questions)
     tracer = build_tracer(settings)
     rows: list[dict[str, Any]] = []
     async with build_pool(settings) as pool:
@@ -129,20 +178,22 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             .for_role(ModelRole.GRADE)
         )
         for question in questions:
+            conversation = await service.start()
+            for earlier in question.get("history", []):
+                async for _ in await service.ask(conversation, earlier):
+                    pass
+            retriever.take()  # the searches of the earlier turns do not count
             cost_before, started = _cost(), time.perf_counter()
             first_token: float | None = None
             sources: list[dict[str, Any]] = []
-            result = Result("none", "", [], None)
-            async for event in await service.ask(await service.start(), question["text"]):
-                kind = event["type"]
-                if kind == "token" and first_token is None:
+            events: list[dict[str, Any]] = []
+            async for event in await service.ask(conversation, question["text"]):
+                events.append(event)
+                if event["type"] == "token" and first_token is None:
                     first_token = time.perf_counter() - started
-                elif kind == "sources":
+                elif event["type"] == "sources":
                     sources = event["items"]
-                elif kind == "final":
-                    result = Result("final", event["answer"], event["citations"], None)
-                elif kind in ("refusal", "clarify", "error"):
-                    result = Result(kind, event.get("message", ""), [], event.get("reason"))
+            result = result_of(events)
             seconds = time.perf_counter() - started
             cost = _cost() - cost_before
             searches = retriever.take()

@@ -307,3 +307,13 @@ def test_the_percent_rule_needs_the_unit_label_and_does_not_relax_other_units() 
     assert validate_answer("A1C was 8.0% [S1].", [SourceRef("S1", no_percent)]).refusal
     assert validate_answer(wrong_figure, [SourceRef("S1", A1C_TABLE)]).refusal
     assert validate_answer(as_mg, [SourceRef("S1", A1C_TABLE)]).refusal
+
+
+def test_an_uncited_figure_refusal_logs_its_sentences(caplog: pytest.LogCaptureFixture) -> None:
+    answer = "The dose is 2.5 mg or 10 mg.\n\n- The usual dose is 5 mg twice daily [S1]."
+
+    with caplog.at_level("INFO", logger="app.application.chat"):
+        validate_answer(answer, sources_of(CITED), question=QUESTION)
+
+    (record,) = [r for r in caplog.records if "uncited" in r.getMessage()]
+    assert record.sentences == ["The dose is 2.5 mg or 10 mg."]  # type: ignore[attr-defined]

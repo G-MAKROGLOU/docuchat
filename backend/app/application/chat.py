@@ -472,7 +472,10 @@ def validate_answer(answer: str, sources: Sequence[SourceRef], question: str = "
     ids = [s.id for s in sources]
     cleaned = drop_question_echoes(drop_unknown_markers(answer, ids).strip(), question)
     citations = cited_ids(cleaned, ids)
-    if not citations or uncited_number_sentences(cleaned):
+    uncited = uncited_number_sentences(cleaned)
+    if uncited:
+        logger.info("answer refused: uncited sentence with figures", extra={"sentences": uncited})
+    if not citations or uncited:
         return Validation(cleaned, citations, "no_valid_citation")
     cited = [s for s in sources if s.id in citations]
     if unsupported := unsupported_facts(cleaned, cited, question):

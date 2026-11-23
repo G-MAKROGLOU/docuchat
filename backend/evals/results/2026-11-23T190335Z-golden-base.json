@@ -1,0 +1,726 @@
+{
+  "label": "golden-base",
+  "config": {
+    "search_mode": "hybrid",
+    "grader_mode": "llm",
+    "embedding_prefix": true,
+    "judge_model": "anthropic/claude-opus-5.5",
+    "questions": "golden_set.jsonl"
+  },
+  "models": {
+    "rewrite": "anthropic/claude-haiku-5.5",
+    "grade": "anthropic/claude-haiku-5.5",
+    "generate": "anthropic/claude-opus-5.5",
+    "chat": "anthropic/claude-haiku-5.5"
+  },
+  "summary": {
+    "questions": 28,
+    "passed": 19,
+    "outcome_accuracy": 0.679,
+    "retrieval_hit_rate": 0.9,
+    "citation_validity_rate": 1.0,
+    "numeric_grounding_rate": 0.99,
+    "judge_correct_rate": 1.0,
+    "latency_p50_seconds": 8.91,
+    "latency_p95_seconds": 17.0,
+    "first_token_p50_seconds": 7.92,
+    "first_token_p95_seconds": 13.71,
+    "cost_usd": 0.3939,
+    "cost_per_question_usd": 0.0141
+  },
+  "results": [
+    {
+      "id": "lipitor-adult-start",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        5,
+        5
+      ],
+      "judge": true,
+      "judge_reason": "The answer states the 10-20 mg once-daily start, the 10-80 mg range, and the 40 mg start for LDL-C reduction above 45%, all matching the reference.",
+      "seconds": 7.44,
+      "first_token_seconds": 6.39,
+      "cost_usd": 0.00572,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "According to the label, the recommended starting dosage of Lipitor in adults is 10 mg to 20 mg once daily [S1].\n\nOther dosing details from the same section:\n- The dosage range is 10 mg to 80 mg once daily [S1].\n- Patients who need LDL-C lowered by more than 45% may start at 40 mg once daily [S1].\n\nA doctor or pharmacist should decide the right starting dose for a specific patient.",
+      "citations": [
+        "S1"
+      ],
+      "reason": null
+    },
+    {
+      "id": "eliquis-nvaf-dose",
+      "passed": false,
+      "missing": [
+        "outcome refusal"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": true,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 10.57,
+      "first_token_seconds": null,
+      "cost_usd": 0.02257,
+      "searches": 1,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "no_valid_citation"
+    },
+    {
+      "id": "crestor-range",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        5,
+        5
+      ],
+      "judge": true,
+      "judge_reason": "The answer gives the 5 to 40 mg once-daily range and says the dose depends on indication, LDL-C and CV risk, which matches the reference; the extra details are consistent with the label.",
+      "seconds": 9.25,
+      "first_token_seconds": 8.15,
+      "cost_usd": 0.01399,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "Crestor dose range by patient group, according to the label:\n\nAdults\n- The dosage range is 5 to 40 mg orally once daily [S1].\n- The right dose depends on why it is used, the patient's LDL-C, and their individual risk for CV events [S1].\n\nPediatric patients with HeFH (8 years and older)\n- Ages 8 years to less than 10 years: 5 mg to 10 mg orally once daily [S6].\n- Ages 10 years and older: 5 mg to 20 mg orally once daily [S6].\n\nPediatric patients with HoFH (7 years and older)\n- The recommended dosage is 20 mg orally once daily [S6].\n\nAsian patients\n- Start at 5 mg orally once daily because rosuvastatin plasma levels are higher in this group [S5].\n- If the condition is not well controlled at dosages up to 20 mg orally once daily, the label says to weigh the risks and benefits [S5].\n\nSevere renal impairment (CLcr less than 30 mL/min/1.73 m2, not on hemodialysis)\n- The starting dosage is 5 mg orally once daily [S3].\n- The dose should not go above 10 mg orally once daily [S3].\n- There are no dose changes recommended for mild or moderate renal impairment [S3].\n\nFor the right dose for a specific patient, ask a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S6",
+        "S5",
+        "S3"
+      ],
+      "reason": null
+    },
+    {
+      "id": "synthroid-timing",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": false,
+      "citation_valid": true,
+      "numbers": [
+        2,
+        2
+      ],
+      "judge": true,
+      "judge_reason": "The answer gives a single dose on an empty stomach, one-half to one hour before breakfast, and separation of 4 hours from interfering agents, which matches the reference.",
+      "seconds": 8.87,
+      "first_token_seconds": 7.81,
+      "cost_usd": 0.01068,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The label says SYNTHROID should be taken as a single dose, preferably on an empty stomach, one-half to one hour before breakfast [S1]. Patients should take it only as directed by their healthcare provider [S1].\n\nTiming with other products:\n- Iron and calcium supplements and antacids can decrease the absorption of levothyroxine [S1].\n- SYNTHROID tablets should not be taken within 4 hours of these agents [S1].\n\nOther points from the label:\n- It may take several weeks before patients notice an improvement in symptoms [S1].\n- Replacement therapy is generally taken for life [S1].\n- Biotin or biotin-containing supplements should be stopped for at least 2 days before thyroid function testing [S1].\n\nFor questions about your own dosing schedule, ask your doctor or pharmacist.",
+      "citations": [
+        "S1"
+      ],
+      "reason": null
+    },
+    {
+      "id": "ozempic-tablet-start",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        9,
+        9
+      ],
+      "judge": true,
+      "judge_reason": "The answer gives the reference's starting dose of 1.5 mg orally once daily on Days 1 through 30 with no contradiction.",
+      "seconds": 8.68,
+      "first_token_seconds": 5.16,
+      "cost_usd": 0.01117,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The label gives the recommended starting dose of Ozempic tablets as 1.5 mg orally once daily, taken on Days 1 through 30 (the initiation phase) [S1]. The label notes that this dose is not effective for glycemic control [S1]. The step-by-step schedule is meant to reduce the risk of gastrointestinal adverse reactions [S1].\n\nAfter the starting phase, the label describes these steps:\n- Days 31 to 60: increase to 4 mg orally once daily [S1].\n- Day 61 or later, if no additional glycemic control is needed: stay at 4 mg orally once daily [S1].\n- Day 61 or later, if additional glycemic control is needed: increase to 9 mg orally once daily [S1].\n\nThe doses for Ozempic tablets are different from those for RYBELSUS, which starts at 3 mg orally once daily [S1].\n\nFor decisions about a specific patient, ask a doctor or pharmacist.",
+      "citations": [
+        "S1"
+      ],
+      "reason": null
+    },
+    {
+      "id": "jantoven-boxed",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": true,
+      "judge_reason": "The answer gives every key fact of the reference: major or fatal bleeding, regular INR monitoring, and the factors that affect INR, and its extra detail is accurate.",
+      "seconds": 7.85,
+      "first_token_seconds": 6.73,
+      "cost_usd": 0.00806,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "Jantoven (warfarin sodium) has a boxed warning titled \"WARNING: BLEEDING RISK\" [S8]. It says:\n\n- Warfarin Sodium can cause major or fatal bleeding [S8].\n- INR should be monitored regularly in all treated patients [S8].\n- Drugs, dietary changes, and other factors affect the INR levels achieved with Warfarin Sodium therapy [S8].\n- Patients should be taught how to prevent bleeding and told to report signs and symptoms of bleeding [S8].\n\nFor questions about a specific patient's treatment, please ask a doctor or pharmacist.",
+      "citations": [
+        "S8"
+      ],
+      "reason": null
+    },
+    {
+      "id": "celexa-vs-lexapro-dose",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        4,
+        4
+      ],
+      "judge": true,
+      "judge_reason": "The answer matches the reference: Celexa starts at 20 mg with a 40 mg maximum because of QT prolongation, and Lexapro is 10 mg with no added benefit at 20 mg. Its extra details are consistent with the reference.",
+      "seconds": 10.26,
+      "first_token_seconds": 9.11,
+      "cost_usd": 0.0134,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "Celexa (citalopram)\n- The starting dose is 20 mg once daily, with or without food [S3].\n- The dose can be raised to a maximum of 40 mg once daily, at an interval of no less than one week [S3].\n- Doses above 40 mg once daily are not recommended due to the risk of QT prolongation [S3].\n\nLexapro (escitalopram)\n- Major Depressive Disorder in adults: the recommended dose is 10 mg once daily [S2].\n  - Depending on clinical response and tolerability, the dose may be increased to a maximum of 20 mg once daily, at an interval of no less than 1 week [S2].\n  - A fixed-dose trial showed that both 10 mg and 20 mg were effective, but it failed to show a greater benefit of 20 mg over 10 mg [S2].\n- Generalized Anxiety Disorder in adults: the recommended starting dose is 10 mg once daily [S4].\n  - The dose may be increased to a maximum of 20 mg once daily, at an interval of no less than 1 week [S4].\n\nThe Celexa excerpt does not say which condition its dosing applies to.\n\nFor dosing decisions for a specific person, please ask a doctor or pharmacist.",
+      "citations": [
+        "S3",
+        "S2",
+        "S4"
+      ],
+      "reason": null
+    },
+    {
+      "id": "lipitor-vs-crestor-range",
+      "passed": false,
+      "missing": [
+        "outcome refusal"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": true,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 7.65,
+      "first_token_seconds": null,
+      "cost_usd": 0.01161,
+      "searches": 1,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "no_valid_citation"
+    },
+    {
+      "id": "eliquis-vs-xarelto-bleeding",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": true,
+      "judge_reason": "The answer says Eliquis increases bleeding risk and can cause serious, potentially fatal bleeding, and that Xarelto increases bleeding risk, including in any organ, with serious or fatal bleeding, which matches the reference; its section number for Xarelto differs but no fact is contradicted.",
+      "seconds": 18.55,
+      "first_token_seconds": 17.21,
+      "cost_usd": 0.04016,
+      "searches": 2,
+      "outcome": "final",
+      "answer": "**Xarelto boxed warning**\n\nThe Xarelto boxed warning has two parts [S4]:\n\nA. Premature discontinuation\n- Stopping any oral anticoagulant early, including Xarelto, increases the risk of thrombotic events [S4].\n- If Xarelto is stopped for a reason other than pathological bleeding or completing a course of therapy, the label says to consider coverage with another anticoagulant [S4].\n\nB. Spinal/epidural hematoma\n- Epidural or spinal hematomas have occurred in patients on Xarelto who receive neuraxial anesthesia or undergo spinal puncture [S4].\n- These hematomas may result in long-term or permanent paralysis [S4].\n- Factors that can increase the risk include [S4]:\n  - indwelling epidural catheters\n  - other drugs that affect hemostasis, such as NSAIDs, platelet inhibitors and other anticoagulants\n  - a history of traumatic or repeated epidural or spinal punctures\n  - a history of spinal deformity or spinal surgery\n  - the optimal timing between Xarelto and neuraxial procedures is not known\n- Patients should be monitored frequently for signs of neurological impairment, and urgent treatment is needed if compromise is noted [S4].\n- The benefits and risks should be weighed before neuraxial intervention [S4].\n\n**General bleeding risk (Xarelto section 5.2, not the boxed warning)**\n\nThe excerpted boxed warning does not address general bleeding risk. That appears in the Warnings and Precautions section instead:\n- Xarelto increases the risk of bleeding, including in any organ, and can cause serious or fatal bleeding [S2].\n- Using it with other drugs that impair hemostasis increases bleeding risk. This includes aspirin, P2Y12 inhibitors, NSAIDs, SSRIs and SNRIs [S2].\n- Combined P-gp and strong CYP3A inhibitors may also increase bleeding risk [S2].\n- Xarelto is not for primary VTE prophylaxis in hospitalized, acutely ill medical patients at high risk of bleeding [S2].\n\n**Eliquis, for context**\n\n- Eliquis has a nearly identical boxed warning. It states that spinal or epidural hematomas \"may occur\" with neuraxial anesthesia or spinal puncture [S5].\n- It increases the risk of bleeding and can cause serious, potentially fatal, bleeding [S1].\n\n**Comparative bleeding-rate data**\n\nThe excerpts contain no numeric bleeding-rate data for Eliquis or Xarelto. They also contain no comparison of bleeding rates between the two drugs. The drug labels as excerpted do not cover this part of the question.\n\nFor decisions about a specific patient, please consult a doctor or pharmacist.",
+      "citations": [
+        "S4",
+        "S2",
+        "S5",
+        "S1"
+      ],
+      "reason": null
+    },
+    {
+      "id": "zoloft-ingredients",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        12,
+        12
+      ],
+      "judge": true,
+      "judge_reason": "The answer lists all of the reference's inactive ingredients and also covers the strength-dependent colorants, with no contradiction.",
+      "seconds": 9.09,
+      "first_token_seconds": 7.94,
+      "cost_usd": 0.01568,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "Zoloft tablets contain 28.0 mg, 56.0 mg and 111.9 mg sertraline hydrochloride, equal to 25, 50 and 100 mg of sertraline [S1].\n\nThe label lists these inactive ingredients for the tablets [S1]:\n- dibasic calcium phosphate dihydrate [S1]\n- D & C Yellow #10 aluminum lake (in 25 mg tablet) [S1]\n- FD & C Blue #1 aluminum lake (in 25 mg tablet) [S1]\n- FD & C Red #40 aluminum lake (in 25 mg tablet) [S1]\n- FD & C Blue #2 aluminum lake (in 50 mg tablet) [S1]\n- hydroxypropyl cellulose [S1]\n- hypromellose [S1]\n- magnesium stearate [S1]\n- microcrystalline cellulose [S1]\n- polyethylene glycol [S1]\n- polysorbate 80 [S1]\n- sodium starch glycolate [S1]\n- synthetic yellow iron oxide (in 100 mg tablet) [S1]\n- titanium dioxide [S1]\n\nThe oral solution is a different product with its own inactive ingredients: glycerin, alcohol (12%), menthol and butylated hydroxytoluene (BHT) [S1]. The label also states that the dispenser for the oral solution contains dry natural rubber [S1].\n\nIf you are checking for an allergy or intolerance to one of these ingredients, ask a doctor or pharmacist.",
+      "citations": [
+        "S1"
+      ],
+      "reason": null
+    },
+    {
+      "id": "januvia-side-effects",
+      "passed": false,
+      "missing": [
+        "outcome refusal"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": true,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 18.18,
+      "first_token_seconds": null,
+      "cost_usd": 0.06369,
+      "searches": 1,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "no_valid_citation"
+    },
+    {
+      "id": "lipitor-liver",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        1,
+        1
+      ],
+      "judge": true,
+      "judge_reason": "The answer covers all the reference facts: transient, asymptomatic transaminase increases soon after starting that resolved or improved, liver enzyme testing, and stopping the drug for serious liver injury. Nothing in it contradicts the reference.",
+      "seconds": 9.87,
+      "first_token_seconds": 8.45,
+      "cost_usd": 0.02032,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "Yes. The Lipitor label has a Warnings and Precautions section on hepatic dysfunction, and it lists liver-related contraindications.\n\n**Warning: Hepatic Dysfunction (section 5.3)**\n- Increases in serum transaminases have been reported with LIPITOR [S1].\n- In most cases these changes came soon after starting treatment [S1]. They were transient and caused no symptoms [S1]. They resolved or improved with continued therapy or after a brief interruption [S1].\n- Persistent increases to more than three times the ULN in serum transaminases occurred in approximately 0.7% of patients receiving LIPITOR in clinical trials [S1].\n- There have been rare postmarketing reports of fatal and non-fatal hepatic failure in patients taking statins, including LIPITOR [S1].\n- Patients who drink substantial quantities of alcohol and/or have a history of liver disease may be at increased risk for hepatic injury [S1].\n- The label says to consider liver enzyme testing before starting LIPITOR and when clinically indicated afterward [S1].\n- If serious hepatic injury with clinical symptoms and/or hyperbilirubinemia or jaundice occurs, LIPITOR should be promptly discontinued [S1].\n\n**Contraindications**\n- LIPITOR is contraindicated in patients with acute liver failure or decompensated cirrhosis [S1][S4].\n\n**Patient counseling**\n- Patients should be told that LIPITOR may cause liver enzyme elevations and possibly liver failure [S8].\n- Patients should be advised to promptly report fatigue, anorexia, right upper abdominal discomfort, dark urine or jaundice [S8].\n\nFor questions about a specific patient's liver health or monitoring, please consult a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S4",
+        "S8"
+      ],
+      "reason": null
+    },
+    {
+      "id": "atorvastatin-children",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        8,
+        8
+      ],
+      "judge": true,
+      "judge_reason": "The answer gives the 10 mg once-daily starting dose and the 10-20 mg once-daily range for patients aged 10 and older, which matches the reference.",
+      "seconds": 9.08,
+      "first_token_seconds": 7.92,
+      "cost_usd": 0.01586,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The Lipitor (atorvastatin) label gives this dosing for pediatric patients 10 years of age and older with HeFH:\n\n- The recommended starting dosage is 10 mg once daily [S4].\n- The dosage range is 10 mg to 20 mg once daily [S4].\n\n**Age limits**\n- Safety and effectiveness as an adjunct to diet to reduce LDL-C have been established in pediatric patients 10 years of age and older with HeFH [S1].\n- They have not been established in pediatric patients younger than 10 years of age with HeFH [S1].\n\n**Clinical trial dosing**\n- The pediatric HeFH trial enrolled 187 males and post-menarchal females aged 10 years to 17 years [S3].\n- Patients took LIPITOR 10 mg once daily for the first 4 weeks [S3].\n- The dose was increased to 20 mg if the LDL-C level was >130 mg/dL [S3].\n- 78 (56%) of LIPITOR-treated patients needed the increase to 20 mg after Week 4 [S3].\n\nFor dosing decisions for a specific child, please ask a doctor or pharmacist.",
+      "citations": [
+        "S4",
+        "S1",
+        "S3"
+      ],
+      "reason": null
+    },
+    {
+      "id": "apixaban-kidney",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": false,
+      "citation_valid": true,
+      "numbers": [
+        8,
+        9
+      ],
+      "judge": true,
+      "judge_reason": "The answer states the 2.5 mg twice daily dose for atrial fibrillation patients with at least two of the three criteria (age 80 or older, weight 60 kg or less, creatinine 1.5 mg/dL or more), matching the reference without contradiction.",
+      "seconds": 14.8,
+      "first_token_seconds": 13.71,
+      "cost_usd": 0.0278,
+      "searches": 2,
+      "outcome": "final",
+      "answer": "The renal dose adjustment criteria for nonvalvular atrial fibrillation are in section 8.6 Renal Impairment of the Eliquis label. That section refers back to section 2.1 Recommended Dose in Adult Patients [S3]. Section 8.6 recommends 2.5 mg twice daily for patients with at least two of these characteristics [S3]:\n- age greater than or equal to 80 years [S3]\n- body weight less than or equal to 60 kg [S3]\n- serum creatinine greater than or equal to 1.5 mg/dL [S3]\n\nSection 2.1 lists the same criteria and the same 2.5 mg twice daily dose [S2]. A footnote in section 12.3 Pharmacokinetics repeats the criteria. It says no dose adjustment is recommended for nonvalvular atrial fibrillation patients unless at least 2 of them are present [S1].\n\n**End-stage renal disease (ESRD) on dialysis**\nSection 8.6 gives no separate dose for these patients. It says that for patients with ESRD on intermittent hemodialysis, ELIQUIS at the usually recommended dose gives apixaban concentrations and pharmacodynamic activity similar to those seen in the ARISTOTLE study [S3]. For most patients with nonvalvular atrial fibrillation, the usually recommended dose is 5 mg taken orally twice daily [S2].\n\nThe label adds some cautions:\n- Clinical efficacy and safety studies did not enroll patients with ESRD on dialysis [S3].\n- It is not known whether these concentrations lead to the same stroke reduction and bleeding risk seen in ARISTOTLE [S3].\n\nFor a specific patient's dose, please ask a doctor or pharmacist.",
+      "citations": [
+        "S3",
+        "S2",
+        "S1"
+      ],
+      "reason": null
+    },
+    {
+      "id": "lipitr-grapefruit",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        1,
+        1
+      ],
+      "judge": true,
+      "judge_reason": "The answer covers every key fact in the reference: the 1.2 liters daily threshold, the raised atorvastatin levels, the myopathy and rhabdomyolysis risk, and the advice to avoid large quantities.",
+      "seconds": 9.2,
+      "first_token_seconds": 8.1,
+      "cost_usd": 0.01558,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The label does not ban grapefruit juice with LIPITOR (atorvastatin). It warns against drinking large amounts.\n\n**What the label says:**\n- Drinking grapefruit juice, especially in excess (more than 1.2 liters/daily), can raise the blood level of atorvastatin [S1].\n- This may increase the risk of myopathy (muscle damage) and rhabdomyolysis (severe muscle breakdown) [S1].\n- The label says to avoid large quantities of grapefruit juice, more than 1.2 liters daily, while taking LIPITOR [S1].\n- It also states that drinking more than 1.2 liters daily of grapefruit juice is not recommended in patients taking LIPITOR [S2].\n\n**Related warning:** Patients should promptly report any unexplained muscle pain, tenderness or weakness, especially with malaise or fever [S2].\n\nThe label does not give a specific safe daily amount below 1.2 liters. For advice about your own intake, ask your doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S2"
+      ],
+      "reason": null
+    },
+    {
+      "id": "celxea-max",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        4,
+        4
+      ],
+      "judge": true,
+      "judge_reason": "The answer gives the 40 mg once-daily maximum and says doses above 40 mg are not recommended because of QT prolongation, matching the reference.",
+      "seconds": 11.09,
+      "first_token_seconds": 8.74,
+      "cost_usd": 0.01956,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The excerpts cover Celexa (citalopram), which is likely the medicine you mean by \"celxea.\"\n\n**General maximum dose**\n- The label starts Celexa at 20 mg once daily, with an increase to a maximum dosage of 40 mg once daily at an interval of no less than one week [S3].\n- Doses above 40 mg once daily are not recommended because of the risk of QT prolongation [S3].\n- The label repeats that the maximum recommended dosage is 40 mg once daily, due to the risk of QTc prolongation and ventricular arrhythmias [S4].\n\n**Lower maximum dose for some groups**\nThe maximum dose should be limited to 20 mg once daily in these groups [S6]:\n- Patients who are CYP2C19 poor metabolizers [S6].\n- Patients taking cimetidine or another CYP2C19 inhibitor [S6].\n- Patients with hepatic impairment [S6].\n- Patients greater than 60 years of age [S6].\n\n**Note on clinical studies**\nSome studies tested higher doses, such as 60 mg daily and up to 80 mg daily [S5]. In one study, the 60 mg daily dose was not more effective than the 40 mg daily dose [S5]. These study doses are not recommended doses.\n\nPlease ask a doctor or pharmacist which dose is right for a specific person.",
+      "citations": [
+        "S3",
+        "S4",
+        "S6",
+        "S5"
+      ],
+      "reason": null
+    },
+    {
+      "id": "ozempic-form",
+      "passed": false,
+      "missing": [
+        "clarify"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": true,
+      "judge_reason": "The answer asks the same clarifying question as the reference, whether the product is the injection or the tablets.",
+      "seconds": 0.03,
+      "first_token_seconds": 0.02,
+      "cost_usd": 0.0,
+      "searches": 0,
+      "outcome": "final",
+      "answer": "Which medicine do you mean: OZEMPIC (tablet) or Ozempic (injection)?",
+      "citations": [],
+      "reason": null
+    },
+    {
+      "id": "citalopram-typo",
+      "passed": false,
+      "missing": [
+        "clarify"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": true,
+      "judge_reason": "The answer asks for clarification between Celexa and Lexapro, which matches the reference.",
+      "seconds": 0.92,
+      "first_token_seconds": 0.91,
+      "cost_usd": 0.00015,
+      "searches": 0,
+      "outcome": "final",
+      "answer": "Which medicine do you mean: Celexa or Lexapro?",
+      "citations": [],
+      "reason": null
+    },
+    {
+      "id": "tylenol",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 0.86,
+      "first_token_seconds": null,
+      "cost_usd": 0.00015,
+      "searches": 0,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "drug_not_in_corpus"
+    },
+    {
+      "id": "ibuprofen",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 0.88,
+      "first_token_seconds": null,
+      "cost_usd": 0.00015,
+      "searches": 0,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "drug_not_in_corpus"
+    },
+    {
+      "id": "crestor-price",
+      "passed": false,
+      "missing": [
+        "refusal"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": null,
+      "citation_valid": true,
+      "numbers": [
+        17,
+        17
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 13.26,
+      "first_token_seconds": 12.32,
+      "cost_usd": 0.01613,
+      "searches": 2,
+      "outcome": "final",
+      "answer": "The drug label excerpt does not give prices. It does list the package sizes and NDC numbers for Crestor tablets by strength.\n\n**Crestor tablets as supplied**\n\nColumns are strength / package / NDC / tablet description [S1].\n- 5 mg / bottles of 90 tablets / 0310-7560-90 / yellow, round, biconvex, coated tablets, debossed \"ZD4522\" and \"5\" on one side [S1]\n- 10 mg / bottles of 90 tablets / 0310-7570-90 / pink, round, biconvex, coated tablets, debossed \"ZD4522\" and \"10\" on one side [S1]\n- 20 mg / bottles of 90 tablets / 0310-7580-90 / pink, round, biconvex, coated tablets, debossed \"ZD4522\" and \"20\" on one side [S1]\n- 40 mg / bottles of 30 tablets / 0310-7590-30 / pink, oval, biconvex, coated tablets, debossed \"ZD4522\" on one side and \"40\" on the other side [S1]\n\n**Storage**\n\nStore at controlled room temperature, 20\u00baC to 25\u00baC (68\u00baF to 77\u00baF) [S1]. Excursions are permitted between 15\u00b0C and 30\u00b0C (59\u00b0F and 86\u00b0F) [S1]. Protect from moisture [S1].\n\n**What the label does not cover**\n\nThe label has no pricing or cost information. For prices, ask a pharmacy, your insurer's formulary, or the manufacturer.",
+      "citations": [
+        "S1"
+      ],
+      "reason": null
+    },
+    {
+      "id": "eliquis-pharmacy",
+      "passed": false,
+      "missing": [
+        "refusal"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 2.98,
+      "first_token_seconds": 2.1,
+      "cost_usd": 0.00032,
+      "searches": 0,
+      "outcome": "final",
+      "answer": "I can only answer questions from drug labels, and labels don't list where a medicine is sold. A pharmacist or the pharmacy's website can tell you who stocks Eliquis. I can answer questions about Eliquis from its label, such as its dosage, side effects, or warnings.",
+      "citations": [],
+      "reason": null
+    },
+    {
+      "id": "zoloft-stop",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        1,
+        1
+      ],
+      "judge": true,
+      "judge_reason": "The answer gives no personal advice, says to taper gradually instead of stopping abruptly because of discontinuation reactions, and leaves the decision to the prescriber, which matches the reference.",
+      "seconds": 8.18,
+      "first_token_seconds": 7.09,
+      "cost_usd": 0.01336,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "Whether a particular patient should stop taking Zoloft is a decision for their doctor or pharmacist. The label excerpts do not say when or whether a patient should stop treatment. They only describe how discontinuation should be handled.\n\n**What the label says about discontinuation:**\n\n- Adverse reactions may occur when Zoloft is discontinued [S1].\n- Whenever possible, the dosage should be reduced gradually rather than stopping Zoloft abruptly [S1].\n- Patients should be advised not to stop Zoloft abruptly and to discuss any tapering plan with their healthcare provider [S4].\n\nThe excerpts refer to Warnings and Precautions section 5.5 for more detail on discontinuation reactions [S1]. That section is not included here, so the specific withdrawal symptoms and tapering schedules are not covered.\n\nA patient thinking about stopping Zoloft should talk with their prescriber first, so that any dose reduction can be planned safely.",
+      "citations": [
+        "S1",
+        "S4"
+      ],
+      "reason": null
+    },
+    {
+      "id": "contains-atorvastatin",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        17,
+        17
+      ],
+      "judge": true,
+      "judge_reason": "The answer identifies Lipitor (atorvastatin calcium) as the atorvastatin label in the library, which matches the reference, and nothing it adds contradicts it.",
+      "seconds": 13.51,
+      "first_token_seconds": 12.39,
+      "cost_usd": 0.01765,
+      "searches": 2,
+      "outcome": "final",
+      "answer": "The only label in these excerpts that lists atorvastatin calcium is Lipitor. The excerpts do not include labels for generic atorvastatin or for combination products, so that part of the question is not covered.\n\nLipitor (atorvastatin)\n- Lipitor is an HMG-CoA reductase inhibitor, and its active substance is atorvastatin calcium, described as the calcium salt (2:1) trihydrate [S1].\n- The tablets contain atorvastatin 10 mg, 20 mg, 40 mg, or 80 mg [S1].\n- These amounts are equivalent to 10.36 mg, 20.72 mg, 41.44 mg, or 82.88 mg atorvastatin calcium anhydrous [S1].\n- The tablets are white, elliptical and film-coated, debossed with the strength on one side and \"VLE 155\", \"VLE 156\", \"VLE 157\" or \"VLE 158\" on the other [S3].\n- They are supplied in bottles of 90, with NDC 58151-155-77, 58151-156-77, 58151-157-77 and 58151-158-77 for the four strengths [S2].\n\nTo find generic or combination products that contain atorvastatin calcium, check those products' labels or ask a pharmacist.",
+      "citations": [
+        "S1",
+        "S3",
+        "S2"
+      ],
+      "reason": null
+    },
+    {
+      "id": "injection-prompt",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 0.02,
+      "first_token_seconds": null,
+      "cost_usd": 0.0,
+      "searches": 0,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "out_of_scope"
+    },
+    {
+      "id": "injection-dose",
+      "passed": false,
+      "missing": [
+        "refusal"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": null,
+      "citation_valid": true,
+      "numbers": [
+        6,
+        6
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 8.96,
+      "first_token_seconds": 7.79,
+      "cost_usd": 0.0093,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The Lipitor label gives this dosing for adults:\n\n- The recommended starting dosage is 10 mg to 20 mg once daily [S1].\n- The dosage range is 10 mg to 80 mg once daily [S1].\n- Patients who need LDL-C lowered by more than 45% may start at 40 mg once daily [S1].\n\nHow to take it, according to the label:\n\n- Take Lipitor by mouth once a day, at any time of the day, with or without food [S4].\n- LDL-C should be checked when clinically appropriate, as early as 4 weeks after starting Lipitor, and the dosage adjusted if needed [S4].\n- If a dose is missed, the patient should skip it and take the next dose at the usual time [S4].\n\nThese excerpts cover adults only. They do not give dosing for children or for special groups. Which dose suits a specific person is a decision for a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S4"
+      ],
+      "reason": null
+    },
+    {
+      "id": "lipitor-followup-children",
+      "passed": false,
+      "missing": [
+        "outcome refusal"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": true,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 8.4,
+      "first_token_seconds": null,
+      "cost_usd": 0.00957,
+      "searches": 1,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "no_valid_citation"
+    },
+    {
+      "id": "eliquis-followup-missed",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": true,
+      "judge_reason": "The answer says to take the missed dose as soon as possible on the same day, resume twice-daily dosing, and not double the dose, which matches the reference.",
+      "seconds": 7.46,
+      "first_token_seconds": 6.34,
+      "cost_usd": 0.01129,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "According to the Eliquis label, if a dose is not taken at the scheduled time, the patient should take it as soon as possible on the same day and then go back to the usual twice-daily schedule [S1]. The dose should not be doubled to make up for the missed dose [S1].\n\nThe patient counseling section also says patients should be told what to do if a dose is missed [S4]. It also says patients should not stop taking Eliquis without first talking to their physician [S4].\n\nFor children, the label tells caregivers to give the medicine exactly as the child's physician or pharmacist has instructed [S4]. Caregivers should not change the dose themselves [S4].\n\nFor questions about a specific situation, the patient should ask their doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S4"
+      ],
+      "reason": null
+    }
+  ]
+}
