@@ -2,20 +2,21 @@
 
 FastAPI service for document question answering. API routes are under `/api/v1`.
 
-The full system (backend, frontend, database, storage) runs from the repository root: see the root `docker-compose.yml`.
+The full system (backend, frontend, database, storage) runs from the repository root: see `infra/docker-compose.yml` and `docs/start-modes.md`.
 
 ## Local commands
 
+Run these from the repository root, after `infra/setup.sh` (Windows: `infra\setup.ps1`).
+
 ```sh
-cp .env.example .env                       # then fill in the required values
-docker compose -f compose.dev.yml up       # backend, db and storage, hot reload
+docker compose -f infra/docker-compose.yml up   # full stack, hot reload for backend/
 ```
 
-- Health: http://localhost:8000/api/v1/health
-- API docs: http://localhost:8000/api/v1/docs
+- Health: http://localhost:${BACKEND_PORT}/api/v1/health
+- API docs: http://localhost:${BACKEND_PORT}/api/v1/docs
 
 ```sh
-docker compose -f compose.dev.yml exec backend sh -c "ruff check . && ruff format --check . && mypy && pytest && bandit -c pyproject.toml -r app"
-docker compose -f compose.dev.yml exec backend python -m app.api.contract          # write contract/
-docker compose -f compose.dev.yml exec backend python -m app.api.contract --check  # fail if contract/ is out of date
+docker compose -f infra/docker-compose.yml exec backend sh -c "ruff check . && ruff format --check . && mypy && pytest && bandit -c pyproject.toml -r app"
+docker compose -f infra/docker-compose.yml exec backend python -m app.api.contract          # write contract/
+docker compose -f infra/docker-compose.yml exec backend python -m app.api.contract --check  # fail if contract/ is out of date
 ```

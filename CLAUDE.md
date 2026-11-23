@@ -1,6 +1,6 @@
 # Project rules
 
-One private monorepo. `backend/` and `frontend/` are independent deployable units with path-filtered pipelines. `mcp/`, `corpus/` and `docs/` support them.
+One private monorepo. `backend/` and `frontend/` are independent deployable units with path-filtered pipelines. `infra/` holds the Compose stack, setup scripts, preflight and monitoring. `docs/` supports them. Each of `backend/`, `frontend/` and `infra/` has its own `.env`.
 
 ## How to work
 - Before you use LangChain, LangGraph, ParadeDB (pg_search, pgvector), SeaweedFS, assistant-ui, Next.js, Langfuse, FastMCP or the OpenRouter API, read the current official documentation. Do not rely on memory. Pin exact versions. LangChain and LangGraph: 1.x APIs only.
@@ -32,7 +32,7 @@ One private monorepo. `backend/` and `frontend/` are independent deployable unit
 - No secrets in code. Configuration comes from the environment only.
 
 ## Checks after each task
-- Backend: `docker compose exec backend sh -c "ruff check . && ruff format --check . && mypy && pytest && bandit -c pyproject.toml -r app && python -m app.api.contract --check"`
+- Backend (from the repository root): `docker compose -f infra/docker-compose.yml exec backend sh -c "ruff check . && ruff format --check . && mypy && pytest && bandit -c pyproject.toml -r app && python -m app.api.contract --check"`
 - Frontend (in `frontend/`): `npm run lint && npm run format:check && npm run typecheck && npm test && npm run contract:check`
 
 See `.claude/rules/` for more rules.

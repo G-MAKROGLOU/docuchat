@@ -60,6 +60,6 @@ Source: DailyMed (National Library of Medicine). The list is generated from `man
 ## Download
 
 ```sh
-docker compose exec backend python -m app.corpus_download --quick   # the 5 quick_start labels
-docker compose exec backend python -m app.corpus_download --all     # all labels
+docker compose -f infra/docker-compose.yml exec backend python -m app.corpus_download --quick   # the 5 quick_start labels
+docker compose -f infra/docker-compose.yml exec backend python -m app.corpus_download --all     # all labels
 ```

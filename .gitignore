@@ -2,7 +2,10 @@
 .env.*
 !.env.example
 
-corpus/files/
+backend/corpus/files/
+
+# Local load test overlay for infra/docker-compose.yml.
+infra/compose.loadtest.yml
 
 .DS_Store
 Thumbs.db

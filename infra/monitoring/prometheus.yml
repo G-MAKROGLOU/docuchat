@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  # One target per container; the backend adds up the values of all its uvicorn processes.
+  - job_name: backend
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["backend:8000"]
+  - job_name: ingest-worker
+    static_configs:
+      - targets: ["ingest-worker:9100"]

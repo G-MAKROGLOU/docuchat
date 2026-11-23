@@ -1,0 +1,244 @@
+# Full stack for development, built from ../backend and ../frontend. Run ./setup.sh (Windows:
+# .\setup.ps1) once, then from the repository root: docker compose -f infra/docker-compose.yml up
+# Each project has its own .env: infra/.env (this file's ${...} values), backend/.env, frontend/.env.
+
+# The project name keeps the containers and volumes of the stack that ran from the repository root.
+name: docuchat
+
+services:
+  # Checks the required files and .env values. The other services wait for it.
+  preflight:
+    image: busybox:1.37.0
+    command: ["sh", "/workspace/infra/preflight/check.sh"]
+    env_file:
+      # Required: without it, Compose stops here and names the missing file.
+      - path: ../backend/.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    volumes:
+      - ./preflight:/workspace/infra/preflight:ro
+      - ../backend:/workspace/backend:ro
+      - ../frontend:/workspace/frontend:ro
+
+  db:
+    image: paradedb/paradedb:0.26.8-pg18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-}
+    volumes:
+      - db_data:/var/lib/postgresql
+      # One file, so the image keeps its own bootstrap script in this folder.
+      - ../backend/db/init/01-extensions.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
+      - ../backend/db/init/02-test-db.sql:/docker-entrypoint-initdb.d/02-test-db.sql:ro
+    ports:
+      - "127.0.0.1:${DB_PORT:-}:5432"
+    healthcheck:
+      # TCP check, so the check fails while the init scripts run on the socket-only server.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
+
+  # S3-compatible object store for development. The backend creates the bucket at startup.
+  storage:
+    image: chrislusf/seaweedfs:4.52
+    command: ["mini", "-dir=/data"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-}
+    volumes:
+      - storage_data:/data
+    ports:
+      - "127.0.0.1:${STORAGE_PORT:-}:8333"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8333/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
+
+  # Shared cache for all API processes and the worker. Redis 7.2 is the last BSD-licensed line;
+  # 7.4 and later are source-available (RSALv2, SSPLv1) or AGPLv3.
+  cache:
+    image: redis:7.2.17-alpine3.22
+    # A pure cache: no disk copy, a memory limit, least recently used keys out first.
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
+
+  backend:
+    build:
+      context: ../backend
+      target: dev
+    env_file:
+      - path: ../backend/.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-}:${POSTGRES_PASSWORD:-}@db:5432/${POSTGRES_DB:-}
+      CACHE_URL: redis://cache:6379/0
+      S3_ENDPOINT_URL: http://storage:8333
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus
+      # Backend tests only: a separate database (02-test-db.sql) and the dev object store.
+      TEST_DATABASE_URL: postgresql://${POSTGRES_USER:-}:${POSTGRES_PASSWORD:-}@db:5432/docuchat_test
+      CACHE_TEST_URL: redis://cache:6379/1
+      S3_TEST_ENDPOINT_URL: http://storage:8333
+      S3_TEST_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_TEST_SECRET_KEY: ${S3_SECRET_KEY:-}
+    tmpfs:
+      # A restart remounts it as root 755 without an explicit mode; the app runs as non-root.
+      - /tmp/prometheus:mode=1777
+    volumes:
+      - ../backend:/app
+      - /app/.venv
+      - ../backend/corpus:/corpus:ro
+    ports:
+      - "${BACKEND_PORT:-}:8000"
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # Runs the ingestion schedule and the passes the API asks for. Exactly one replica.
+  ingest-worker:
+    build:
+      context: ../backend
+      target: dev
+    command: ["python", "-m", "app.ingest_worker"]
+    env_file:
+      - path: ../backend/.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-}:${POSTGRES_PASSWORD:-}@db:5432/${POSTGRES_DB:-}
+      CACHE_URL: redis://cache:6379/0
+      S3_ENDPOINT_URL: http://storage:8333
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    volumes:
+      - ../backend:/app
+      - /app/.venv
+    healthcheck:
+      # Healthy while the worker loop reports; the metrics server alone is not enough.
+      test: ["CMD", "python", "-c", "import time, urllib.request as u; body = u.urlopen('http://127.0.0.1:9100/metrics', timeout=3).read().decode(); t = [float(l.split()[-1]) for l in body.splitlines() if l.startswith('docuchat_ingest_worker_report_timestamp_seconds ')]; raise SystemExit(0 if t and time.time() - t[0] < 60 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 30s
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # One-shot job: fills an empty library from corpus/manifest.json, then exits.
+  # It waits for the backend, which applies the migrations.
+  corpus-init:
+    build:
+      context: ../backend
+      target: dev
+    command: ["python", "-m", "app.corpus_init"]
+    restart: "no"
+    env_file:
+      - path: ../backend/.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-}:${POSTGRES_PASSWORD:-}@db:5432/${POSTGRES_DB:-}
+      CACHE_URL: redis://cache:6379/0
+      S3_ENDPOINT_URL: http://storage:8333
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    volumes:
+      - ../backend:/app
+      - /app/.venv
+      - ../backend/corpus:/corpus:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # Metrics: Prometheus reads the backend and the ingest worker; Grafana shows the DocuChat dashboard.
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=15d"]
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-}:9090"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:13.3.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-}
+      # Local viewers see the dashboards without a login; changes need the admin login.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/docuchat.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-}:3000"
+    depends_on:
+      - prometheus
+
+  frontend:
+    build:
+      context: ../frontend
+      target: dev
+    env_file:
+      - path: ../frontend/.env
+        required: false
+    environment:
+      BACKEND_URL: http://backend:8000
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "${FRONTEND_PORT:-}:3000"
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  db_data:
+  storage_data:
+  prometheus_data:
+  grafana_data:

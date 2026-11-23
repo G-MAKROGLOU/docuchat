@@ -1,37 +1,40 @@
 # Start modes
 
-Run `./setup.sh` (Windows: `.\setup.ps1`) once before the first start in either mode.
+Run `infra/setup.sh` (Windows: `infra\setup.ps1`) once before the first start. It creates the three `.env` files from their examples. Only `backend/.env` needs a value from you: `OPENROUTER_API_KEY`.
 
-## 1. Build from backend/ and frontend/ (development)
+## Configuration
+
+Each project has its own `.env`. Each variable is in one file only.
+
+| File | Holds |
+|---|---|
+| `backend/.env` | OpenRouter key and URL, models, embedding, storage bucket and region, Langfuse, `WEB_CONCURRENCY` |
+| `infra/.env` | Postgres credentials, object store keys, Grafana admin password, host ports. Compose reads it for the `${...}` values in `infra/docker-compose.yml` and passes the database URL and the object store keys to the backend. |
+| `frontend/.env` | Links on the Health page, hot reload polling, and `BACKEND_URL` and `CONTRACT_SOURCE` for a run outside Docker |
+
+## Start
+
+The repository has one Compose file, `infra/docker-compose.yml`. It builds the dev targets of `backend/` and `frontend/`. Run it from the repository root:
 
 ```sh
-docker compose up
+docker compose -f infra/docker-compose.yml up
 ```
 
-Services: preflight, db, backend, frontend. Hot reload for `backend/` and `frontend/`.
-
-## 2. Published images (no local build)
-
-```sh
-docker login ghcr.io          # token with read:packages; the images are private
-docker compose -f compose.images.yml up -d
-```
-
-Image tags come from `BACKEND_IMAGE_TAG` and `FRONTEND_IMAGE_TAG` in `.env` (a commit hash or `latest`). This mode builds nothing.
+Services: preflight, db, storage, cache, backend, ingest-worker, corpus-init (runs once), prometheus, grafana, frontend. Hot reload for `backend/` and `frontend/`.
 
 ## URLs
 
+The ports are in `infra/.env`.
+
 - App: `http://localhost:${FRONTEND_PORT}`
 - API docs: `http://localhost:${BACKEND_PORT}/api/v1/docs`
+- Grafana: `http://localhost:${GRAFANA_PORT}`
+- Prometheus: `http://127.0.0.1:${PROMETHEUS_PORT}`
 
-## Reset without a prepared .env
+## Reset
 
-Compose stops every command while `OPENROUTER_API_KEY` is empty. To remove the stack and its volume anyway:
+This removes the stack and its volumes. It works also when the `.env` files do not exist.
 
 ```sh
-OPENROUTER_API_KEY=unused docker compose down -v
-```
-
-```powershell
-$env:OPENROUTER_API_KEY = 'unused'; docker compose down -v
+docker compose -f infra/docker-compose.yml down -v
 ```

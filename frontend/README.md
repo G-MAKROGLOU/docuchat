@@ -2,12 +2,12 @@
 
 Next.js chat interface for document question answering. A proxy route forwards `/api/*` to the backend at `BACKEND_URL`.
 
-The full system (backend, frontend, database, storage) runs from the repository root: see the root `docker-compose.yml`.
+The full system (backend, frontend, database, storage) runs from the repository root: see `infra/docker-compose.yml` and `docs/start-modes.md`.
 
 ## Local commands
 
 ```sh
-cp .env.example .env      # set BACKEND_URL to a running backend
+cp .env.example .env      # infra/setup.sh also creates it; BACKEND_URL points to a running backend
 npm ci
 npm run dev               # http://localhost:3000
 ```
