@@ -4,6 +4,7 @@ from typing import Any, cast
 from app.config import load_settings
 from app.domain.entities import ModelRole
 from app.infrastructure import models
+from app.infrastructure.cache import CachedChatModel
 from app.infrastructure.models import ModelFactory, close_model_clients
 from app.infrastructure.storage import shared_document_store
 from app.wiring import default_runtime_settings, ingestion_service
@@ -11,7 +12,7 @@ from app.wiring import default_runtime_settings, ingestion_service
 
 def clients(factory: ModelFactory) -> dict[ModelRole, tuple[object, object]]:
     provider = factory.chat_models()
-    # The rewrite model sits behind the shared cache (CachedChatModel._inner).
+    # The chat and rewrite models sit behind the shared cache (CachedChatModel._inner).
     models: dict[ModelRole, Any] = {
         role: getattr(provider.for_role(role), "_inner", provider.for_role(role))
         for role in ModelRole
@@ -30,6 +31,14 @@ def test_a_settings_change_reuses_the_clients_of_unchanged_roles() -> None:
     assert after[ModelRole.GENERATE] == before[ModelRole.GENERATE]
     assert after[ModelRole.REWRITE] == before[ModelRole.REWRITE]
     assert after[ModelRole.GRADE] != before[ModelRole.GRADE]
+
+
+def test_the_query_writing_roles_use_the_shared_cache() -> None:
+    provider = ModelFactory(load_settings()).chat_models()
+
+    cached = {role for role in ModelRole if isinstance(provider.for_role(role), CachedChatModel)}
+
+    assert cached == {ModelRole.CHAT, ModelRole.REWRITE}
 
 
 def test_the_embedder_is_reused_for_the_same_model() -> None:
