@@ -43,6 +43,7 @@ def make_chunk(
     document_id: uuid.UUID | None = None,
     embedding: tuple[float, ...] | None = None,
     embedding_model: str | None = None,
+    table_header: str = "",
 ) -> Chunk:
     return Chunk(
         id=chunk_id or uuid.uuid4(),
@@ -57,6 +58,7 @@ def make_chunk(
         token_count=tokens,
         embedding=embedding,
         embedding_model=embedding_model,
+        table_header=table_header,
     )
 
 

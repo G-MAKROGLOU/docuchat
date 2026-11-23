@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from app.application.chat import parse_intake, validate_answer
-from tests.support.factories import sources_of
+from app.application.chat import SourceRef, parse_intake, validate_answer
+from tests.support.factories import make_chunk, sources_of
 
 
 def reply(text: str) -> str:
@@ -271,3 +271,15 @@ def test_daily_in_the_excerpt_counts_as_per_day(
 @pytest.mark.parametrize("excerpt", ["10 \u0130U", "5 mg/m\u0130n", "take 5 hour\u017f"])
 def test_an_unusual_unit_spelling_in_an_excerpt_does_not_break_the_check(excerpt: str) -> None:
     assert refusal("Take 2 mg [S1].", excerpt) == "no_valid_citation"
+
+
+def test_a_dose_from_the_table_header_of_a_cited_excerpt_is_supported() -> None:
+    # The model sees the caption and header row of a split table, so the check reads them too.
+    row = make_chunk(
+        "Adults | 18 | 12", table_header="Table 2. Patients\nGroup | Sitagliptin 100 mg"
+    )
+    answer = "The group took Sitagliptin 100 mg [S1]."
+
+    result = validate_answer(answer, [SourceRef("S1", row)])
+
+    assert result.refusal is None

@@ -379,7 +379,7 @@ def answer_numbers(answer: str) -> set[str]:
 
 def ungrounded_numbers(answer: str, cited: Sequence[SourceRef]) -> list[str]:
     """Numbers of the answer that no cited excerpt contains. A warning, not a refusal."""
-    known = text_numbers(" ".join(s.chunk.content for s in cited))
+    known = text_numbers(" ".join(excerpt_text(s.chunk) for s in cited))
     return sorted(answer_numbers(answer) - known)
 
 
@@ -416,7 +416,7 @@ def unsupported_facts(answer: str, cited: Sequence[SourceRef], question: str = "
     """Doses and links of the answer without a source. These refuse the answer. A dose needs
     an excerpt that its sentence cites; a statement of absence may use any cited excerpt, or an
     age or a duration of the question."""
-    by_id = {s.id: doses_in(s.chunk.content) for s in cited}
+    by_id = {s.id: doses_in(excerpt_text(s.chunk)) for s in cited}
     asked = {d for d in doses_in(question) if d[0] in _TIME_KINDS}
     anywhere = set().union(*by_id.values(), asked)
     doses: set[str] = set()
@@ -428,7 +428,7 @@ def unsupported_facts(answer: str, cited: Sequence[SourceRef], question: str = "
         )
         text = _CITATION.sub("", sentence)
         doses |= {m.group(0).strip() for m in _DOSE.finditer(text) if not _match_doses(m) <= known}
-    text = " ".join(s.chunk.content for s in cited).lower()
+    text = " ".join(excerpt_text(s.chunk) for s in cited).lower()
     links = {link.rstrip(".,;:").lower() for link in _LINK.findall(answer)}
     return sorted(doses | {link for link in links if link not in text})
 
@@ -470,11 +470,17 @@ def validate_answer(answer: str, sources: Sequence[SourceRef], question: str = "
     return Validation(cleaned, citations, None, tuple(ungrounded_numbers(cleaned, cited)))
 
 
+def excerpt_text(chunk: Chunk) -> str:
+    """What the model reads of a chunk: the table caption and header it continues, then its text.
+    The answer checks read the same text."""
+    return f"{chunk.table_header}\n{chunk.content}" if chunk.table_header else chunk.content
+
+
 def source_block(sources: Sequence[SourceRef]) -> str:
     return "\n\n".join(
         f"[{s.id}] {s.chunk.drug_name}, section {s.chunk.section_number} "
         f"{s.chunk.section_title}, page {s.chunk.page_start}:\n"
-        f"{s.chunk.table_header + chr(10) if s.chunk.table_header else ''}{s.chunk.content}"
+        f"{excerpt_text(s.chunk)}"
         for s in sources
     )
 
