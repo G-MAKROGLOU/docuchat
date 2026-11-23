@@ -1,0 +1,4 @@
+/* Fills the parent (drawer body, chat source panel); the parent sets the height. */
+.viewer {
+  height: 100%;
+}

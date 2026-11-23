@@ -1,0 +1,123 @@
+.browser {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Stays at the top of the scrolling <main>; the cards scroll under it. */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 12px 0;
+  background: var(--color-background);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search {
+  width: 100%;
+  max-width: 360px;
+}
+
+.count {
+  margin: 0 0 0 auto;
+  color: var(--color-foreground-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  height: 100%;
+}
+
+.media {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--color-background);
+  cursor: pointer;
+}
+
+/* The page image fills the whole media area; the top of page 1 stays in view. */
+.thumbnail {
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.title {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.title:hover {
+  text-decoration: underline;
+}
+
+.pill {
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+
+.ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.ingredient {
+  border: 1px solid var(--color-info);
+  border-radius: 9999px;
+}
+
+.meta {
+  margin: 0;
+  color: var(--color-foreground-muted);
+  font-size: 0.6875rem;
+}
+
+.ingested {
+  white-space: nowrap;
+}
+
+/* Two classes so this wins over the Card footer's py-3 utility. */
+.card .footer {
+  display: flex;
+  justify-content: center;
+  padding-block: 4px;
+}
+
+.download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  color: var(--color-accent);
+}
+
+.download:hover {
+  background: var(--color-background);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-foreground-muted);
+}
