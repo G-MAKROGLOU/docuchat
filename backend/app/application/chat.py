@@ -61,7 +61,13 @@ _REFERENCE = re.compile(
     re.IGNORECASE,
 )
 # "1,000" is one thousand; "2,5" is 2.5.
-_FIGURE = r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?"
+_THOUSANDS = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
+_FIGURE = rf"{_THOUSANDS.pattern}|\d+(?:[.,]\d+)?"
+# "10 to 20", "10-20", or a list that ends in "or" or "and" such as "10, 20, or 40".
+_FIGURES = (
+    rf"(?:{_FIGURE})(?:\s*,\s*(?:{_FIGURE}))*\s*,?\s*(?:or|and)\s*(?:{_FIGURE})"
+    rf"|(?:{_FIGURE})\s*(?:-|\u2013|\u2014|to)\s*(?:{_FIGURE})|{_FIGURE}"
+)
 _UNITS = {
     **dict.fromkeys(("mg", "milligram", "milligrams"), ("mass", 1000)),
     **dict.fromkeys(("mcg", "\u00b5g", "\u03bcg", "ug", "microgram", "micrograms"), ("mass", 1)),
@@ -91,12 +97,13 @@ def _alternatives(names: Iterable[str]) -> str:
 # A figure or a range with a clinical unit, such as "10 mg", "10 to 20 mg", "2.5 mg/kg/day",
 # "20%" or "every 12 hours". Group 1 holds the figures, group 2 the unit, group 3 any "/kg".
 _DOSE = re.compile(
-    rf"(?<![A-Za-z\d.,])((?:{_FIGURE})(?:\s*(?:-|\u2013|\u2014|to|or|and|,\s*(?:or|and)?)\s*"
-    rf"(?:{_FIGURE}))*)\s*-?\s*({_alternatives(_UNITS)})"
+    rf"(?<![A-Za-z\d.,])({_FIGURES})\s*-?\s*({_alternatives(_UNITS)})"
     rf"((?:\s*(?:/|per\s)\s*(?:{_alternatives(_PER_UNITS)})s?)*)(?![A-Za-z])",
     re.IGNORECASE,
 )
 _PER = re.compile(rf"(?:/|per\s)\s*({_alternatives(_PER_UNITS)})s?", re.IGNORECASE)
+# "40 mg daily" in an excerpt also supports "40 mg/day"; "twice daily" does not.
+_DAILY = re.compile(r"\s*,?\s*(?:once\s+)?(?:daily|a\s+day|each\s+day|every\s+day)\b", re.I)
 
 Dose = tuple[str, Decimal, tuple[str, ...]]
 _LINK = re.compile(r"https?://[^\s)\]]+|www\.[^\s)\]]+", re.IGNORECASE)
@@ -299,17 +306,16 @@ def _statement_lines(answer: str) -> list[tuple[list[str], frozenset[str]]]:
     because it is indented deeper. Headings and blank lines are left out (a heading can carry the
     marker)."""
     lines: list[tuple[list[str], frozenset[str]]] = []
-    cover_indent: int | None = None  # the indent of the nearest line above that has a marker
-    cover_ids: frozenset[str] = frozenset()
+    covers: list[tuple[int, frozenset[str]]] = []  # the lines above with a marker, outermost first
     for raw in answer.splitlines():
         if not raw.strip():
             continue
         indent = len(raw) - len(raw.lstrip())
-        if cover_indent is not None and indent <= cover_indent:
-            cover_indent = None
-        covering = cover_ids if cover_indent is not None else frozenset()
-        if cover_indent is None and (markers := _CITATION.findall(raw)):
-            cover_indent, cover_ids = indent, frozenset(markers)
+        while covers and indent <= covers[-1][0]:
+            covers.pop()
+        covering = covers[-1][1] if covers else frozenset()
+        if markers := _CITATION.findall(raw):
+            covers.append((indent, frozenset(markers)))
         line = _LIST_MARK.sub("", raw.strip()).replace("*", "").replace("_", " ").strip()
         if line and not _is_heading(raw, line):
             lines.append((_SENTENCE_BREAK.split(line), covering))
@@ -367,28 +373,41 @@ def ungrounded_numbers(answer: str, cited: Sequence[SourceRef]) -> list[str]:
 
 
 def _figure(text: str) -> Decimal:
-    thousands = re.fullmatch(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?", text)
+    thousands = _THOUSANDS.fullmatch(text)
     return Decimal(text.replace(",", "") if thousands else text.replace(",", "."))
 
 
 def _match_doses(match: re.Match[str]) -> set[Dose]:
     """Each figure of a dose match as (kind, amount in the base unit, "per" units)."""
-    kind, factor = _UNITS[match.group(2).lower()]
-    per = tuple(_PER_UNITS[u.lower()] for u in _PER.findall(match.group(3)))
+    # A spelling that only matches without case (such as a dotted capital I) stays its own unit.
+    unit = match.group(2).lower()
+    kind, factor = _UNITS.get(unit, (unit, 1))
+    per = tuple(_PER_UNITS.get(u.lower(), u.lower()) for u in _PER.findall(match.group(3)))
     return {(kind, _figure(f) * factor, per) for f in re.findall(_FIGURE, match.group(1))}
 
 
 def doses_in(text: str) -> set[Dose]:
     """The doses of a text; "1 g" and "1000 mg" are the same dose, "10 mg/kg" is not "10 mg"."""
-    return {dose for match in _DOSE.finditer(text) for dose in _match_doses(match)}
+    found: set[Dose] = set()
+    for match in _DOSE.finditer(text):
+        doses = _match_doses(match)
+        found |= doses
+        if _DAILY.match(text, match.end()):
+            found |= {(kind, amount, (*per, "day")) for kind, amount, per in doses}
+    return found
+
+
+# Ages and durations; a statement of absence may repeat one from the question.
+_TIME_KINDS = {"hour", "day", "week", "month", "year"}
 
 
 def unsupported_facts(answer: str, cited: Sequence[SourceRef], question: str = "") -> list[str]:
     """Doses and links of the answer without a source. These refuse the answer. A dose needs
-    an excerpt that its sentence cites; a statement of absence may use any cited excerpt or the
-    question."""
+    an excerpt that its sentence cites; a statement of absence may use any cited excerpt, or an
+    age or a duration of the question."""
     by_id = {s.id: doses_in(s.chunk.content) for s in cited}
-    anywhere = set().union(*by_id.values(), doses_in(question))
+    asked = {d for d in doses_in(question) if d[0] in _TIME_KINDS}
+    anywhere = set().union(*by_id.values(), asked)
     doses: set[str] = set()
     for sentence, ids in _cited_sentences(answer):
         known = (

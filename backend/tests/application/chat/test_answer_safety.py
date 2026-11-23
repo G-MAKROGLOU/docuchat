@@ -227,3 +227,47 @@ def test_a_statement_of_absence_may_repeat_a_figure_of_the_question() -> None:
 
     assert refusal(answer, "10 mg", question="Dose at 6 years?") is None
     assert refusal(answer, "10 mg", question="Dose for a child?") == "no_valid_citation"
+
+
+def test_a_statement_of_absence_never_takes_an_amount_from_the_question() -> None:
+    answer = "- Adults take 5 mg [S1].\nThe labels do not limit this, so take 80 mg."
+
+    assert refusal(answer, "5 mg", question="Can I take 80 mg?") == "no_valid_citation"
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        "For patients aged 65, 10 mg daily [S1].",
+        "On days 1 and 2, 10 mg daily [S1].",
+    ],
+)
+def test_a_figure_before_a_comma_does_not_join_the_next_dose(answer: str) -> None:
+    assert refusal(answer, "Patients aged 65 or older on days 1 and 2: 10 mg daily") is None
+
+
+def test_a_nested_item_takes_the_source_of_its_nearest_marked_parent() -> None:
+    answer = "- Adults [S1]:\n  - Tablets [S2]: 5 mg\n    - Max 10 mg daily"
+
+    assert refusal(answer, "adults", "tablets 5 mg; max 10 mg daily") is None
+
+
+@pytest.mark.parametrize(
+    ("answer", "excerpt", "expected"),
+    [
+        ("Take at most 40 mg/day [S1].", "maximum 40 mg daily", None),
+        ("Take at most 40 mg per day [S1].", "40 mg once a day", None),
+        ("Give 10 mg/kg/day [S1].", "10 mg/kg once daily", None),
+        ("Take 40 mg daily [S1].", "40 mg/day", "no_valid_citation"),
+        ("Take at most 40 mg/day [S1].", "40 mg twice daily", "no_valid_citation"),
+    ],
+)
+def test_daily_in_the_excerpt_counts_as_per_day(
+    answer: str, excerpt: str, expected: str | None
+) -> None:
+    assert refusal(answer, excerpt) == expected
+
+
+@pytest.mark.parametrize("excerpt", ["10 \u0130U", "5 mg/m\u0130n", "take 5 hour\u017f"])
+def test_an_unusual_unit_spelling_in_an_excerpt_does_not_break_the_check(excerpt: str) -> None:
+    assert refusal("Take 2 mg [S1].", excerpt) == "no_valid_citation"
