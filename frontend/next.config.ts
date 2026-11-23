@@ -8,7 +8,6 @@ if (pollIntervalMs !== undefined && !(Number.isInteger(pollIntervalMs) && pollIn
 }
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   poweredByHeader: false,
   // Basic headers for every route. A full Content-Security-Policy needs nonces and is not set here.
   headers: async () => [

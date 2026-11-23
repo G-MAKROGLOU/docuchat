@@ -17,15 +17,3 @@ COPY --chown=node:node . .
 RUN mkdir -p .next
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
-
-FROM deps AS build
-COPY --chown=node:node . .
-RUN npm run build
-
-FROM base AS prod
-ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
-COPY --from=build /app/public ./public
-EXPOSE 3000
-CMD ["node", "server.js"]
