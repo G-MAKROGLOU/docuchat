@@ -1,11 +1,11 @@
-from collections.abc import Awaitable, Callable
-from typing import Protocol, cast
+from typing import Annotated, Protocol, cast
 
-from fastapi import Request
+from fastapi import Depends, Request
 
 from app.application.chat import ChatService
 from app.application.ingestion_control import IngestionControl
 from app.application.readiness import ReadinessCheck
+from app.application.settings_service import EmbeddingChoices, KnownModels, SettingsService
 from app.config import Settings
 from app.domain.corpus_stats import CorpusStatsRepository
 from app.domain.documents import DocumentRepository, PageRenderer
@@ -71,12 +71,21 @@ async def get_runtime_config(request: Request) -> RuntimeConfig:
     return config
 
 
-def get_known_models(request: Request) -> Callable[[], Awaitable[set[str] | None]]:
+def get_known_models(request: Request) -> KnownModels:
     return ModelFactory(request.app.state.settings).known_model_ids
 
 
-def get_embedding_choices(request: Request) -> Callable[[str], Awaitable[list[str]]]:
+def get_embedding_choices(request: Request) -> EmbeddingChoices:
     return ModelFactory(request.app.state.settings).embedding_choices
+
+
+def get_settings_service(
+    config: Annotated[RuntimeConfig, Depends(get_runtime_config)],
+    control: Annotated[IngestionControl, Depends(get_ingestion_control)],
+    known_models: Annotated[KnownModels, Depends(get_known_models)],
+    embedding_choices: Annotated[EmbeddingChoices, Depends(get_embedding_choices)],
+) -> SettingsService:
+    return SettingsService(config, control, known_models, embedding_choices)
 
 
 def get_cache(request: Request) -> Cache:
