@@ -19,10 +19,22 @@ class Connections(Protocol):
     def connection(self) -> AbstractAsyncContextManager[psycopg.AsyncConnection[Any]]: ...
 
 
+# A slow query or a long wait for a connection fails the request instead of holding it.
+STATEMENT_TIMEOUT_MS = 30_000
+POOL_TIMEOUT_SECONDS = 10.0
+POOL_MAX_WAITING = 256
+
+
 def build_pool(settings: Settings) -> AsyncConnectionPool[psycopg.AsyncConnection[TupleRow]]:
     # Closed: the owner opens it in its own event loop. One retrieval uses 2 connections at once.
     return AsyncConnectionPool(
-        settings.database_url.get_secret_value(), min_size=2, max_size=10, open=False
+        settings.database_url.get_secret_value(),
+        min_size=2,
+        max_size=10,
+        open=False,
+        kwargs={"options": f"-c statement_timeout={STATEMENT_TIMEOUT_MS}"},
+        timeout=POOL_TIMEOUT_SECONDS,
+        max_waiting=POOL_MAX_WAITING,
     )
 
 

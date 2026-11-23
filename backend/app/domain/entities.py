@@ -6,6 +6,7 @@ from uuid import UUID
 
 
 class ModelRole(StrEnum):
+    CHAT = "chat"
     REWRITE = "rewrite"
     GRADE = "grade"
     GENERATE = "generate"

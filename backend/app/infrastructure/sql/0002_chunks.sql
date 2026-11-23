@@ -22,11 +22,11 @@ CREATE INDEX chunks_document_id_idx ON chunks (document_id);
 CREATE INDEX chunks_embedding_idx ON chunks USING hnsw (embedding vector_cosine_ops);
 
 -- BM25 on content (English stemming). drug_name and section_number are literal filter fields.
+-- The first column, id, is the key field (pg_search 0.26 ignores key_field).
 CREATE INDEX chunks_search_idx ON chunks
 USING paradedb (
     id,
     (content::pdb.simple('stemmer=english')),
     (drug_name::pdb.literal),
     (section_number::pdb.literal)
-)
-WITH (key_field = 'id');
+);

@@ -33,6 +33,22 @@ def apply_migrations(conninfo: str) -> list[str]:
     return applied
 
 
+def check_vector_size(conninfo: str, dimensions: int) -> None:
+    """The vector column has a fixed size; a different EMBEDDING_DIMENSIONS would fail on the
+    first ingest or query, so the process stops at start with the fix instead."""
+    with psycopg.connect(conninfo) as conn:
+        row = conn.execute(
+            "SELECT atttypmod FROM pg_attribute "
+            "WHERE attrelid = 'chunks'::regclass AND attname = 'embedding'"
+        ).fetchone()
+    column = int(row[0]) if row else None
+    if column != dimensions:
+        raise RuntimeError(
+            f"EMBEDDING_DIMENSIONS={dimensions}, but the chunks.embedding column holds {column} "
+            "values. Use an embedding model and size that match, or migrate the column."
+        )
+
+
 if __name__ == "__main__":
     from app.config import get_settings
 
