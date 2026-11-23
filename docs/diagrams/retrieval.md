@@ -67,25 +67,26 @@ flowchart TD
     call(["retrieve(query, labels, section_hints, mode)"]) --> emb
 
     emb["embedding leg: CachedEmbedder.embed_query(query)<br/>Redis key: model, dimensions, SHA-256 of the query<br/>miss: OpenRouter, then stored for 30 days"]
-    emb --> groups["groups: one per label when 2 or more labels,<br/>else one group with all labels"]
+    emb --> legs
 
-    subgraph per["per group, asyncio.gather, TOP_K = 20 each (runtime setting)"]
-        vec["vector leg: ORDER BY cosine distance to the query vector<br/>WHERE document_id = ANY(labels)<br/>AND embedding_model = current model<br/>HNSW, iterative_scan = strict_order"]
-        bm["BM25 leg: content ||| query<br/>OR content ### query boost 2<br/>OR section_title ||| query boost 0.5<br/>document_id = ANY(labels) inside the index<br/>ORDER BY pdb.score(id)"]
+    subgraph legs["two legs, asyncio.gather, TOP_K rows per label (runtime setting, default 20)"]
+        vec["vector leg: ORDER BY embedding::halfvec <=> query<br/>WHERE document_id = ANY(labels)<br/>AND embedding_model = current model<br/>HNSW on the halfvec cast, iterative_scan = strict_order,<br/>ef_search = max(SEARCH_HNSW_EF_SEARCH, 2 x limit)"]
+        bm["BM25 leg: content ||| query<br/>OR content ### query boost SEARCH_PHRASE_BOOST<br/>OR section_title ||| query boost SEARCH_TITLE_BOOST<br/>document_id = ANY(labels) inside the index<br/>ORDER BY pdb.score(id)"]
     end
-    groups --> per
+    cmpq{"2 or more labels?"} -.-> legs
+    note2["comparison: one query per leg (vector_search_each,<br/>text_search_each): UNION ALL, one branch per label<br/>with its own ORDER BY and LIMIT; 2 connections in all"] -.-> cmpq
 
-    note1["each leg, the embedding too: 5 s timeout<br/>a failed or slow leg gives no rows and goes into degraded<br/>no embedding: BM25 only<br/>no search leg answered: the first error fails the turn"] -.-> per
+    note1["each leg, the embedding too: SEARCH_LEG_TIMEOUT_SECONDS (5 s)<br/>a failed or slow leg gives no rows and goes into degraded<br/>no embedding: BM25 only<br/>no search leg answered: the first error fails the turn"] -.-> legs
 
-    per --> inter["interleave the groups per leg:<br/>first of each group, then the second, ..."]
-    inter --> fuse["fusion.fuse()<br/>score = sum of 1 / (60 + rank) over both lists<br/>hinted sections act as a third ranked list:<br/>+ 1 / (60 + rank among the hinted chunks)<br/>sort by score"]
+    legs --> inter["comparison: interleave the per-label lists per leg:<br/>first of each label, then the second, ..."]
+    inter --> fuse["fusion.fuse()<br/>score = sum of 1 / (k + rank) over both lists, k = SEARCH_RRF_K (60)<br/>hinted sections act as a third ranked list:<br/>+ 1 / (k + rank among the hinted chunks)<br/>sort by score"]
     fuse --> cmp{"2 or more labels?"}
-    cmp -->|yes| rr["round robin: up to 3 top chunks per label first,<br/>then the rest in fused order"]
+    cmp -->|yes| rr["round robin: up to SEARCH_MIN_PER_DRUG (3) top chunks per label first,<br/>then the rest in fused order"]
     cmp -->|no| order["fused order"]
     rr --> budget
     order --> budget
 
-    budget["select(): take chunks in that order<br/>stop at 8 chunks<br/>skip a chunk that passes 3,500 tokens,<br/>except the first chunk overall and<br/>the first chunk of each compared label"]
+    budget["select(): take chunks in that order<br/>stop at SEARCH_MAX_CHUNKS (8)<br/>skip a chunk that passes SEARCH_TOKEN_BUDGET (3,500 tokens),<br/>except the first chunk overall and<br/>the first chunk of each compared label"]
     budget --> out(["RetrievalResult<br/>candidates = fused list<br/>selected = chosen chunks in fused order<br/>degraded = failed legs"])
 ```
 
