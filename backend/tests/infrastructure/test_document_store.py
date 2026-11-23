@@ -29,7 +29,7 @@ def _s3_store() -> S3DocumentStore:
     return store
 
 
-@pytest.fixture(params=["filesystem", "s3"])
+@pytest.fixture(params=["filesystem", pytest.param("s3", marks=pytest.mark.s3)])
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[DocumentStore]:
     if request.param == "filesystem":
         yield FileSystemDocumentStore(tmp_path)

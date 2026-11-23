@@ -5,19 +5,36 @@ import asyncio
 import json
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
-from app.application.ingestion import IngestResult
+from app.application.ingestion import IngestionService, IngestResult
+from app.application.ingestion_runner import ChunkingTracker
 from app.config import Settings, get_settings
 from app.domain.documents import Document
+from app.domain.runtime_settings import RuntimeSettings
 from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.migrations import apply_migrations
 from app.infrastructure.models import ModelFactory
-from app.wiring import ingestion_service
+from app.infrastructure.runtime_settings_repository import PostgresRuntimeSettingsRepository
+from app.runtime_config import RuntimeConfig
+from app.wiring import default_runtime_settings, ingestion_service, runtime_settings
 
 DEFAULT_MANIFEST = Path("/corpus/manifest.json")
+
+
+async def ingest_documents(
+    documents: list[Document], service: IngestionService, tracker: ChunkingTracker, *, force: bool
+) -> list[tuple[Document, IngestResult]]:
+    """The same rules as a worker pass: a stale index (chunk settings changed) is embedded
+    again, and the marker is cleared only when every document succeeded."""
+    force = force or await tracker.stale()
+    results = [(d, await service.ingest(d, force=force)) for d in documents]
+    if force and not any(r.error for _, r in results):
+        await tracker.mark_embedded()
+    return results
 
 
 async def run(
@@ -27,8 +44,20 @@ async def run(
         documents = await PostgresDocumentRepository(pool).list_all()
         if quick_ids is not None:
             documents = [d for d in documents if d.source_id in quick_ids]
-        service = ingestion_service(settings, pool)
-        return [(d, await service.ingest(d, force=force)) for d in documents]
+        runtime = await runtime_settings(settings, pool)
+
+        async def keep(new: RuntimeSettings) -> Callable[[], None]:
+            return lambda: None
+
+        tracker = RuntimeConfig(
+            PostgresRuntimeSettingsRepository(pool), default_runtime_settings(settings), keep
+        )
+        await tracker.load()
+        service = ingestion_service(settings, pool, runtime)
+        # A quick run covers only some labels, so it never clears the marker.
+        if quick_ids is not None:
+            return [(d, await service.ingest(d, force=force)) for d in documents]
+        return await ingest_documents(documents, service, tracker, force=force)
 
 
 def main(argv: list[str] | None = None) -> int:

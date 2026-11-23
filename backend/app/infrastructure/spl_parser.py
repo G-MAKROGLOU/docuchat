@@ -4,6 +4,7 @@ import pyexpat
 from xml.etree import ElementTree  # nosec B405  # safe with the expat check below
 
 from app.domain.entities import LabelNode
+from app.domain.label_queue import LabelMetadata
 
 _V = "{urn:hl7-org:v3}"
 # expat 2.4.1+ limits entity expansion (billion laughs); ElementTree loads no external entities.
@@ -21,6 +22,18 @@ class SplXmlParser:
         if body is None:
             raise ValueError("The SPL has no structured body")
         return [_node(s) for s in body.findall(f"{_V}component/{_V}section")]
+
+    def metadata(self, data: bytes) -> LabelMetadata:
+        root = ElementTree.fromstring(data)  # noqa: S314  # nosec B314  # expat checked above
+        product = f"{_V}component/{_V}structuredBody/{_V}component/{_V}section/{_V}subject"
+        product += f"/{_V}manufacturedProduct/{_V}manufacturedProduct"
+        organization = f"{_V}author/{_V}assignedEntity/{_V}representedOrganization/{_V}name"
+        generic = f"{product}/{_V}asEntityWithGeneric/{_V}genericMedicine/{_V}name"
+        return LabelMetadata(
+            brand_name=_inline(root.find(f"{product}/{_V}name")),
+            generic_name=_inline(root.find(generic)),
+            manufacturer=_inline(root.find(organization)),
+        )
 
 
 def _node(section: ElementTree.Element) -> LabelNode:

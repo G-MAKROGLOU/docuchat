@@ -10,7 +10,12 @@ from uuid import UUID
 from app.application.chunking import build_chunks, embedding_input
 from app.application.label_sections import split_sections
 from app.application.page_locator import PageLocator
-from app.domain.documents import Document, DocumentStatus, IngestionStatusRepository
+from app.domain.documents import (
+    Document,
+    DocumentLocks,
+    DocumentStatus,
+    IngestionStatusRepository,
+)
 from app.domain.entities import Chunk
 from app.domain.ports import (
     ChunkRepository,
@@ -25,6 +30,14 @@ from app.domain.storage import DocumentStore, ObjectNotFoundError, label_key
 logger = logging.getLogger(__name__)
 # More chunks than this share without a page match means the PDF is another version.
 MAX_PAGE_MISSES = 0.2
+FAILURE_REASON_MAX = 500
+
+
+def public_reason(exc: Exception) -> str:
+    """The failure text that the API returns. Our own checks raise ValueError with a message
+    for the user; driver, S3 and HTTP messages can hold hosts or SQL, so only their type."""
+    text = str(exc) if isinstance(exc, ValueError) else ""
+    return (text or type(exc).__name__)[:FAILURE_REASON_MAX]
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,9 +61,19 @@ class IngestionService:
     embedder: Embedder
     embedding_model: str
     embedding_prefix: bool
+    # Keeps the ingest worker and the ingest command off the same document.
+    locks: DocumentLocks | None = None
 
     async def ingest(self, document: Document, *, force: bool = False) -> IngestResult:
         """force: ingest again even when done, after a parser or embedding-input change."""
+        if self.locks is None:
+            return await self._ingest_unlocked(document, force=force)
+        async with self.locks.hold(document.id) as held:
+            if not held:
+                return IngestResult(document.id, skipped=True)
+            return await self._ingest_unlocked(document, force=force)
+
+    async def _ingest_unlocked(self, document: Document, *, force: bool) -> IngestResult:
         if (
             not force
             and document.status is DocumentStatus.INGESTED
@@ -63,8 +86,11 @@ class IngestionService:
             return await self._ingest(document)
         except Exception as exc:
             logger.exception("ingestion failed", extra={"document_id": str(document.id)})
-            await self.documents.update_ingestion(document.id, DocumentStatus.FAILED)
-            return IngestResult(document.id, error=f"{type(exc).__name__}: {exc}")
+            error = public_reason(exc)
+            await self.documents.update_ingestion(
+                document.id, DocumentStatus.FAILED, failure_reason=error
+            )
+            return IngestResult(document.id, error=error)
 
     async def _ingest(self, document: Document) -> IngestResult:
         page_count, drafts = await asyncio.to_thread(self._chunks, document)

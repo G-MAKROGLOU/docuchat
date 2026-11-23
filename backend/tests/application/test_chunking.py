@@ -1,32 +1,19 @@
-import re
 import uuid
 from collections.abc import Sequence
 
 from app.application.chunking import anchor_of, build_chunks, embedding_input
-from app.domain.documents import Document, DocumentStatus
-from app.domain.entities import LabelSection, TextSpan
+from app.domain.documents import Document
+from app.domain.entities import LabelSection
+from tests.support.factories import make_document
+from tests.support.fakes_ingestion import SentenceSplitter, WordCounter
 
 DOC = uuid.uuid4()
 
 
 def document(brand: str, generic: str = "generic") -> Document:
-    return Document(DOC, brand, generic, "M", "s1", "key", "a" * 64, 1, DocumentStatus.STORED)
-
-
-class SentenceSplitter:
-    """Fake splitter: one span per sentence, with its start offset."""
-
-    def split(self, text: str) -> list[TextSpan]:
-        return [
-            TextSpan(start=m.start() + len(m[0]) - len(m[0].lstrip()), text=m[0].strip())
-            for m in re.finditer(r"[^.]+\.?", text)
-            if m[0].strip()
-        ]
-
-
-class WordCounter:
-    def count(self, text: str) -> int:
-        return len(text.split())
+    return make_document(
+        brand, generic, document_id=DOC, manufacturer="M", source_id="s1", storage_key="key"
+    )
 
 
 def section(number: str, title: str, text: str = "") -> LabelSection:

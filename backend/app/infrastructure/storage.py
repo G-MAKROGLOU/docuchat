@@ -1,5 +1,6 @@
 """DocumentStore adapters: S3 (default) and local file system (tests, fallback)."""
 
+import functools
 import os
 import tempfile
 from collections.abc import Iterator
@@ -149,3 +150,9 @@ def build_document_store(settings: Settings) -> DocumentStore:
     store = S3DocumentStore(client, settings.s3_bucket, settings.s3_region)
     store.ensure_bucket()
     return store
+
+
+@functools.cache
+def shared_document_store(settings: Settings) -> DocumentStore:
+    """One store (and S3 client) per settings in this process; settings changes reuse it."""
+    return build_document_store(settings)
