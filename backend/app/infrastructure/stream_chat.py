@@ -18,6 +18,8 @@ from pydantic import Field, PrivateAttr, SecretStr
 from app.infrastructure.http_retry import RETRY_STATUSES
 
 _ROLES = {"human": "user", "ai": "assistant", "system": "system"}
+# Same input, same reply: the reply cache depends on it.
+TEMPERATURE = 0
 
 
 class ModelStreamError(RuntimeError):
@@ -81,7 +83,7 @@ class OpenRouterStreamChat(BaseChatModel):
         # Same parameter names as the ChatOpenAI generations in the traces.
         return {
             "model_name": self.model,
-            "temperature": 0,
+            "temperature": TEMPERATURE,
             "max_completion_tokens": self.max_tokens,
         }
 
@@ -90,7 +92,7 @@ class OpenRouterStreamChat(BaseChatModel):
             ls_provider="openrouter",
             ls_model_name=self.model,
             ls_model_type="chat",
-            ls_temperature=0,
+            ls_temperature=TEMPERATURE,
             ls_max_tokens=self.max_tokens,
         )
 
@@ -113,7 +115,7 @@ class OpenRouterStreamChat(BaseChatModel):
             "messages": [{"role": _ROLES[m.type], "content": m.text} for m in messages],
             "stream": True,
             "stream_options": {"include_usage": True},
-            "temperature": 0,
+            "temperature": TEMPERATURE,
             "max_tokens": self.max_tokens,
             "reasoning": {"effort": self.reasoning_effort},
         }
