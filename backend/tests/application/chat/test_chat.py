@@ -683,7 +683,9 @@ def test_validate_accepts_a_statement_of_what_the_labels_do_not_cover() -> None:
         "- The recommended starting dosage is 10 mg once daily [S1].\n"
         "The excerpts do not give a dose for children younger than 10 years."
     )
-    assert validate_answer(answer, sources_of("10 mg once daily")).refusal is None
+    # The age comes from the question; the excerpt has no "10 years".
+    question = "What is the dose for children younger than 10 years?"
+    assert validate_answer(answer, sources_of("10 mg once daily"), question).refusal is None
     # An instruction with a number still needs its marker.
     advice = "The dose is 10 mg [S1]. Do not take more than 80 mg."
     assert validate_answer(advice, sources_of("10 mg")).refusal == "no_valid_citation"
@@ -696,7 +698,8 @@ def test_a_marker_covers_the_sentences_before_it_in_its_line() -> None:
         "for the first 3 days [S2].\n"
         "Table 1 gives the dose by age. Treatment lasts 5 days [S2]."
     )
-    cited = "100 mg, 50 mg for 3 days, 5 days"
+    # A dose "per day" needs "per day" (or "/day") in the excerpt.
+    cited = "maximum 100 mg per day, 50 mg/day for 3 days, 5 days"
     assert validate_answer(answer, sources_of("x", cited)).refusal is None
     # A marker does not cover a sentence after it, nor one on another line.
     after = "Adults take 10 mg [S1]. Children take 5 mg."

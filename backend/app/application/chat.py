@@ -5,8 +5,9 @@ import asyncio
 import json
 import logging
 import re
-from collections.abc import AsyncGenerator, Awaitable, Callable, Sequence
+from collections.abc import AsyncGenerator, Awaitable, Callable, Iterable, Sequence
 from dataclasses import dataclass
+from decimal import Decimal
 from functools import partial
 from typing import Any, Literal, Protocol, TypedDict
 from uuid import UUID
@@ -59,13 +60,45 @@ _REFERENCE = re.compile(
     r"(?:\s*(?:,\s*(?:and\s+|or\s+)?|and\s+|or\s+|to\s+)\d+(?:\.\d+)*)*",
     re.IGNORECASE,
 )
-# A figure with a clinical unit, such as "10 mg", "2.5 mcg/kg", "20%" or "every 12 hours".
+# "1,000" is one thousand; "2,5" is 2.5.
+_FIGURE = r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?"
+_UNITS = {
+    **dict.fromkeys(("mg", "milligram", "milligrams"), ("mass", 1000)),
+    **dict.fromkeys(("mcg", "\u00b5g", "\u03bcg", "ug", "microgram", "micrograms"), ("mass", 1)),
+    **dict.fromkeys(("g", "gram", "grams"), ("mass", 1_000_000)),
+    "kg": ("mass", 1_000_000_000),
+    "ml": ("volume", 1),
+    "l": ("volume", 1000),
+    **dict.fromkeys(("%", "percent"), ("%", 1)),
+    **dict.fromkeys(("unit", "units"), ("unit", 1)),
+    **dict.fromkeys(("hour", "hours", "hr", "hrs"), ("hour", 1)),
+    **{u: (u.rstrip("s"), 1) for u in ("iu", "mmol", "meq", "day", "days", "week", "weeks")},
+    **{u: (u.rstrip("s"), 1) for u in ("month", "months", "year", "years")},
+}
+_PER_UNITS = {
+    **dict.fromkeys(("m2", "m\u00b2"), "m2"),
+    **dict.fromkeys(("day", "d"), "day"),
+    **dict.fromkeys(("hour", "hr", "h"), "hour"),
+    **dict.fromkeys(("min", "minute"), "min"),
+    **{u: u for u in ("kg", "dose", "week", "ml", "dl", "l")},
+}
+
+
+def _alternatives(names: Iterable[str]) -> str:
+    return "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True))
+
+
+# A figure or a range with a clinical unit, such as "10 mg", "10 to 20 mg", "2.5 mg/kg/day",
+# "20%" or "every 12 hours". Group 1 holds the figures, group 2 the unit, group 3 any "/kg".
 _DOSE = re.compile(
-    r"(?<![A-Za-z\d.,])(\d+(?:[.,]\d+)?)\s*"
-    r"(?:mg|mcg|µg|g|kg|ml|l|%|units?|iu|mmol|meq|hours?|hrs?|days?|weeks?|months?|years?)"
-    r"(?![A-Za-z])",
+    rf"(?<![A-Za-z\d.,])((?:{_FIGURE})(?:\s*(?:-|\u2013|\u2014|to|or|and|,\s*(?:or|and)?)\s*"
+    rf"(?:{_FIGURE}))*)\s*-?\s*({_alternatives(_UNITS)})"
+    rf"((?:\s*(?:/|per\s)\s*(?:{_alternatives(_PER_UNITS)})s?)*)(?![A-Za-z])",
     re.IGNORECASE,
 )
+_PER = re.compile(rf"(?:/|per\s)\s*({_alternatives(_PER_UNITS)})s?", re.IGNORECASE)
+
+Dose = tuple[str, Decimal, tuple[str, ...]]
 _LINK = re.compile(r"https?://[^\s)\]]+|www\.[^\s)\]]+", re.IGNORECASE)
 # Greetings and library lists are short; a long reply is more than the front desk should say.
 MAX_REPLY_CHARS = 500
@@ -261,23 +294,25 @@ def _is_heading(raw: str, line: str) -> bool:
     return plain_line and not _CITATION.search(line) and not line.endswith((".", "!", "?"))
 
 
-def _statement_lines(answer: str) -> list[tuple[list[str], bool]]:
-    """The sentences of each line, and whether a marker on a line above covers it because it is
-    indented deeper. Headings and blank lines are left out (a heading can carry the marker)."""
-    lines: list[tuple[list[str], bool]] = []
+def _statement_lines(answer: str) -> list[tuple[list[str], frozenset[str]]]:
+    """The sentences of each line, and the IDs of a marker on a line above that covers the line
+    because it is indented deeper. Headings and blank lines are left out (a heading can carry the
+    marker)."""
+    lines: list[tuple[list[str], frozenset[str]]] = []
     cover_indent: int | None = None  # the indent of the nearest line above that has a marker
+    cover_ids: frozenset[str] = frozenset()
     for raw in answer.splitlines():
         if not raw.strip():
             continue
         indent = len(raw) - len(raw.lstrip())
         if cover_indent is not None and indent <= cover_indent:
             cover_indent = None
-        covered = cover_indent is not None
-        if cover_indent is None and _CITATION.search(raw):
-            cover_indent = indent
+        covering = cover_ids if cover_indent is not None else frozenset()
+        if cover_indent is None and (markers := _CITATION.findall(raw)):
+            cover_indent, cover_ids = indent, frozenset(markers)
         line = _LIST_MARK.sub("", raw.strip()).replace("*", "").replace("_", " ").strip()
         if line and not _is_heading(raw, line):
-            lines.append((_SENTENCE_BREAK.split(line), covered))
+            lines.append((_SENTENCE_BREAK.split(line), covering))
     return lines
 
 
@@ -285,13 +320,27 @@ def _sentences(answer: str) -> list[str]:
     return [s for line, _ in _statement_lines(answer) for s in line]
 
 
+def _cited_sentences(answer: str) -> list[tuple[str, frozenset[str]]]:
+    """Each sentence with the IDs that cite it: its own markers, else those of the next marker in
+    its line, else those of the line above that covers it (the rule of uncited_number_sentences)."""
+    found: list[tuple[str, frozenset[str]]] = []
+    for line, covering in _statement_lines(answer):
+        ids = covering
+        scoped: list[tuple[str, frozenset[str]]] = []
+        for sentence in reversed(line):
+            ids = frozenset(_CITATION.findall(sentence)) or ids
+            scoped.append((sentence, ids))
+        found.extend(reversed(scoped))
+    return found
+
+
 def uncited_number_sentences(answer: str) -> list[str]:
     """Sentences with a number that no marker covers. A marker covers its sentence and the
     sentences before it in its line, and a marker on a line covers the lines nested under it; a
     statement of what the labels do not contain is exempt."""
     uncited: list[str] = []
-    for line, nested in _statement_lines(answer):
-        covered = nested
+    for line, covering in _statement_lines(answer):
+        covered = bool(covering)
         found: list[str] = []
         for sentence in reversed(line):
             covered = covered or bool(_CITATION.search(sentence))
@@ -317,14 +366,41 @@ def ungrounded_numbers(answer: str, cited: Sequence[SourceRef]) -> list[str]:
     return sorted(answer_numbers(answer) - known)
 
 
-def unsupported_facts(answer: str, cited: Sequence[SourceRef]) -> list[str]:
-    """Doses and links of the answer that no cited excerpt contains. These refuse the answer."""
-    text = " ".join(s.chunk.content for s in cited)
-    known = set(_NUMBER.findall(text))
-    sentences = [_CITATION.sub("", s) for s in _sentences(answer)]
-    doses = {m.group(0) for s in sentences for m in _DOSE.finditer(s) if m.group(1) not in known}
+def _figure(text: str) -> Decimal:
+    thousands = re.fullmatch(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?", text)
+    return Decimal(text.replace(",", "") if thousands else text.replace(",", "."))
+
+
+def _match_doses(match: re.Match[str]) -> set[Dose]:
+    """Each figure of a dose match as (kind, amount in the base unit, "per" units)."""
+    kind, factor = _UNITS[match.group(2).lower()]
+    per = tuple(_PER_UNITS[u.lower()] for u in _PER.findall(match.group(3)))
+    return {(kind, _figure(f) * factor, per) for f in re.findall(_FIGURE, match.group(1))}
+
+
+def doses_in(text: str) -> set[Dose]:
+    """The doses of a text; "1 g" and "1000 mg" are the same dose, "10 mg/kg" is not "10 mg"."""
+    return {dose for match in _DOSE.finditer(text) for dose in _match_doses(match)}
+
+
+def unsupported_facts(answer: str, cited: Sequence[SourceRef], question: str = "") -> list[str]:
+    """Doses and links of the answer without a source. These refuse the answer. A dose needs
+    an excerpt that its sentence cites; a statement of absence may use any cited excerpt or the
+    question."""
+    by_id = {s.id: doses_in(s.chunk.content) for s in cited}
+    anywhere = set().union(*by_id.values(), doses_in(question))
+    doses: set[str] = set()
+    for sentence, ids in _cited_sentences(answer):
+        known = (
+            anywhere
+            if _ABSENCE.search(sentence)
+            else set().union(*(by_id.get(i, set()) for i in ids))
+        )
+        text = _CITATION.sub("", sentence)
+        doses |= {m.group(0).strip() for m in _DOSE.finditer(text) if not _match_doses(m) <= known}
+    text = " ".join(s.chunk.content for s in cited).lower()
     links = {link.rstrip(".,;:").lower() for link in _LINK.findall(answer)}
-    return sorted(doses | {link for link in links if link not in text.lower()})
+    return sorted(doses | {link for link in links if link not in text})
 
 
 @dataclass(frozen=True, slots=True)
@@ -358,7 +434,7 @@ def validate_answer(answer: str, sources: Sequence[SourceRef], question: str = "
     if not citations or uncited_number_sentences(cleaned):
         return Validation(cleaned, citations, "no_valid_citation")
     cited = [s for s in sources if s.id in citations]
-    if unsupported := unsupported_facts(cleaned, cited):
+    if unsupported := unsupported_facts(cleaned, cited, question):
         logger.info("answer refused: dose or link without a source", extra={"facts": unsupported})
         return Validation(cleaned, citations, "no_valid_citation")
     return Validation(cleaned, citations, None, tuple(ungrounded_numbers(cleaned, cited)))

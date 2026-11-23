@@ -129,3 +129,101 @@ def test_lists_of_section_and_table_numbers_need_no_marker(lead: str) -> None:
     answer = f"{lead}\n\n- Take 20 mg once daily [S1]."
 
     assert validate_answer(answer, sources_of("20 mg once daily")).refusal is None
+
+
+# A dose needs the same number with the same or an equivalent unit in an excerpt it cites.
+
+
+def refusal(answer: str, *excerpts: str, question: str = "") -> str | None:
+    return validate_answer(answer, sources_of(*excerpts), question=question).refusal
+
+
+def test_a_table_number_is_not_a_source_for_a_dose() -> None:
+    assert refusal("Take 10 mg once daily [S1].", "See Table 10. Take 5 mg once daily.") == (
+        "no_valid_citation"
+    )
+
+
+@pytest.mark.parametrize(
+    ("answer", "excerpt"),
+    [
+        ("Take 10 mcg once daily [S1].", "10 mg once daily"),
+        ("Take 10 mg once daily [S1].", "10 mcg once daily"),
+        ("Give 10 mg [S1].", "10 mg/kg once daily"),
+        ("Give 10 mg/kg [S1].", "10 mg once daily"),
+        ("Give 2 mg/kg/day [S1].", "2 mg/kg/hour"),
+        ("Give 5 mL [S1].", "5 mg"),
+        ("The dose is 20 mg [S1].", "a 20% solution"),
+    ],
+)
+def test_a_dose_with_another_unit_in_the_excerpt_refuses(answer: str, excerpt: str) -> None:
+    assert refusal(answer, excerpt) == "no_valid_citation"
+
+
+@pytest.mark.parametrize(
+    ("answer", "excerpt"),
+    [
+        ("Take 1 g once daily [S1].", "1000 mg once daily"),
+        ("Take 0.5 mg [S1].", "500 mcg"),
+        ("Take 500 mcg [S1].", "500 \u00b5g"),
+        ("Take 500 micrograms [S1].", "500 mcg"),
+        ("Take 1,000 mg [S1].", "1000 mg"),
+        ("Give 2.5 mg/kg [S1].", "2.5 mg/kg every 12 hours"),
+        ("Give 10 mg per kg [S1].", "10 mg/kg"),
+        ("Give 75 mg/m2 [S1].", "75 mg/m\u00b2 on day 1"),
+        ("Use the 10-mg tablet [S1].", "10 mg tablets"),
+        ("Take it every 12 hours [S1].", "every 12 hours"),
+    ],
+)
+def test_a_dose_with_the_same_or_an_equivalent_unit_passes(answer: str, excerpt: str) -> None:
+    assert refusal(answer, excerpt) is None
+
+
+def test_a_dose_cited_to_the_wrong_source_refuses() -> None:
+    excerpts = ("5 mg for children", "10 mg for adults")
+
+    assert refusal("Adults take 10 mg [S1]. Children take 5 mg [S2].", *excerpts) == (
+        "no_valid_citation"
+    )
+    assert refusal("Adults take 10 mg [S2]. Children take 5 mg [S1].", *excerpts) is None
+    assert refusal("Adults take 10 mg and children 5 mg [S1][S2].", *excerpts) is None
+
+
+def test_a_sentence_takes_the_source_of_the_next_marker_in_its_line() -> None:
+    assert refusal("Adults take 10 mg. Children take 5 mg [S2].", "10 mg", "5 mg") == (
+        "no_valid_citation"
+    )
+    assert refusal("Adults take 10 mg. Children take 5 mg [S1].", "10 mg and 5 mg", "x") is None
+
+
+def test_a_nested_item_takes_the_source_of_the_line_above_it() -> None:
+    answer = "- Doses [S2]:\n  - adults: 10 mg"
+
+    assert refusal(answer, "10 mg", "20 mg") == "no_valid_citation"
+    assert refusal(answer, "20 mg", "10 mg") is None
+
+
+@pytest.mark.parametrize(
+    ("answer", "excerpt", "expected"),
+    [
+        ("Take 10 to 20 mg [S1].", "10 mg to 20 mg once daily", None),
+        ("Take 10-20 mg [S1].", "10 to 20 mg once daily", None),
+        ("Take 10 to 20 mg [S1].", "10\u201320 mg once daily", None),
+        ("Take 10 to 20 mg [S1].", "10 mg once daily", "no_valid_citation"),
+        ("Take 10 to 20 mg [S1].", "Table 20 lists 10 mg", "no_valid_citation"),
+        ("Take 10, 20, or 40 mg [S1].", "10 mg, 20 mg and 80 mg", "no_valid_citation"),
+        ("Take 10, 20, or 40 mg [S1].", "10, 20, or 40 mg tablets", None),
+        ("Take 10 to 20 mcg [S1].", "10 to 20 mg once daily", "no_valid_citation"),
+    ],
+)
+def test_each_number_of_a_dose_range_needs_its_source(
+    answer: str, excerpt: str, expected: str | None
+) -> None:
+    assert refusal(answer, excerpt) == expected
+
+
+def test_a_statement_of_absence_may_repeat_a_figure_of_the_question() -> None:
+    answer = "- Adults take 10 mg [S1].\nThe excerpts do not give a dose for 6 years."
+
+    assert refusal(answer, "10 mg", question="Dose at 6 years?") is None
+    assert refusal(answer, "10 mg", question="Dose for a child?") == "no_valid_citation"
