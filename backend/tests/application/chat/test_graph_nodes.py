@@ -55,6 +55,8 @@ def detectors(detection: DrugDetection) -> Callable[[], Awaitable[FakeDetector]]
         (route_after_intake, {"action": "reply"}, "reply"),
         (route_after_intake, {"action": "search"}, "rewrite"),
         (route_after_intake, {}, "rewrite"),
+        (route_after_intake, {"action": "search", "query": "Lipitor dose"}, "retrieve"),
+        (route_after_intake, {"action": "reply", "query": "Lipitor dose"}, "reply"),
         (route_after_retrieve, {}, "grade"),
         (route_after_retrieve, {"candidates": ["Celebrex", "Celexa"]}, "clarify"),
         (route_after_retrieve, {"refusal": "drug_not_in_corpus"}, END),
@@ -110,6 +112,34 @@ def test_intake_returns_the_medicines_the_question_names() -> None:
     )
 
     assert state == {"action": "search", "reply": "", "named": ("Tylenol",)}
+
+
+def test_intake_returns_the_search_query_of_the_chat_model() -> None:
+    model = FakeModel(['{"action": "search", "medicines": [], "query": "Lipitor dose"}'])
+
+    state = run(
+        chat.intake(
+            {"question": "And its dose?"},
+            models=FakeModels(chat=model),
+            detectors=detectors(DrugDetection()),
+        )
+    )
+
+    assert state == {"action": "search", "reply": "", "query": "Lipitor dose"}
+
+
+def test_intake_returns_no_query_for_a_reply() -> None:
+    model = FakeModel(['{"action": "reply", "reply": "Hello.", "query": "hello"}'])
+
+    state = run(
+        chat.intake(
+            {"question": "Hi"},
+            models=FakeModels(chat=model),
+            detectors=detectors(DrugDetection()),
+        )
+    )
+
+    assert "query" not in state
 
 
 def test_reply_streams_the_reply_as_a_final_answer(events: Events) -> None:

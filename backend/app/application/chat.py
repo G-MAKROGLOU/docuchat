@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 HISTORY_TURNS = 10
 MAX_QUESTION_CHARS = 2000
+# A longer intake query is not one search question; the rewrite node makes the query then.
+MAX_QUERY_CHARS = 500
 # One rewrite and search again after a weak grade; never more.
 MAX_RETRIES = 1
 # Seconds for a whole chat turn, all model calls included.
@@ -166,6 +168,15 @@ def intake_medicines(text: str) -> tuple[str, ...]:
     if not isinstance(names, list):
         return ()
     return tuple(dict.fromkeys(n.strip() for n in names if isinstance(n, str) and n.strip()))
+
+
+def intake_query(text: str) -> str | None:
+    """The standalone search question of the intake reply; None when it is missing or too long."""
+    query = _json_object(text).get("query")
+    if not isinstance(query, str):
+        return None
+    query = " ".join(query.split())
+    return query if 0 < len(query) <= MAX_QUERY_CHARS else None
 
 
 def outside_library(detector: Detector, names: Sequence[str]) -> tuple[str, ...]:
@@ -378,7 +389,9 @@ def route_after_guard(state: ChatState) -> str:
 
 
 def route_after_intake(state: ChatState) -> str:
-    return "reply" if state.get("action") == "reply" else "rewrite"
+    if state.get("action") == "reply":
+        return "reply"
+    return "retrieve" if state.get("query") else "rewrite"
 
 
 def route_after_retrieve(state: ChatState) -> str:
@@ -442,8 +455,14 @@ async def intake(
     system = intake_prompt((await detectors()).catalog())
     text = await models.for_role(ModelRole.CHAT).complete(_conversation(system, state))
     action, reply = parse_intake(text)
-    named = intake_medicines(text) if action == "search" else ()
-    return {"action": action, "reply": reply, **({"named": named} if named else {})}
+    state_update: ChatState = {"action": action, "reply": reply}
+    if action == "search":
+        if named := intake_medicines(text):
+            state_update["named"] = named
+        # With a query, the first search skips the rewrite node.
+        if query := intake_query(text):
+            state_update["query"] = query
+    return state_update
 
 
 async def reply(state: ChatState) -> ChatState:
@@ -648,7 +667,7 @@ def build_chat_graph(
     graph.add_node("suggest", partial(suggest, models=models))
     graph.add_edge(START, "guard")
     graph.add_conditional_edges("guard", route_after_guard, ["intake", END])
-    graph.add_conditional_edges("intake", route_after_intake, ["reply", "rewrite"])
+    graph.add_conditional_edges("intake", route_after_intake, ["reply", "rewrite", "retrieve"])
     graph.add_edge("reply", "suggest")
     graph.add_edge("rewrite", "retrieve")
     graph.add_conditional_edges("retrieve", route_after_retrieve, ["grade", "clarify", END])

@@ -51,7 +51,7 @@ def _last_user(body: dict[str, Any]) -> str:
 def _reply(step: str, body: dict[str, Any]) -> str:
     user = _last_user(body)
     if step == "intake":
-        return json.dumps({"action": "search"})
+        return json.dumps({"action": "search", "medicines": [], "query": user})
     if step == "grade":
         relevant = _SOURCE_ID.findall(user)
         return json.dumps({"relevant": relevant, "verdict": "sufficient", "feedback": ""})
