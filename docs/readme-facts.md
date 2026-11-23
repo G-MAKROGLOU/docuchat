@@ -16,7 +16,7 @@ Source material for the author, who writes `README.md`. Each fact names its evid
 
 - Services (`infra/docker-compose.yml`): preflight, db (ParadeDB: Postgres 18 with `pg_search` BM25 and `pgvector`), storage (SeaweedFS, S3 API), cache (Redis 7.2), backend (FastAPI, LangGraph), ingest-worker, corpus-init (one-shot), prometheus, grafana, frontend (Next.js, `@geomak/ui`).
 - Pages: chat, documents (with the PDF viewer and citation highlight), corpus (DailyMed search and label queue), settings (chunking, search, models, answer checking), status, health.
-- Diagrams: `docs/diagrams/`.
+- Diagrams: `docs/diagrams/`. Screenshots (1440x900): `docs/screenshots/` (chat answer, cited passage in the PDF viewer, clarify question, documents, corpus, settings, status, health).
 
 ## How an answer is made
 
@@ -36,7 +36,7 @@ Source material for the author, who writes `README.md`. Each fact names its evid
 - Load: 4 API processes, 2000 synthetic labels (149,920 chunks), fake model server: 21.5 turns per second at 200 users, p95 9.7 s (agent-log 2026-11-22).
 - Detector at 10,000 names: 6.3 ms median per question.
 - Tests: backend 576 passed, 4 xfailed (known limits of the plain-word injection guard); frontend 131.
-- Citation highlight: the viewer finds the cited passage on its page for 78.6% of 2831 chunks (partial run; `npm run eval:anchors` in `frontend/`).
+- Citation highlight: the viewer finds the cited passage on its page for 80.1% of all 3956 chunks (3151 by the passage start, 18 by the anchor; 88 of the 787 misses are on another page of the chunk); full run, 74 s (`python -m evals.export_anchors` in the backend container, then `npm run eval:anchors` in `frontend/`).
 
 ## Known limits and behaviours
 
