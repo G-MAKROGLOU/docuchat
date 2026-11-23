@@ -1,18 +1,11 @@
-import { HealthIndicator } from "@/components/HealthIndicator";
+import { ChatPanel } from "@/components/chat/ChatPanel";
+import styles from "./page.module.css";
 
 export default function HomePage() {
   return (
-    <div className="shell">
-      <header className="shell-header">
-        <h1>Assistant</h1>
-        <HealthIndicator />
-      </header>
-      <main className="shell-chat" aria-label="Chat">
-        <p>Chat area</p>
-      </main>
-      <aside className="shell-panel" aria-label="Sources">
-        <p>Side panel</p>
-      </aside>
-    </div>
+    <section className={styles.chat} aria-label="Chat">
+      <h1 className={styles.hidden}>Chat</h1>
+      <ChatPanel />
+    </section>
   );
 }

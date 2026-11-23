@@ -1,0 +1,14 @@
+/* AppShell's content area adds 24px padding on each side, so 48px in total. */
+.chat {
+  --shell-padding-block: 48px;
+  height: calc(100dvh - var(--topbar-height, 56px) - var(--shell-padding-block));
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

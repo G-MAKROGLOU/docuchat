@@ -1,0 +1,93 @@
+.layout {
+  display: flex;
+  height: 100%;
+}
+
+.chat {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Chat has no avatar size or alignment props, so these target its markup (@geomak/ui 7.21.0). */
+.chat :global(.flex.items-end):has(> :global(.w-7)) {
+  align-items: flex-end;
+}
+
+/* The avatar sits at the bottom left of the bubble: lift it over the timestamp below the bubble. */
+.chat :global(.w-7) {
+  display: flex;
+  width: 40px;
+  margin-bottom: 17px;
+}
+
+.chat :global(.w-7) > span {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+/* Same white tile and zoom as the Logo component (Logo.module.css). */
+.chat :global(.w-7) img {
+  background: #fff;
+  transform: scale(1.6);
+}
+
+.stop {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
+/* The width comes from the resize handle as an inline flex-basis. */
+.source {
+  display: flex;
+  flex: 0 0 50%;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px 4px 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.875rem;
+}
+
+.viewer {
+  flex: 1;
+  min-height: 0;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-inline-size: 0;
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.suggestion {
+  padding: 4px 10px;
+  border: 1px solid var(--color-accent);
+  border-radius: 9999px;
+  background: var(--color-surface);
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestion:hover {
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+}

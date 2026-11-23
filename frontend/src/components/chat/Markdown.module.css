@@ -1,0 +1,45 @@
+/* Bot answers rendered from Markdown (Markdown.tsx). */
+.markdown {
+  white-space: normal;
+}
+
+.markdown > * + * {
+  margin-top: 8px;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 20px;
+}
+
+.markdown ul {
+  list-style: disc;
+}
+
+.markdown ol {
+  list-style: decimal;
+}
+
+.markdown li > ul,
+.markdown li > ol {
+  margin-top: 2px;
+}
+
+.markdown code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+/* Citation markers in bot answers open the cited page next to the chat. */
+.markdown .citation {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.markdown .citation:hover {
+  text-decoration: underline;
+}
