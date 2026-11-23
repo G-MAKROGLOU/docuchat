@@ -3,19 +3,39 @@
 import asyncio
 import logging
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Literal, Protocol
 
 from app.application.corpus_update import UpdateReport
 from app.application.ingestion import IngestionService, IngestResult
 from app.application.label_queue import QueueReport
-from app.domain.documents import DocumentRepository
+from app.domain.documents import Document, DocumentRepository
 
 logger = logging.getLogger(__name__)
 
 # DailyMed publishes label updates daily.
 SCHEDULE_INTERVAL = timedelta(days=1)
+# Documents ingested at the same time. Each holds 2 pooled connections at most (lock, writes),
+# so the pool (max_size=10) must stay above 2 times this value.
+INGEST_CONCURRENCY = 4
+
+
+async def ingest_each[T](
+    documents: Sequence[Document],
+    ingest: Callable[[Document], Awaitable[T]],
+    *,
+    concurrency: int = INGEST_CONCURRENCY,
+) -> list[T]:
+    """Runs ingest for each document, at most concurrency at the same time. The results keep the
+    document order. ingest must catch its own errors: on a raise, gather stops waiting."""
+    slots = asyncio.Semaphore(concurrency)
+
+    async def one(document: Document) -> T:
+        async with slots:
+            return await ingest(document)
+
+    return list(await asyncio.gather(*(one(d) for d in documents)))
 
 
 class ChunkingTracker(Protocol):
@@ -27,15 +47,18 @@ class ChunkingTracker(Protocol):
 
 
 class IngestionRunner:
-    def __init__(
+    def __init__(  # noqa: PLR0913  # five ports plus the document limit
         self,
         service: IngestionService,
         documents: DocumentRepository,
         check_updates: Callable[[], Awaitable[UpdateReport]],
         take_queue: Callable[[], Awaitable[QueueReport]],
         chunking: ChunkingTracker,
+        *,
+        concurrency: int = INGEST_CONCURRENCY,
     ) -> None:
         self._service = service
+        self._concurrency = concurrency
         self._documents = documents
         self._check_updates = check_updates
         self._take_queue = take_queue
@@ -106,12 +129,26 @@ class IngestionRunner:
             self._phase = "ingesting"
             # A pass that was cut short earlier left documents with the old chunk settings.
             force = force or await self._chunking.stale()
-            for document in await self._documents.list_all():
+            raised = False
+
+            async def ingest(document: Document) -> None:
+                nonlocal raised
                 started = time.perf_counter()
-                result = await self._service.ingest(document, force=force)
+                try:
+                    # The service is read per document, so a settings change applies from the next.
+                    result = await self._service.ingest(document, force=force)
+                except Exception:
+                    raised = True
+                    logger.exception("ingestion failed", extra={"document_id": str(document.id)})
+                    return
                 if self.observe is not None:
                     self.observe(result, time.perf_counter() - started)
-            if force:
+
+            await ingest_each(
+                await self._documents.list_all(), ingest, concurrency=self._concurrency
+            )
+            # A document that raised kept its status, and maybe chunks of the old index.
+            if force and not raised:
                 await self._chunking.mark_embedded()
         except Exception:
             logger.exception("ingestion pass failed")
