@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 PDF_MAGIC = b"%PDF-"
 SPL_NAMESPACE = b"urn:hl7-org:v3"
+# The SPL namespace is in the root element, so the head of the file is enough to find it.
+SNIFF_BYTES = 4096
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,7 +136,7 @@ class _Downloader:
     async def _fetch_label(self, entry: CorpusEntry) -> bytes:
         label = await asyncio.to_thread(self.source.fetch_label, entry.source_id)
         await asyncio.sleep(self.delay_seconds)
-        if SPL_NAMESPACE not in label[:4096]:
+        if SPL_NAMESPACE not in label[:SNIFF_BYTES]:
             raise ValueError(f"{entry.source_id}: response is not an SPL document")
         return label
 
