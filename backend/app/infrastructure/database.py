@@ -35,6 +35,8 @@ def build_pool(settings: Settings) -> AsyncConnectionPool[psycopg.AsyncConnectio
         kwargs={"options": f"-c statement_timeout={STATEMENT_TIMEOUT_MS}"},
         timeout=POOL_TIMEOUT_SECONDS,
         max_waiting=POOL_MAX_WAITING,
+        # One empty query per checkout: a connection that the server closed is replaced.
+        check=AsyncConnectionPool.check_connection,
     )
 
 
