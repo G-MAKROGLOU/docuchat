@@ -7,6 +7,28 @@ from evals.run import Result, load_questions, result_of, score
 ANSWER = Result("final", "Take 10 mg to 20 mg once daily [S1].", ["S1"], None)
 
 
+def source(drug: str, section: str) -> dict[str, object]:
+    return {"id": "S1", "drug": drug, "section": section, "text": "10 mg to 20 mg once daily"}
+
+
+LIPITOR = {"expect": "answer", "drugs": ["Lipitor"], "sections": {"Lipitor": ["2.2"]}}
+
+
+def test_an_answer_passes_when_it_cites_each_expected_drug_at_an_expected_section() -> None:
+    assert score(LIPITOR, ANSWER, [source("Lipitor", "2.2 Recommended Dosage")]) == (True, [])
+
+
+def test_an_answer_that_cites_another_section_or_drug_fails() -> None:
+    assert score(LIPITOR, ANSWER, [source("Lipitor", "5.3 Hepatic Dysfunction")]) == (
+        False,
+        ["cited Lipitor 2.2"],
+    )
+    assert score(LIPITOR, ANSWER, [source("Crestor", "2.2 Dosage")]) == (
+        False,
+        ["cited Lipitor 2.2"],
+    )
+
+
 def test_an_answer_passes_when_every_fact_group_matches() -> None:
     question = {"expect": "answer", "facts": [["10 mg"], ["20 mg|40 mg"]]}
 
@@ -81,6 +103,7 @@ def test_the_golden_set_maps_to_the_runner_fields(tmp_path: Path) -> None:
     assert question["text"] == "And for children?"
     assert question["expect"] == "answer"
     assert question["sections"] == {"Lipitor": ["2.3"]}
+    assert question["drugs"] == ["Lipitor"]
     assert question["reference"] == "10 mg once daily."
     assert question["history"] == ["Lipitor dose for adults?"]
 

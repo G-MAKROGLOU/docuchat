@@ -31,12 +31,23 @@ def test_expected_outcome_maps_each_expectation() -> None:
 
 def test_retrieval_hit_needs_an_expected_section_for_every_expected_drug() -> None:
     found = [("Lexapro", "2.1"), ("Celexa", "5.1"), ("Celexa", "2")]
-    assert retrieval_hit(found, {"Lexapro": ["2"], "Celexa": ["2"]}) is True
-    assert retrieval_hit(found, {"Lexapro": ["2"], "Celexa": ["6"]}) is False
-    # "2" matches "2" and "2.1", not "20".
-    assert retrieval_hit([("Lipitor", "20")], {"Lipitor": ["2"]}) is False
-    assert retrieval_hit([("Singulair", "BW")], {"singulair": ["BW", "5.1"]}) is True
+    assert retrieval_hit(found, {"Lexapro": ["2.1"], "Celexa": ["2"]}) is True
+    assert retrieval_hit(found, {"Lexapro": ["2.1"], "Celexa": ["6"]}) is False
+    assert retrieval_hit([("Singulair", "BW")], {"Singulair": ["BW", "5.1"]}) is True
     assert retrieval_hit(found, {}) is None
+
+
+def test_a_section_matches_only_itself_not_its_subsections() -> None:
+    assert retrieval_hit([("Lexapro", "2.1")], {"Lexapro": ["2"]}) is False
+    assert retrieval_hit([("Lipitor", "20")], {"Lipitor": ["2"]}) is False
+
+
+def test_the_drug_match_keeps_the_case_so_two_labels_of_one_name_differ() -> None:
+    # "Ozempic" is the injection label, "OZEMPIC" the tablet label.
+    assert retrieval_hit([("Ozempic", "2.2")], {"OZEMPIC": ["2.2"]}) is False
+    sources = [source("S1", "Ozempic", "2.2 Dosage", "x")]
+    assert citation_valid(["S1"], sources, ["OZEMPIC"]) is False
+    assert citation_valid(["S1"], sources, ["Ozempic"]) is True
 
 
 def test_a_citation_is_valid_when_it_was_sent_and_names_an_expected_drug() -> None:

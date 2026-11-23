@@ -21,22 +21,20 @@ def expected_outcome(expect: str) -> str:
     return _OUTCOMES[expect]
 
 
-def _section_matches(section: str, expected: str) -> bool:
-    number = section.split(" ", 1)[0]
-    return number == expected or number.startswith(f"{expected}.")
+def section_matches(section: str, expected: str) -> bool:
+    """The section number (the text before its title) is the expected one, not a subsection."""
+    return section.split(" ", 1)[0] == expected
 
 
 def retrieval_hit(
     found: Sequence[tuple[str, str]], expected: Mapping[str, Sequence[str]]
 ) -> bool | None:
-    """True when, for each expected drug, a found (drug, section) has one of its sections."""
+    """True when, for each expected drug, a found (drug, section) has one of its sections. The
+    drug name keeps its case: two labels of one name differ only in case ("Ozempic", "OZEMPIC")."""
     if not expected:
         return None
     return all(
-        any(
-            d.lower() == drug.lower() and any(_section_matches(s, e) for e in sections)
-            for d, s in found
-        )
+        any(d == drug and any(section_matches(s, e) for e in sections) for d, s in found)
         for drug, sections in expected.items()
     )
 
@@ -48,10 +46,8 @@ def citation_valid(
     if not citations:
         return None
     by_id = {s["id"]: s for s in sources}
-    wanted = {d.lower() for d in drugs}
-    return all(
-        c in by_id and (not wanted or str(by_id[c]["drug"]).lower() in wanted) for c in citations
-    )
+    wanted = set(drugs)
+    return all(c in by_id and (not wanted or str(by_id[c]["drug"]) in wanted) for c in citations)
 
 
 def number_grounding(

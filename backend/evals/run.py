@@ -14,6 +14,7 @@ import json
 import re
 import sys
 import time
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -37,6 +38,7 @@ from evals.metrics import (
     expected_outcome,
     number_grounding,
     retrieval_hit,
+    section_matches,
     summarize,
 )
 from evals.search import CosineSearch, ModeRetriever, stored_chunks, unprefixed_vectors
@@ -67,6 +69,7 @@ def load_questions(path: Path) -> list[dict[str, Any]]:
             "text": c["question"],
             "type": c["type"],
             "expect": c["expected_outcome"],
+            "drugs": c.get("expected_drugs", []),
             "sections": c.get("expected_sections", {}),
             "reference": c.get("reference_answer", ""),
             "refusal": c.get("expected_refusal"),
@@ -107,8 +110,11 @@ def _missing_outcome(question: dict[str, Any], result: Result) -> list[str] | No
     return None
 
 
-def score(question: dict[str, Any], result: Result) -> tuple[bool, list[str]]:
-    """Pass or fail, and what was missing."""
+def score(
+    question: dict[str, Any], result: Result, sources: Sequence[Mapping[str, Any]] = ()
+) -> tuple[bool, list[str]]:
+    """Pass or fail, and what was missing. An answer must cite each expected drug at one of
+    its expected sections."""
     other = _missing_outcome(question, result)
     if other is not None:
         return not other, other
@@ -116,7 +122,16 @@ def score(question: dict[str, Any], result: Result) -> tuple[bool, list[str]]:
         return False, [f"outcome {result.outcome}"]
     if not result.citations:
         return False, ["citations"]
+    cited = [s for s in sources if s["id"] in set(result.citations)]
     missing = [
+        f"cited {drug} {' or '.join(sections)}"
+        for drug, sections in question.get("sections", {}).items()
+        if not any(
+            s["drug"] == drug and any(section_matches(str(s["section"]), e) for e in sections)
+            for s in cited
+        )
+    ]
+    missing += [
         "|".join(group)
         for group in question.get("facts", [])
         if not any(re.search(pattern, result.answer, re.IGNORECASE) for pattern in group)
@@ -216,7 +231,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
                 verdict, reason = await judge(
                     judge_model, question["text"], question["reference"], result.answer
                 )
-            passed, missing = score(question, result)
+            passed, missing = score(question, result, sources)
             rows.append(
                 {
                     "id": question["id"],
@@ -224,7 +239,9 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
                     "missing": missing,
                     "outcome_ok": _outcome_ok(question["expect"], result),
                     "retrieval_hit": retrieval_hit(found, expected),
-                    "citation_valid": citation_valid(result.citations, sources, list(expected)),
+                    "citation_valid": citation_valid(
+                        result.citations, sources, question.get("drugs") or list(expected)
+                    ),
                     "numbers": list(number_grounding(result.answer, result.citations, sources)),
                     "judge": verdict,
                     "judge_reason": reason,
