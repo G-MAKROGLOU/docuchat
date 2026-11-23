@@ -33,6 +33,16 @@ class FakeSearch:
         self.calls.append(("bm25", tuple(labels)))
         return [self.b]
 
+    async def vector_search_each(
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]:
+        return [await self.vector_search(embedding, [label], limit) for label in labels]
+
+    async def text_search_each(
+        self, query: str, labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]:
+        return [await self.text_search(query, [label], limit) for label in labels]
+
 
 def test_hybrid_runs_both_searches_with_the_same_filter() -> None:
     search, embedder = FakeSearch(), QueryEmbedder()
@@ -97,8 +107,22 @@ class PerDrugSearch:
         self.calls.append(("bm25", tuple(DRUG_OF[label] for label in labels)))
         return [chunk(f"b-{DRUG_OF[label]}", DRUG_OF[label]) for label in labels]
 
+    async def vector_search_each(
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]:
+        self.calls.append(("vector_each", tuple(DRUG_OF[label] for label in labels)))
+        return [
+            [chunk(f"v-{DRUG_OF[label]}-{i}", DRUG_OF[label]) for i in (1, 2)] for label in labels
+        ]
 
-def test_a_comparison_searches_each_drug_on_its_own_and_embeds_the_question_once() -> None:
+    async def text_search_each(
+        self, query: str, labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]:
+        self.calls.append(("bm25_each", tuple(DRUG_OF[label] for label in labels)))
+        return [[chunk(f"b-{DRUG_OF[label]}", DRUG_OF[label])] for label in labels]
+
+
+def test_a_comparison_runs_one_query_per_leg_and_embeds_the_question_once() -> None:
     search, embedder = PerDrugSearch(), QueryEmbedder()
 
     result = asyncio.run(
@@ -107,15 +131,20 @@ def test_a_comparison_searches_each_drug_on_its_own_and_embeds_the_question_once
         )
     )
 
-    assert sorted(search.calls) == [
-        ("bm25", ("A",)),
-        ("bm25", ("B",)),
-        ("vector", ("A",)),
-        ("vector", ("B",)),
-    ]
+    assert sorted(search.calls) == [("bm25_each", ("A", "B")), ("vector_each", ("A", "B"))]
     assert embedder.queries == ["compare"]
     # Both drugs are in the candidates, not only the one that ranks first.
     assert {f.chunk.drug_name for f in result.candidates} == {"A", "B"}
+
+
+def test_a_comparison_merges_the_label_lists_in_turn() -> None:
+    result = asyncio.run(
+        RetrievalService(PerDrugSearch(), QueryEmbedder(), top_k=20).retrieve(
+            "compare", labels=(label_of("A"), label_of("B")), mode=SearchMode.VECTOR
+        )
+    )
+
+    assert [f.chunk.content for f in result.candidates] == ["v-A-1", "v-B-1", "v-A-2", "v-B-2"]
 
 
 def test_one_drug_is_searched_once_with_its_filter() -> None:

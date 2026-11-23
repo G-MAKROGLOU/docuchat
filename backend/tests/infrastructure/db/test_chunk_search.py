@@ -132,3 +132,18 @@ def test_vector_search_reads_only_chunks_of_the_query_model(
     assert asyncio.run(other.vector_search(q["embedding"], LABELS, 20)) == []
     # BM25 has no vectors, so a half-done re-embed keeps the text list.
     assert asyncio.run(other.text_search("dose mg daily", LABELS, 20))
+
+
+def test_one_query_per_leg_gives_each_label_its_own_top_k(search: PostgresChunkSearch) -> None:
+    q = query("exact_dose")
+    vector = asyncio.run(search.vector_search_each(q["embedding"], LABELS, 3))
+    bm25 = asyncio.run(search.text_search_each("dose mg daily", LABELS, 3))
+
+    for each, single in (
+        (vector, [asyncio.run(search.vector_search(q["embedding"], [lb], 3)) for lb in LABELS]),
+        (bm25, [asyncio.run(search.text_search("dose mg daily", [lb], 3)) for lb in LABELS]),
+    ):
+        assert [[c.id for c in items] for items in each] == [
+            [c.id for c in items] for items in single
+        ]
+        assert [{c.document_id for c in items} for items in each] == [{lb} for lb in LABELS]

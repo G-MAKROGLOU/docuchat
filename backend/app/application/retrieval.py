@@ -75,6 +75,17 @@ class RetrievalService:
         *,
         use_bm25: bool,
     ) -> tuple[list[Chunk], list[Chunk]]:
+        if len(labels) > 1:
+            # A comparison: one query per leg, top k per label, so one label cannot fill the list.
+            each_vector, each_bm25 = await asyncio.gather(
+                legs.run("vector", self._search.vector_search_each(embedding, labels, self._top_k))
+                if embedding is not None
+                else _empty_each(),
+                legs.run("bm25", self._search.text_search_each(query, labels, self._top_k))
+                if use_bm25
+                else _empty_each(),
+            )
+            return _interleave(each_vector or []), _interleave(each_bm25 or [])
         vector, bm25 = await asyncio.gather(
             legs.run("vector", self._search.vector_search(embedding, labels, self._top_k))
             if embedding is not None
@@ -99,17 +110,11 @@ class RetrievalService:
         embedding = (
             await legs.run("embedding", self._embedder.embed_query(query)) if use_vector else None
         )
-        # A comparison searches each label on its own, so one label cannot fill the candidates.
-        groups = [[label] for label in labels] if len(labels) > 1 else [list(labels)]
-        runs = await asyncio.gather(
-            *(self._search_drugs(query, embedding, g, legs, use_bm25=use_bm25) for g in groups)
-        )
+        vector, bm25 = await self._search_drugs(query, embedding, labels, legs, use_bm25=use_bm25)
         searched = legs.answered - (embedding is not None)
         if legs.failed and searched == 0:
             # No search answered: the turn fails as before, with the first error.
             raise next(iter(legs.failed.values()))
-        vector = _interleave([vector for vector, _ in runs])
-        bm25 = _interleave([bm25 for _, bm25 in runs])
         fused = fuse(vector=vector, bm25=bm25, section_hints=section_hints)
         return RetrievalResult(
             query=query,
@@ -123,6 +128,10 @@ class RetrievalService:
 
 
 async def _empty() -> list[Chunk]:
+    return []
+
+
+async def _empty_each() -> list[list[Chunk]]:
     return []
 
 
