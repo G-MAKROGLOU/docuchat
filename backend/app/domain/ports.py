@@ -81,6 +81,10 @@ class NameSimilarity(Protocol):
         """Similarity of two names, 0 to 100."""
         ...
 
+    def best(self, query: str, choices: Sequence[str], floor: float) -> list[tuple[str, float]]:
+        """The choices whose similarity to query is at least floor, with their scores."""
+        ...
+
 
 class TokenCounter(Protocol):
     def count(self, text: str) -> int: ...

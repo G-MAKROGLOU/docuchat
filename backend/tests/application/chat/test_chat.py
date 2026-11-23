@@ -3,7 +3,7 @@ import uuid
 from collections.abc import Sequence
 from uuid import UUID
 
-from app.application import chat_prompts
+from app.application import chat, chat_prompts
 from app.application.chat import (
     ChatService,
     GraderMode,
@@ -853,3 +853,17 @@ def test_an_empty_retry_search_answers_from_the_first_excerpts() -> None:
 
     assert len(models.by_role[ModelRole.GRADE].calls) == 1
     assert events[-1]["type"] == "final"
+
+
+def test_a_large_library_is_not_listed_in_the_refusal() -> None:
+    class LargeLibrary(FakeDetector):
+        def catalog(self) -> list[str]:
+            return [f"Drug {i}" for i in range(chat.INTAKE_LIST_MAX + 1)]
+
+    events, _, _ = run_turn(
+        search_models(),
+        LargeLibrary(DrugDetection(not_in_corpus=("metoprolol",))),
+        FakeRetriever(make_chunk("x")),
+    )
+
+    assert events[-1] == {"type": "refusal", "reason": "drug_not_in_corpus"}

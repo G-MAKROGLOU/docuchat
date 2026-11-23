@@ -34,6 +34,8 @@ _MIN_TAIL_LENGTH = 7
 FUZZY_THRESHOLD = 80.0
 CANDIDATE_FLOOR = 70.0
 AMBIGUITY_MARGIN = 12.0
+# A clarify question offers at most this many medicines, best first.
+MAX_CHOICES = 5
 _WORD = re.compile(r"[A-Za-z][A-Za-z\-]{3,}")  # words of _MIN_KEY_LENGTH letters or more
 
 
@@ -112,6 +114,13 @@ class DrugDetector:
                 keys[key] = _unique((*keys.get(key, ()), product))
         self._keys = dict(sorted(keys.items(), key=lambda kv: -len(kv[0])))
         self._single_word_keys = {k: v for k, v in self._keys.items() if " " not in k}
+        self._single_word_list = list(self._single_word_keys)
+        # Every ending of a longer single-word name ("omeprazole" of "esomeprazole"), for _is_tail.
+        self._tails = {
+            key[i:]
+            for key in self._single_word_list
+            for i in range(1, len(key) - _MIN_TAIL_LENGTH + 1)
+        }
         # One pattern for all keys, compiled once: per-key patterns overflowed the regex cache
         # with 2000 labels and cost 0.46 s per question. Longer keys first, as above.
         self._key_pattern = (
@@ -192,6 +201,7 @@ class DrugDetector:
 
     def _choices(self, keys: Sequence[str]) -> tuple[str, ...]:
         """Clarify candidates; a name shared by two products gets its form: "Ozempic (tablet)"."""
+        keys = keys[:MAX_CHOICES]
         names = [self._products[key].name.casefold() for key in keys]
         return tuple(
             f"{self._products[key].name} ({self._products[key].form})"
@@ -203,17 +213,15 @@ class DrugDetector:
     def _is_tail(self, word: str) -> bool:
         """The word ends a longer library name ("omeprazole" in "esomeprazole"): another drug,
         though its fuzzy score is high (calibration 2026-11-23)."""
-        return len(word) >= _MIN_TAIL_LENGTH and any(
-            key != word and key.endswith(word) for key in self._single_word_keys
-        )
+        return len(word) >= _MIN_TAIL_LENGTH and word in self._tails
 
     def _rank(self, word: str) -> list[tuple[tuple[str, ...], float]]:
         """Product groups (the products of one name key) whose best key scores at least the
         floor, best first."""
         best: dict[tuple[str, ...], float] = {}
-        for key, products in self._single_word_keys.items():
-            score = self._similarity.ratio(word, key)
-            if score >= self._floor and score > best.get(products, 0):
+        for key, score in self._similarity.best(word, self._single_word_list, self._floor):
+            products = self._single_word_keys[key]
+            if score > best.get(products, 0):
                 best[products] = score
         return sorted(best.items(), key=lambda kv: -kv[1])
 

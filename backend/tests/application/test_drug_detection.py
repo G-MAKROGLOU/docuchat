@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from app.application.drug_detection import DrugDetector, DrugEntry, product_key
+from app.application.drug_detection import MAX_CHOICES, DrugDetector, DrugEntry, product_key
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
 
 CATALOG = [
@@ -203,3 +203,21 @@ def test_catalog_names_each_label_once_with_its_generic_name() -> None:
     assert catalog.count("Lipitor (atorvastatin)") == 1
     assert "hydralazine hydrochloride" in catalog
     assert len(catalog) == len(CATALOG)
+
+
+def test_the_similarity_adapter_ranks_a_whole_list_above_a_floor() -> None:
+    best = RapidFuzzSimilarity().best("lipitr", ["lipitor", "celexa", "lipitorr"], floor=70.0)
+
+    assert [name for name, _ in best] == ["lipitor", "lipitorr"]
+    assert all(score >= 70.0 for _, score in best)
+
+
+def test_a_clarify_question_offers_at_most_five_candidates() -> None:
+    # Seven look-alike names, all equally close to the question word.
+    names = [f"zentrax{c}" for c in "abcdefg"]
+    detector = DrugDetector([DrugEntry(n, n, n) for n in names], RapidFuzzSimilarity())
+
+    result = detector.detect("What is the dose of zentrax?")
+
+    assert result.drugs == ()
+    assert len(result.ambiguous) == MAX_CHOICES == 5

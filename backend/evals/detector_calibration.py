@@ -154,6 +154,10 @@ class CachedSimilarity:
             self._scores[key] = self._inner.ratio(a, b)
         return self._scores[key]
 
+    def best(self, query: str, choices: Sequence[str], floor: float) -> list[tuple[str, float]]:
+        scores = ((choice, self.ratio(query, choice)) for choice in choices)
+        return [(choice, score) for choice, score in scores if score >= floor]
+
 
 def _detector(
     entries: Sequence[DrugEntry], similarity: NameSimilarity, t: Thresholds

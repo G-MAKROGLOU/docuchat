@@ -616,7 +616,10 @@ async def retrieve(
     elif not labels and (
         detection.not_in_corpus or outside_library(detector, state.get("named", ()))
     ):
-        return _refuse("drug_not_in_corpus", available_drugs=detector.catalog())
+        catalog = detector.catalog()
+        # The list is for a small library only; a large one has the Documents page.
+        extra = {"available_drugs": catalog} if len(catalog) <= INTAKE_LIST_MAX else {}
+        return _refuse("drug_not_in_corpus", **extra)
     result = await retriever.retrieve(
         state["query"],
         labels=labels,
