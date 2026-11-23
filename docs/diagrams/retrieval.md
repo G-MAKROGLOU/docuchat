@@ -37,7 +37,7 @@ Stream event types: `status`, `sources`, `token`, `final`, `clarify`, `refusal`,
 flowchart TD
     q(["search query<br/>from intake, or from rewrite on a retry"]) --> src
 
-    src["DetectorCache: one DrugDetector per library version<br/>rebuilt at most every 30 s"] --> det
+    src["VersionedCache: one DrugDetector per library version<br/>rebuilt at most every 30 s"] --> det
 
     subgraph detect["DrugDetector.detect()"]
         det["catalog: one entry per ingested label<br/>brand labels first, then the newest<br/>product = active ingredients + dosage form group<br/>first label of a product = its preferred label"]

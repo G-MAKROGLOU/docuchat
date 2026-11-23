@@ -25,7 +25,7 @@ flowchart TB
         chat["chat.py<br/>ChatService, build_chat_graph()"]
         prompts["chat_prompts.py"]
         topics["topics.py section_hints()"]
-        detection["drug_detection.py<br/>DrugDetector, DetectorCache"]
+        detection["drug_detection.py DrugDetector<br/>versioned_cache.py VersionedCache"]
         retrieval["retrieval.py RetrievalService"]
         fusion["fusion.py fuse(), select()"]
         runner["ingestion_runner.py IngestionRunner"]
@@ -133,7 +133,7 @@ flowchart LR
     TurnTracer --> LangfuseTracer
     TurnTracer --> NoopTracer
     Retriever["Retriever (application)"] --> RetrievalService
-    DetectorSource["DetectorSource (application)"] --> DetectorCache
+    DetectorSource["DetectorSource (application)"] --> VersionedCache
 ```
 
 `Tracer` and `Span` (`ports.py`) are also implemented by `LangfuseTracer` and `NoopTracer`. No application module calls them now; only `TurnTracer` is in use.

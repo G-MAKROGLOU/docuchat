@@ -4,17 +4,13 @@ from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
 
 from app.application.chat import ChatLimits, ChatService, Retriever
-from app.application.drug_detection import (
-    DetectorCache,
-    DetectorThresholds,
-    DrugDetector,
-    DrugEntry,
-)
+from app.application.drug_detection import DetectorThresholds, DrugDetector, DrugEntry
 from app.application.fusion import SearchLimits
 from app.application.ingestion import IngestionService, IngestLimits
 from app.application.page_locator import LocatorLimits
 from app.application.retrieval import RetrievalService
 from app.application.runtime_settings import load_runtime_settings
+from app.application.versioned_cache import VersionedCache
 from app.config import Settings
 from app.domain.documents import Document, DocumentStatus
 from app.domain.ports import TurnTracer
@@ -183,7 +179,7 @@ def chat_service(
         ModelFactory(
             _with_models(settings, runtime), reasoning_effort=runtime.reasoning_effort
         ).chat_models(),
-        DetectorCache(
+        VersionedCache(
             documents.ingested_version, build, min_interval=settings.detector_rebuild_seconds
         ),
         retriever or retrieval_service(settings, connections, runtime),

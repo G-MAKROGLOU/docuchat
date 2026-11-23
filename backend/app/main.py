@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.api.factory import create_api
 from app.application.ingestion_control import IngestionControl
 from app.application.readiness import ReadinessCheck
+from app.application.versioned_cache import VersionedCache
 from app.config import Settings, get_settings
 from app.domain.runtime_settings import RuntimeSettings
 from app.infrastructure.cache import close_caches
@@ -45,10 +46,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.pool = build_pool(app.state.settings)
         await app.state.pool.open()
         app.state.document_repository = PostgresDocumentRepository(app.state.pool)
+        corpus_stats = PostgresCorpusStatsRepository(app.state.pool)
         app.state.corpus_stats_repository = CachedCorpusStats(
-            PostgresCorpusStatsRepository(app.state.pool),
-            app.state.document_repository.ingested_version,
-            min_interval=app.state.settings.detector_rebuild_seconds,
+            corpus_stats,
+            VersionedCache(
+                app.state.document_repository.ingested_version,
+                corpus_stats.stats,
+                min_interval=app.state.settings.detector_rebuild_seconds,
+            ),
         )
         # Passes run in the ingest worker (app.ingest_worker); this process only asks for them.
         app.state.ingestion_control = IngestionControl(
