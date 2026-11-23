@@ -36,6 +36,7 @@ def ask(client: TestClient, system: str, user: str, **extra: object) -> str:
 def test_intake_always_searches(client: TestClient) -> None:
     text = ask(client, chat.intake_prompt(["Lipitor"]), "What is the dose of Lipitor?")
     assert chat.parse_intake(text) == ("search", "")
+    assert chat.intake_query(text) == "What is the dose of Lipitor?"
 
 
 def test_rewrite_returns_the_question(client: TestClient) -> None:

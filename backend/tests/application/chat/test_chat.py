@@ -13,6 +13,7 @@ from app.application.chat import (
     guard_problem,
     intake_medicines,
     intake_prompt,
+    intake_query,
     merge_sources,
     parse_grade,
     parse_intake,
@@ -49,6 +50,20 @@ def test_intake_medicines_reads_the_named_medicines() -> None:
     assert intake_medicines('{"action": "search"}') == ()
     assert intake_medicines('{"medicines": "Tylenol"}') == ()
     assert intake_medicines("not json") == ()
+
+
+def test_intake_query_reads_the_standalone_question() -> None:
+    text = '{"action": "search", "query": "  Lipitor  starting dose? "}'
+
+    assert intake_query(text) == "Lipitor starting dose?"
+
+
+def test_intake_query_is_none_when_the_query_is_not_usable() -> None:
+    assert intake_query('{"action": "search"}') is None
+    assert intake_query('{"action": "search", "query": "   "}') is None
+    assert intake_query('{"action": "search", "query": ["dose"]}') is None
+    assert intake_query('{"action": "search", "query": "' + "a" * 501 + '"}') is None
+    assert intake_query("not json") is None
 
 
 def test_parse_intake_falls_back_to_search() -> None:
@@ -583,6 +598,41 @@ def test_path_retry_then_answer_merges_both_searches() -> None:
     sources = next(e for e in events if e["type"] == "sources")["items"]
     assert [(s["id"], s["section"]) for s in sources] == [("S1", "2 Title"), ("S2", "8.4 Title")]
     assert events[-1]["type"] == "final"
+
+
+def test_path_with_an_intake_query_skips_the_first_rewrite() -> None:
+    retriever = FakeRetriever(make_chunk("10 mg"))
+    models = search_models(tokens=["Take 10 mg [S1]."])
+    models.by_role[ModelRole.CHAT] = FakeModel(
+        ['{"action": "search", "query": "Lipitor starting dose"}', '{"suggestions": []}']
+    )
+
+    events, _, _ = run_turn(models, FakeDetector(LIPITOR), retriever)
+
+    assert models.by_role[ModelRole.REWRITE].calls == []
+    assert [q for q, _ in retriever.queries] == ["Lipitor starting dose"]
+    assert next(e["stage"] for e in events if e["type"] == "status") == "retrieve"
+    assert events[-1]["type"] == "final"
+
+
+def test_path_with_an_intake_query_still_rewrites_on_a_retry() -> None:
+    first, second = make_chunk("10 mg"), make_chunk("children 10 mg", section="8.4")
+    retriever = FakeRetriever(first, second)
+    partial = '{"relevant": ["S1"], "verdict": "partial", "feedback": "No dose for children."}'
+    models = search_models(
+        grade=[partial, '{"relevant": ["S2"], "verdict": "sufficient", "feedback": ""}'],
+        tokens=["Adults take 10 mg [S1]. Children take 10 mg [S2]."],
+    )
+    models.by_role[ModelRole.CHAT] = FakeModel(
+        ['{"action": "search", "query": "Lipitor dose"}', '{"suggestions": []}']
+    )
+
+    run_turn(models, FakeDetector(LIPITOR), retriever)
+
+    rewrite_calls = models.by_role[ModelRole.REWRITE].calls
+    assert len(rewrite_calls) == 1
+    assert "'Lipitor dose'" in rewrite_calls[0][-1].content
+    assert [q for q, _ in retriever.queries] == ["Lipitor dose", "query"]
 
 
 def test_path_retry_then_refusal_after_two_empty_grades() -> None:

@@ -123,12 +123,12 @@ class ModelFactory:
             role: self._chat_model(role, name) for role, name in names.items()
         }
         # The same question and conversation give the same search query, so its vector and
-        # the search are reused.
-        models[ModelRole.REWRITE] = CachedChatModel(
-            models[ModelRole.REWRITE],
-            shared_cache(s.cache_url.get_secret_value()),
-            f"{ModelRole.REWRITE.value}:{s.llm_rewrite_model}:{self._reasoning_effort}",
-        )
+        # the search are reused. The intake (chat role) also writes the query.
+        cache = shared_cache(s.cache_url.get_secret_value())
+        for role in (ModelRole.CHAT, ModelRole.REWRITE):
+            models[role] = CachedChatModel(
+                models[role], cache, f"{role.value}:{names[role]}:{self._reasoning_effort}"
+            )
         return RoleModels(models)
 
     def _chat_model(self, role: ModelRole, name: str) -> OpenRouterChatModel:

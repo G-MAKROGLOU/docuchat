@@ -5,7 +5,7 @@ from pathlib import Path
 PROMPT_DIR = Path(__file__).resolve().parents[2] / "prompts"
 # The version of each prompt file in use; every trace records this map.
 PROMPT_VERSIONS = {
-    "intake": "v2",
+    "intake": "v3",
     "rewrite": "v1",
     "grade": "v1",
     "generate": "v2",
