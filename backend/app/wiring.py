@@ -91,7 +91,7 @@ def drug_detector(documents: Iterable[Document], thresholds: DetectorThresholds)
     return DrugDetector(
         [
             DrugEntry(
-                name=d.brand_name or d.generic_name,
+                name=d.display_name,
                 brand=d.brand_name,
                 generic=d.generic_name,
                 label=d.id,
