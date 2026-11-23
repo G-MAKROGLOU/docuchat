@@ -93,6 +93,7 @@ class Settings(BaseSettings):
     search_leg_timeout_seconds: float
     search_title_boost: float
     search_phrase_boost: float
+    search_hnsw_ef_search: int
 
     # Defaults of the runtime settings, until the user saves others.
     default_chunk_tokens: int

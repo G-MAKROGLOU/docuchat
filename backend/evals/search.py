@@ -81,6 +81,16 @@ class CosineSearch:
     async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
         return await self._text.text_search(query, labels, limit)
 
+    async def vector_search_each(
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]:
+        return [await self.vector_search(embedding, [label], limit) for label in labels]
+
+    async def text_search_each(
+        self, query: str, labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]:
+        return await self._text.text_search_each(query, labels, limit)
+
 
 _FIELDS = (
     "id, document_id, drug_name, section_number, section_title, page_start, page_end, "

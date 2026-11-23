@@ -55,6 +55,15 @@ class ChunkSearch(Protocol):
 
     async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]: ...
 
+    # One query for a comparison: the top `limit` of each label, one list per label in order.
+    async def vector_search_each(
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]: ...
+
+    async def text_search_each(
+        self, query: str, labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]: ...
+
 
 class DocumentParser(Protocol):
     def page_texts(self, data: bytes) -> list[str]:

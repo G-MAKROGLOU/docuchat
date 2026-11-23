@@ -147,6 +147,16 @@ class FakeSearch:
     async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
         return [make_chunk("bm25")]
 
+    async def vector_search_each(
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]:
+        raise AssertionError("not used")
+
+    async def text_search_each(
+        self, query: str, labels: Sequence[UUID], limit: int
+    ) -> list[list[Chunk]]:
+        return [[make_chunk("bm25")] for _ in labels]
+
 
 def test_cosine_search_ranks_by_similarity_with_the_label_filter() -> None:
     near = make_chunk("near", drug="Lipitor")

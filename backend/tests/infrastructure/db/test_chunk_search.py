@@ -10,11 +10,12 @@ from typing import Any
 
 import psycopg
 import pytest
+from psycopg import sql
 
 from app.domain.documents import DocumentStatus
 from app.domain.entities import Chunk
-from app.infrastructure.chunk_repository import PostgresChunkRepository
-from app.infrastructure.chunk_search import PostgresChunkSearch
+from app.infrastructure.chunk_repository import PostgresChunkRepository, vector_literal
+from app.infrastructure.chunk_search import _COLUMNS, PostgresChunkSearch
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.migrations import apply_migrations
 from tests.support.db import DirectConnections
@@ -87,6 +88,7 @@ def search() -> Iterator[PostgresChunkSearch]:
         None,
         title_boost=SETTINGS.search_title_boost,
         phrase_boost=SETTINGS.search_phrase_boost,
+        hnsw_ef_search=SETTINGS.search_hnsw_ef_search,
     )
     with psycopg.connect(conninfo) as conn:
         conn.execute("DELETE FROM documents WHERE brand_name = ANY(%s)", (list(DRUGS),))
@@ -136,15 +138,44 @@ def test_vector_search_reads_only_chunks_of_the_query_model(
         FIXTURE["model"],
         title_boost=SETTINGS.search_title_boost,
         phrase_boost=SETTINGS.search_phrase_boost,
+        hnsw_ef_search=SETTINGS.search_hnsw_ef_search,
     )
     other = PostgresChunkSearch(
         connections,
         "other/model",
         title_boost=SETTINGS.search_title_boost,
         phrase_boost=SETTINGS.search_phrase_boost,
+        hnsw_ef_search=SETTINGS.search_hnsw_ef_search,
     )
 
     assert asyncio.run(same.vector_search(q["embedding"], LABELS, 20))
     assert asyncio.run(other.vector_search(q["embedding"], LABELS, 20)) == []
     # BM25 has no vectors, so a half-done re-embed keeps the text list.
     assert asyncio.run(other.text_search("dose mg daily", LABELS, 20))
+
+
+def test_the_vector_search_orders_by_the_indexed_expression(search: PostgresChunkSearch) -> None:
+    # The HNSW index is on embedding::halfvec(1536); another ORDER BY would scan the whole table.
+    statement, params = search._vector_query(vector_literal(query("paraphrase")["embedding"]))(
+        _COLUMNS, [], 20
+    )
+    with psycopg.connect(os.environ["TEST_DATABASE_URL"]) as conn:
+        conn.execute("SET enable_seqscan = off")
+        plan = conn.execute(sql.SQL("EXPLAIN {}").format(statement), params).fetchall()
+
+    assert "chunks_embedding_half_idx" in "\n".join(row[0] for row in plan)
+
+
+def test_one_query_per_leg_gives_each_label_its_own_top_k(search: PostgresChunkSearch) -> None:
+    q = query("exact_dose")
+    vector = asyncio.run(search.vector_search_each(q["embedding"], LABELS, 3))
+    bm25 = asyncio.run(search.text_search_each("dose mg daily", LABELS, 3))
+
+    for each, single in (
+        (vector, [asyncio.run(search.vector_search(q["embedding"], [lb], 3)) for lb in LABELS]),
+        (bm25, [asyncio.run(search.text_search("dose mg daily", [lb], 3)) for lb in LABELS]),
+    ):
+        assert [[c.id for c in items] for items in each] == [
+            [c.id for c in items] for items in single
+        ]
+        assert [{c.document_id for c in items} for items in each] == [{lb} for lb in LABELS]

@@ -164,6 +164,7 @@ async def _retrieval(
             runtime.embedding_model,
             title_boost=settings.search_title_boost,
             phrase_boost=settings.search_phrase_boost,
+            hnsw_ef_search=settings.search_hnsw_ef_search,
         ),
         vectors,
     )
