@@ -1,27 +1,19 @@
-"""Prompt texts of the chat graph. The long prompts are versioned files in backend/prompts."""
+"""Prompt texts of the chat graph. The long prompts are files in backend/prompts, one per step."""
 
+import hashlib
 from pathlib import Path
 
 PROMPT_DIR = Path(__file__).resolve().parents[2] / "prompts"
-# The version of each prompt file in use; every trace records this map.
-PROMPT_VERSIONS = {
-    "intake": "v3",
-    "rewrite": "v1",
-    "grade": "v1",
-    "generate": "v2",
-    "suggest": "v1",
-}
+NAMES = ("intake", "rewrite", "grade", "generate", "suggest")
+_TEXTS = {n: (PROMPT_DIR / f"{n}.md").read_text(encoding="utf-8").strip() for n in NAMES}
+# A short hash of each prompt text; every trace records this map, so a prompt change shows.
+PROMPT_VERSIONS = {n: hashlib.sha256(t.encode()).hexdigest()[:12] for n, t in _TEXTS.items()}
 
-
-def _load(name: str) -> str:
-    return (PROMPT_DIR / f"{name}.{PROMPT_VERSIONS[name]}.md").read_text(encoding="utf-8").strip()
-
-
-INTAKE = _load("intake")
-REWRITE = _load("rewrite")
-GRADE = _load("grade")
-GENERATE = _load("generate")
-SUGGEST = _load("suggest")
+INTAKE = _TEXTS["intake"]
+REWRITE = _TEXTS["rewrite"]
+GRADE = _TEXTS["grade"]
+GENERATE = _TEXTS["generate"]
+SUGGEST = _TEXTS["suggest"]
 
 INTAKE_LIBRARY = "The library holds the labels of these medicines: {names}."
 INTAKE_LIBRARY_LARGE = (
