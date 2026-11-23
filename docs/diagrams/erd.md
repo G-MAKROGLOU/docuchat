@@ -1,45 +1,54 @@
 # Data model
 
-Tables from `backend/app/infrastructure/sql/0001_documents.sql` and `0002_chunks.sql`, and the SeaweedFS objects from `backend/app/domain/storage.py`. `migrations.py` records each applied file in `schema_migrations`.
+Tables from the migrations `backend/app/infrastructure/sql/0001_documents.sql` to `0013_table_header_and_title_search.sql`, and the SeaweedFS objects from `backend/app/domain/storage.py`. `migrations.py` applies each file once, in name order, at the start of the backend, the ingest worker and the commands. It records each applied file in `schema_migrations`.
+
+## Library
 
 ```mermaid
 erDiagram
     documents ||--o{ chunks : "document_id, ON DELETE CASCADE"
     documents ||--|| PDF_OBJECT : "storage_key"
     documents ||--o| LABEL_OBJECT : "label_key(id)"
+    label_queue |o..o| documents : "set_id = source_id, no foreign key"
 
     documents {
         uuid id PK
         text brand_name "NOT NULL"
         text generic_name "NOT NULL"
         text manufacturer "NOT NULL"
-        text source_id "NOT NULL, index documents_source_id_idx"
+        text source_id "NOT NULL, DailyMed set ID, index documents_source_id_idx"
         text storage_key "NOT NULL"
         char_64 sha256 UK "char(64) NOT NULL UNIQUE"
         bigint size_bytes "NOT NULL, CHECK > 0"
         integer page_count "NULL, CHECK > 0"
         timestamptz ingested_at "NULL"
         text status "stored | ingesting | ingested | failed"
+        text failure_reason "NULL (0004)"
+        text dosage_form "NOT NULL DEFAULT empty, SPL formCode (0012)"
     }
 
     chunks {
-        uuid id PK "BM25 key_field"
-        uuid document_id FK "NOT NULL, index chunks_document_id_idx"
-        text drug_name "NOT NULL, BM25 literal field"
+        uuid id PK "BM25 key (first index column)"
+        uuid document_id FK "NOT NULL, BM25 field, index chunks_document_id_idx"
+        text drug_name "NOT NULL"
         text section_number "NOT NULL, BM25 literal field"
-        text section_title "NOT NULL"
+        text section_title "NOT NULL, BM25 stemmer=english (0013)"
         integer page_start "NOT NULL, CHECK > 0"
         integer page_end "NOT NULL, CHECK >= page_start"
-        text content "NOT NULL, BM25 simple tokenizer, stemmer=english"
+        text content "NOT NULL, BM25 stemmer=english"
         text anchor "NOT NULL, first 8 words"
         vector_1536 embedding "vector(1536) NOT NULL, HNSW vector_cosine_ops"
         text embedding_model "NOT NULL"
         integer token_count "NOT NULL, CHECK > 0"
+        text table_header "NOT NULL DEFAULT empty, table caption and header row (0013)"
     }
 
-    schema_migrations {
-        text version PK "file stem, for example 0002_chunks"
-        timestamptz applied_at "NOT NULL DEFAULT now()"
+    label_queue {
+        text set_id PK "DailyMed set ID"
+        text title "NOT NULL"
+        text status "queued | added | failed"
+        text failure_reason "NULL"
+        timestamptz created_at "NOT NULL DEFAULT now()"
     }
 
     PDF_OBJECT {
@@ -53,12 +62,69 @@ erDiagram
     }
 ```
 
-Indexes on `chunks`:
+`PDF_OBJECT` and `LABEL_OBJECT` are S3 objects in the `S3_BUCKET` bucket, not tables. A label update stores a new PDF under a new key, updates `storage_key`, `sha256` and `size_bytes`, then deletes the old PDF object.
 
-| Index | Type | Definition |
-|---|---|---|
-| `chunks_embedding_idx` | HNSW (pgvector) | `embedding vector_cosine_ops` |
-| `chunks_search_idx` | BM25 (pg_search, `USING paradedb`) | `id`, `content::pdb.simple('stemmer=english')`, `drug_name::pdb.literal`, `section_number::pdb.literal`, `key_field = 'id'` |
-| `chunks_document_id_idx` | B-tree | `document_id` |
+## Conversations, settings and worker state
 
-`PDF_OBJECT` and `LABEL_OBJECT` are S3 objects in the `S3_BUCKET` bucket, not tables.
+```mermaid
+erDiagram
+    conversations ||--o{ conversation_turns : "conversation_id, ON DELETE CASCADE"
+
+    conversations {
+        uuid id PK
+        timestamptz created_at "NOT NULL DEFAULT now()"
+    }
+
+    conversation_turns {
+        uuid id PK
+        uuid conversation_id FK "NOT NULL"
+        text role "user | assistant"
+        text text "NOT NULL"
+        text_array citations "text[] NOT NULL DEFAULT empty"
+        timestamptz created_at "NOT NULL DEFAULT clock_timestamp()"
+    }
+
+    runtime_settings {
+        text key PK "one saved setting, or embedded_index"
+        jsonb value "NOT NULL"
+    }
+
+    ingestion_state {
+        smallint id PK "CHECK id = 1, one row"
+        text phase "idle | checking | downloading | ingesting"
+        timestamptz requested_at "NULL, a pass is asked for"
+        boolean force_requested "NOT NULL DEFAULT false"
+        timestamptz next_run_at "NULL"
+        timestamptz heartbeat_at "NULL, last worker report"
+    }
+
+    schema_migrations {
+        text version PK "file stem, for example 0013_table_header_and_title_search"
+        timestamptz applied_at "NOT NULL DEFAULT now()"
+    }
+```
+
+`DELETE /api/v1/conversations/{id}` deletes a conversation; its turns go with it. The frontend sends it when the page unloads (`pagehide`).
+
+## Indexes
+
+| Index | Table | Type | Definition |
+|---|---|---|---|
+| `chunks_embedding_idx` | `chunks` | HNSW (pgvector) | `embedding vector_cosine_ops` |
+| `chunks_search_idx` | `chunks` | BM25 (pg_search, `USING paradedb`) | `id`, `content::pdb.simple('stemmer=english')`, `section_title::pdb.simple('stemmer=english')`, `document_id`, `section_number::pdb.literal`; `WITH (mutable_segment_rows = 0)` |
+| `chunks_document_id_idx` | `chunks` | B-tree | `document_id` |
+| `documents_source_id_idx` | `documents` | B-tree | `source_id` |
+| `conversation_turns_conversation_idx` | `conversation_turns` | B-tree | `conversation_id, created_at` |
+
+History of the search indexes:
+
+| Migration | Change |
+|---|---|
+| `0008_bm25_no_mutable_segment` | `mutable_segment_rows = 0` on `chunks_search_idx`, then `REINDEX` |
+| `0009_bm25_drop_key_field` | `RESET (key_field)`; the first index column (`id`) is the key |
+| `0010_chunks_drug_name_idx` | adds `chunks_drug_name_idx` on `drug_name` |
+| `0011_drop_unused_extensions` | drops `postgis_tiger_geocoder`, `postgis_topology`, `postgis`, `fuzzystrmatch`, `pg_ivm` |
+| `0012_label_filter` | adds `documents.dosage_form`; rebuilds `chunks_search_idx` with `document_id` instead of `drug_name`; drops `chunks_drug_name_idx` |
+| `0013_table_header_and_title_search` | adds `chunks.table_header`; rebuilds `chunks_search_idx` with `section_title` |
+
+`chunks.drug_name` is still stored and sent to the model, but no index and no search filter use it now.

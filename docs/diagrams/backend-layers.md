@@ -1,120 +1,139 @@
 # Backend layers
 
-Dependencies point inward to `app/domain`. `app/wiring.py` and `app/main.py` connect the adapters to the ports. Dotted arrows show "implements".
+Dependencies point inward to `app/domain`. `app/wiring.py`, `app/main.py` and the commands connect the adapters to the ports. The first diagram shows the modules and their imports. The second diagram shows which adapter implements which port.
 
 ```mermaid
 flowchart TB
-    subgraph entry["Entry points"]
+    subgraph entry["Entry points (app/)"]
         main["main.py<br/>FastAPI app, lifespan"]
-        cmds["corpus_download.py<br/>ingest.py<br/>search_cli.py"]
+        worker["ingest_worker.py<br/>schedule and requested passes"]
+        cmds["corpus_init.py, corpus_download.py,<br/>ingest.py, search_cli.py"]
+        rconf["runtime_config.py RuntimeConfig<br/>saved settings, rebuild on change"]
     end
 
-    wiring["wiring.py<br/>composition root<br/>ingestion_service(), retrieval_service(), drug_detector()"]
+    wiring["wiring.py<br/>composition root<br/>chat_service(), retrieval_service(),<br/>ingestion_service(), drug_detector()"]
 
     subgraph api["app/api"]
-        factory["factory.py create_api()<br/>prefix /api/v1"]
-        routers["routers: health, contract, documents"]
+        factory["factory.py create_api()<br/>prefix /api/v1, /metrics"]
+        routers["routers/: health, documents, chat, status,<br/>ingestion, labels, settings<br/>contract.py: contract router"]
         deps["dependencies.py<br/>reads app.state"]
         mw["middleware.py RequestIdMiddleware"]
         range["http_range.py parse_range()"]
     end
 
     subgraph application["app/application"]
-        corpus["corpus.py download_corpus()"]
+        chat["chat.py<br/>ChatService, build_chat_graph()"]
+        prompts["chat_prompts.py"]
+        topics["topics.py section_hints()"]
+        detection["drug_detection.py<br/>DrugDetector, DetectorCache"]
+        retrieval["retrieval.py RetrievalService"]
+        fusion["fusion.py fuse(), select()"]
+        runner["ingestion_runner.py IngestionRunner"]
+        control["ingestion_control.py<br/>IngestionControl, IngestWorker"]
         ingestion["ingestion.py IngestionService"]
         sections["label_sections.py split_sections()"]
         locator["page_locator.py PageLocator"]
-        chunking["chunking.py build_chunks()"]
-        retrieval["retrieval.py RetrievalService"]
-        fusion["fusion.py fuse(), select()"]
-        detection["drug_detection.py DrugDetector"]
+        chunking["chunking.py build_chunks(),<br/>table_context(), embedding_input()"]
+        corpus["corpus.py download_corpus()"]
+        update["corpus_update.py check_for_updates()"]
+        queue["label_queue.py<br/>add_label(), process_queue()"]
+        rsettings["runtime_settings.py"]
+        ready["readiness.py ReadinessCheck"]
     end
 
     subgraph domain["app/domain (no framework imports)"]
-        p_ports["ports.py<br/>Embedder, ChunkRepository, ChunkSearch,<br/>DocumentParser, LabelParser, TextSplitter,<br/>TokenCounter, NameSimilarity, Tracer, Span,<br/>ChatModel, ChatModelProvider"]
-        p_docs["documents.py<br/>Document, DocumentStatus,<br/>LabelSource, DocumentRepository,<br/>IngestionStatusRepository"]
-        p_store["storage.py<br/>DocumentStore, document_key(), label_key()"]
-        entities["entities.py<br/>LabelNode, LabelSection, Chunk, TextSpan, ..."]
+        d_ports["ports.py"]
+        d_docs["documents.py"]
+        d_store["storage.py"]
+        d_ent["entities.py"]
+        d_other["conversations.py, label_queue.py,<br/>ingestion_state.py, runtime_settings.py,<br/>corpus_stats.py"]
     end
 
-    subgraph infra["app/infrastructure"]
-        a_embed["models.py<br/>ModelFactory, OpenRouterEmbedder"]
-        a_chunkrepo["chunk_repository.py<br/>PostgresChunkRepository"]
-        a_search["chunk_search.py<br/>PostgresChunkSearch"]
-        a_docrepo["document_repository.py<br/>PostgresDocumentRepository"]
-        a_pdf["pdf_parser.py PyMuPdfParser"]
-        a_spl["spl_parser.py SplXmlParser"]
-        a_split["text_splitting.py<br/>SentenceTokenSplitter, TiktokenCounter"]
-        a_sim["name_similarity.py RapidFuzzSimilarity"]
-        a_store["storage.py<br/>S3DocumentStore, FileSystemDocumentStore"]
-        a_daily["dailymed.py DailyMedClient"]
-        a_trace["tracing.py LangfuseTracer, NoopTracer"]
-        a_db["database.py build_pool(), PostgresProbe<br/>migrations.py apply_migrations()"]
-    end
+    infra["app/infrastructure<br/>adapters: Postgres, S3, Redis, OpenRouter,<br/>DailyMed, PyMuPDF, SPL XML, RapidFuzz, Langfuse,<br/>metrics, logging, migrations"]
 
     main --> factory
-    main --> a_db
-    main --> a_store
-    main --> a_docrepo
-    main --> a_trace
+    main --> wiring
+    main --> infra
+    main --> rconf
+    worker --> wiring
+    worker --> runner
+    worker --> control
+    worker --> infra
+    worker --> rconf
     cmds --> wiring
     cmds --> corpus
-    cmds --> a_daily
+    cmds --> infra
     wiring --> application
     wiring --> infra
 
     factory --> routers
+    factory --> mw
     routers --> deps
     routers --> range
-    factory --> mw
-    deps --> p_docs
-    deps --> p_store
+    routers --> application
+    routers --> domain
+    deps --> infra
 
-    corpus --> p_docs
-    corpus --> p_store
+    chat --> prompts
+    chat --> topics
+    chat --> detection
+    chat --> retrieval
+    retrieval --> fusion
+    runner --> ingestion
+    runner --> update
+    runner --> queue
+    queue --> corpus
+    queue --> ingestion
+    update --> corpus
     ingestion --> sections
     ingestion --> locator
     ingestion --> chunking
-    ingestion --> p_ports
-    ingestion --> p_docs
-    ingestion --> p_store
-    retrieval --> fusion
-    retrieval --> p_ports
-    detection --> p_ports
-    application --> entities
+    chunking --> sections
+    rconf --> rsettings
 
-    a_embed -.->|Embedder| p_ports
-    a_chunkrepo -.->|ChunkRepository| p_ports
-    a_search -.->|ChunkSearch| p_ports
-    a_pdf -.->|DocumentParser| p_ports
-    a_spl -.->|LabelParser| p_ports
-    a_split -.->|"TextSplitter, TokenCounter"| p_ports
-    a_sim -.->|NameSimilarity| p_ports
-    a_trace -.->|Tracer, Span| p_ports
-    a_docrepo -.->|DocumentRepository| p_docs
-    a_daily -.->|LabelSource| p_docs
-    a_store -.->|DocumentStore| p_store
+    application --> domain
+    infra -.->|"implements"| domain
 ```
 
-Port to adapter map:
+Port to adapter map. The ports are in `app/domain` unless the label names `application`.
 
 ```mermaid
 flowchart LR
+    ChatModelProvider --> RoleModels
+    ChatModel --> CachedChatModel["CachedChatModel<br/>chat and rewrite roles"]
+    ChatModel --> OpenRouterChatModel["OpenRouterChatModel<br/>with OpenRouterStreamChat"]
+    CachedChatModel -.->|wraps| OpenRouterChatModel
+    Embedder --> CachedEmbedder
     Embedder --> OpenRouterEmbedder
+    CachedEmbedder -.->|wraps| OpenRouterEmbedder
+    Cache --> RedisCache
     ChunkRepository --> PostgresChunkRepository
     ChunkSearch --> PostgresChunkSearch
     DocumentRepository --> PostgresDocumentRepository
     IngestionStatusRepository --> PostgresDocumentRepository
+    DocumentLocks --> PostgresDocumentLocks
+    ConversationRepository --> PostgresConversationRepository
+    LabelQueueRepository --> PostgresLabelQueueRepository
+    IngestionStateRepository --> PostgresIngestionStateRepository
+    RuntimeSettingsRepository --> PostgresRuntimeSettingsRepository
+    CorpusStatsRepository --> CachedCorpusStats
+    CorpusStatsRepository --> PostgresCorpusStatsRepository
+    CachedCorpusStats -.->|wraps| PostgresCorpusStatsRepository
     LabelSource --> DailyMedClient
+    LabelCatalog --> DailyMedCatalog
     DocumentStore --> S3DocumentStore
     DocumentStore --> FileSystemDocumentStore
     DocumentParser --> PyMuPdfParser
+    PageRenderer --> PyMuPdfPageRenderer
     LabelParser --> SplXmlParser
+    LabelMetadataReader --> SplXmlParser
     TextSplitter --> SentenceTokenSplitter
     TokenCounter --> TiktokenCounter
     NameSimilarity --> RapidFuzzSimilarity
-    Tracer --> LangfuseTracer
-    Tracer --> NoopTracer
-    ChatModel --> none1["no adapter yet (phase 4)"]
-    ChatModelProvider --> none1
+    TurnTracer --> LangfuseTracer
+    TurnTracer --> NoopTracer
+    Retriever["Retriever (application)"] --> RetrievalService
+    DetectorSource["DetectorSource (application)"] --> DetectorCache
 ```
+
+`Tracer` and `Span` (`ports.py`) are also implemented by `LangfuseTracer` and `NoopTracer`. No application module calls them now; only `TurnTracer` is in use.

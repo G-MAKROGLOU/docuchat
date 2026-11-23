@@ -1,6 +1,8 @@
 # Corpus download
 
-`python -m app.corpus_download --quick|--all` stores the label PDF and the SPL XML of each manifest entry, then adds the document row. The run is idempotent by `source_id`.
+`python -m app.corpus_download --quick|--all` stores the label PDF and the SPL XML of each manifest entry, then adds the document row. The run is idempotent by `source_id`. The manifest is `backend/corpus/manifest.json`, mounted at `/corpus/manifest.json`.
+
+Other callers of `download_corpus()`: the one-shot `corpus-init` job runs `corpus_download.main(["--all"])`, then `ingest.main(["--all"])`, when a manifest label is not in the library. The label queue of the ingest worker (`label_queue.process_queue()`) calls it for one label at a time, with the SPL XML that it already fetched.
 
 ```mermaid
 sequenceDiagram
@@ -16,6 +18,7 @@ sequenceDiagram
     CLI->>CLI: apply_migrations(DATABASE_URL)
     CLI->>CLI: parse_manifest(manifest.json, quick)
     CLI->>Src: create with pdf_url_template, label_url_template (https only)
+    Note over Src: each GET: 3 tries with backoff 1 s, 2 s<br/>on 408, 429, 500, 502, 503, 504 and network errors<br/>response at most 50 MB
     CLI->>DL: download_corpus(entries, source, store, repository)
 
     loop each CorpusEntry, errors counted as failed
@@ -37,6 +40,7 @@ sequenceDiagram
                 Note over DL: sha256 must equal the stored sha256, else error
                 DL->>Store: put(storage_key, PDF, application/pdf)
                 DL->>Src: fetch_label(source_id)
+                Note over DL: sleep 0.3 s, check SPL namespace
                 DL->>Store: put(label_key(id), XML, application/xml)
                 Note over DL: downloaded += 1
             else no row
@@ -46,7 +50,7 @@ sequenceDiagram
                 else new label
                     Note over DL: new uuid4, storage_key = document_key(id, sha256)
                     DL->>Src: fetch_label(source_id)
-                    Note over DL: objects first, row second
+                    Note over DL: sleep 0.3 s, check SPL namespace<br/>objects first, row second
                     DL->>Store: put(storage_key, PDF, application/pdf)
                     DL->>Store: put(label_key(id), XML, application/xml)
                     DL->>Repo: add(Document status=stored)
