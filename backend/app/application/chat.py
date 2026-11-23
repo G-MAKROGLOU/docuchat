@@ -25,14 +25,27 @@ from app.domain.ports import ChatModelProvider, TurnTracer
 
 logger = logging.getLogger(__name__)
 
-HISTORY_TURNS = 10
+# API contract: the request schema and the frontend use the same limit.
 MAX_QUESTION_CHARS = 2000
-# A longer intake query is not one search question; the rewrite node makes the query then.
-MAX_QUERY_CHARS = 500
-# One rewrite and search again after a weak grade; never more.
-MAX_RETRIES = 1
-# Seconds for a whole chat turn, all model calls included.
-TURN_DEADLINE_SECONDS = 120.0
+
+
+@dataclass(frozen=True, slots=True)
+class ChatLimits:
+    history_turns: int  # messages, not exchanges
+    # A longer intake query is not one search question; the rewrite node makes the query then.
+    max_query_chars: int
+    # Rewrites and searches again after a weak grade.
+    grade_retries: int
+    # Seconds for a whole chat turn, all model calls included.
+    turn_deadline_seconds: float
+    # Greetings and library lists are short; a long reply is more than the front desk should say.
+    max_reply_chars: int
+    # Up to this many names, the intake prompt and a refusal list the library.
+    intake_list_max: int
+    max_suggestions: int
+    max_suggestion_chars: int
+
+
 _CITATION = re.compile(r"\[(S\d+)\]")
 _FENCE = re.compile(r"^```(?:json)?\s*|\s*```$")
 # Requests to drop the rules or show the prompt. Plain wording only; the prompts still say
@@ -109,10 +122,6 @@ _DAILY = re.compile(r"\s*,?\s*(?:once\s+)?(?:daily|a\s+day|each\s+day|every\s+da
 
 Dose = tuple[str, Decimal, tuple[str, ...]]
 _LINK = re.compile(r"https?://[^\s)\]]+|www\.[^\s)\]]+", re.IGNORECASE)
-# Greetings and library lists are short; a long reply is more than the front desk should say.
-MAX_REPLY_CHARS = 500
-# Up to this many names, the intake prompt lists the library.
-INTAKE_LIST_MAX = 100
 
 GraderMode = Literal["off", "rule", "llm"]
 Verdict = Literal["sufficient", "partial", "insufficient"]
@@ -186,17 +195,17 @@ def guard_problem(question: str) -> str | None:
     return None
 
 
-def reply_is_safe(reply: str) -> bool:
+def reply_is_safe(reply: str, max_chars: int) -> bool:
     """The front desk never gives a dose or a link; only cited answers may."""
-    return len(reply) <= MAX_REPLY_CHARS and not _DOSE.search(reply) and not _LINK.search(reply)
+    return len(reply) <= max_chars and not _DOSE.search(reply) and not _LINK.search(reply)
 
 
-def parse_intake(text: str) -> tuple[Literal["reply", "search"], str]:
+def parse_intake(text: str, max_reply_chars: int) -> tuple[Literal["reply", "search"], str]:
     """A reply needs its text; anything unclear or unsafe goes to the search, which can refuse."""
     data = _json_object(text)
     reply = data.get("reply")
     if data.get("action") == "reply" and isinstance(reply, str) and reply.strip():
-        if reply_is_safe(reply.strip()):
+        if reply_is_safe(reply.strip(), max_reply_chars):
             return "reply", reply.strip()
         logger.warning("intake reply with a dose, a link or too much text; searching instead")
     return "search", ""
@@ -210,13 +219,13 @@ def intake_medicines(text: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(n.strip() for n in names if isinstance(n, str) and n.strip()))
 
 
-def intake_query(text: str) -> str | None:
+def intake_query(text: str, max_chars: int) -> str | None:
     """The standalone search question of the intake reply; None when it is missing or too long."""
     query = _json_object(text).get("query")
     if not isinstance(query, str):
         return None
     query = " ".join(query.split())
-    return query if 0 < len(query) <= MAX_QUERY_CHARS else None
+    return query if 0 < len(query) <= max_chars else None
 
 
 def outside_library(detector: Detector, names: Sequence[str]) -> tuple[str, ...]:
@@ -259,11 +268,11 @@ def rule_check(sources: Sequence[SourceRef], labels: Sequence[UUID]) -> list[Sou
     ]
 
 
-def grade_decision(verdict: Verdict, has_relevant: bool, attempt: int) -> str:
+def grade_decision(verdict: Verdict, has_relevant: bool, attempt: int, retries: int) -> str:
     """generate, retry or refuse. A partial result on the last attempt is still answered."""
     if verdict == "sufficient" and has_relevant:
         return "generate"
-    if attempt < MAX_RETRIES:
+    if attempt < retries:
         return "retry"
     return "generate" if has_relevant else "refuse"
 
@@ -274,18 +283,14 @@ def merge_sources(first: Sequence[SourceRef], second: Sequence[SourceRef]) -> li
     return [SourceRef(f"S{i}", c) for i, c in enumerate(unique.values(), start=1)]
 
 
-MAX_SUGGESTIONS = 3
-MAX_SUGGESTION_CHARS = 120
-
-
-def parse_suggestions(text: str) -> list[str]:
-    """Up to MAX_SUGGESTIONS unique, non-empty questions; anything else is dropped."""
+def parse_suggestions(text: str, count: int, max_chars: int) -> list[str]:
+    """Up to count unique, non-empty questions of max_chars at most; others are dropped."""
     items = _json_object(text).get("suggestions")
     if not isinstance(items, list):
         return []
     clean = (" ".join(i.split()) for i in items if isinstance(i, str))
-    unique = dict.fromkeys(i for i in clean if 0 < len(i) <= MAX_SUGGESTION_CHARS)
-    return list(unique)[:MAX_SUGGESTIONS]
+    unique = dict.fromkeys(i for i in clean if 0 < len(i) <= max_chars)
+    return list(unique)[:count]
 
 
 def cited_ids(answer: str, valid_ids: Sequence[str]) -> list[str]:
@@ -555,10 +560,10 @@ async def guard(state: ChatState) -> ChatState:
     return _refuse("out_of_scope")
 
 
-def intake_prompt(catalog: Sequence[str]) -> str:
+def intake_prompt(catalog: Sequence[str], list_max: int) -> str:
     """The intake instructions plus the library list, so the chat model knows what it has. A
     large library gives only its size: 2000 names would add about 15,000 tokens to each turn."""
-    if len(catalog) > INTAKE_LIST_MAX:
+    if len(catalog) > list_max:
         library = chat_prompts.INTAKE_LIBRARY_LARGE.format(count=len(catalog))
     else:
         library = chat_prompts.INTAKE_LIBRARY.format(names=", ".join(catalog) or "none yet")
@@ -566,17 +571,17 @@ def intake_prompt(catalog: Sequence[str]) -> str:
 
 
 async def intake(
-    state: ChatState, *, models: ChatModelProvider, detectors: DetectorSource
+    state: ChatState, *, models: ChatModelProvider, detectors: DetectorSource, limits: ChatLimits
 ) -> ChatState:
-    system = intake_prompt((await detectors()).catalog())
+    system = intake_prompt((await detectors()).catalog(), limits.intake_list_max)
     text = await models.for_role(ModelRole.CHAT).complete(_conversation(system, state))
-    action, reply = parse_intake(text)
+    action, reply = parse_intake(text, limits.max_reply_chars)
     state_update: ChatState = {"action": action, "reply": reply}
     if action == "search":
         if named := intake_medicines(text):
             state_update["named"] = named
         # With a query, the first search skips the rewrite node.
-        if query := intake_query(text):
+        if query := intake_query(text, limits.max_query_chars):
             state_update["query"] = query
     return state_update
 
@@ -604,7 +609,7 @@ async def rewrite(state: ChatState, *, models: ChatModelProvider) -> ChatState:
 
 
 async def retrieve(
-    state: ChatState, *, detectors: DetectorSource, retriever: Retriever
+    state: ChatState, *, detectors: DetectorSource, retriever: Retriever, limits: ChatLimits
 ) -> ChatState:
     _status("retrieve", "Searching the drug labels")
     detector = await detectors()
@@ -621,7 +626,7 @@ async def retrieve(
     ):
         catalog = detector.catalog()
         # The list is for a small library only; a large one has the Documents page.
-        extra = {"available_drugs": catalog} if len(catalog) <= INTAKE_LIST_MAX else {}
+        extra = {"available_drugs": catalog} if len(catalog) <= limits.intake_list_max else {}
         return _refuse("drug_not_in_corpus", **extra)
     result = await retriever.retrieve(
         state["query"],
@@ -667,7 +672,9 @@ async def _llm_grade(
     return [s for s in sources if s.id in relevant], verdict, feedback
 
 
-async def grade(state: ChatState, *, models: ChatModelProvider, mode: GraderMode) -> ChatState:
+async def grade(
+    state: ChatState, *, models: ChatModelProvider, mode: GraderMode, limits: ChatLimits
+) -> ChatState:
     _status("grade", "Checking the excerpts")
     attempt = state.get("attempt", 0)
     sources = state["sources"]
@@ -681,7 +688,7 @@ async def grade(state: ChatState, *, models: ChatModelProvider, mode: GraderMode
             kept, verdict, feedback = await _llm_grade(state, kept, models)
     if attempt:
         kept = merge_sources(state.get("kept", []), kept)
-    decision = grade_decision(verdict, bool(kept), attempt)
+    decision = grade_decision(verdict, bool(kept), attempt, limits.grade_retries)
     if decision == "retry":
         return {
             "retry": True,
@@ -749,7 +756,7 @@ async def validate(state: ChatState) -> ChatState:
     }
 
 
-async def suggest(state: ChatState, *, models: ChatModelProvider) -> ChatState:
+async def suggest(state: ChatState, *, models: ChatModelProvider, limits: ChatLimits) -> ChatState:
     """Follow-up questions after an answer or a reply. A failure here never fails the turn."""
     if state.get("refusal"):
         return {}
@@ -763,7 +770,7 @@ async def suggest(state: ChatState, *, models: ChatModelProvider) -> ChatState:
     except Exception:
         logger.warning("follow-up suggestions failed", exc_info=True)
         return {}
-    suggestions = parse_suggestions(text)
+    suggestions = parse_suggestions(text, limits.max_suggestions, limits.max_suggestion_chars)
     if suggestions:
         get_stream_writer()({"type": "suggestions", "items": suggestions})
     return {}
@@ -773,19 +780,22 @@ def build_chat_graph(
     models: ChatModelProvider,
     detectors: DetectorSource,
     retriever: Retriever,
+    limits: ChatLimits,
     grader_mode: GraderMode = "llm",
 ) -> Any:
     graph = StateGraph(ChatState)
     graph.add_node("guard", guard)
-    graph.add_node("intake", partial(intake, models=models, detectors=detectors))
+    graph.add_node("intake", partial(intake, models=models, detectors=detectors, limits=limits))
     graph.add_node("reply", reply)
     graph.add_node("rewrite", partial(rewrite, models=models))
-    graph.add_node("retrieve", partial(retrieve, detectors=detectors, retriever=retriever))
+    graph.add_node(
+        "retrieve", partial(retrieve, detectors=detectors, retriever=retriever, limits=limits)
+    )
     graph.add_node("clarify", clarify)
-    graph.add_node("grade", partial(grade, models=models, mode=grader_mode))
+    graph.add_node("grade", partial(grade, models=models, mode=grader_mode, limits=limits))
     graph.add_node("generate", partial(generate, models=models))
     graph.add_node("validate", validate)
-    graph.add_node("suggest", partial(suggest, models=models))
+    graph.add_node("suggest", partial(suggest, models=models, limits=limits))
     graph.add_edge(START, "guard")
     graph.add_conditional_edges("guard", route_after_guard, ["intake", END])
     graph.add_conditional_edges("intake", route_after_intake, ["reply", "rewrite", "retrieve"])
@@ -816,13 +826,14 @@ class ChatService:
         retriever: Retriever,
         tracer: TurnTracer,
         *,
+        limits: ChatLimits,
         grader_mode: GraderMode = "llm",
-        turn_deadline: float = TURN_DEADLINE_SECONDS,
     ) -> None:
         self._conversations = conversations
-        self._deadline = turn_deadline
+        self._limits = limits
+        self._deadline = limits.turn_deadline_seconds
         self._tracer = tracer
-        self._graph = build_chat_graph(models, detectors, retriever, grader_mode)
+        self._graph = build_chat_graph(models, detectors, retriever, limits, grader_mode)
         # Every trace records the prompt versions and the grader mode of its turn.
         self._run_metadata: dict[str, object] = {
             "prompts": dict(chat_prompts.PROMPT_VERSIONS),
@@ -847,7 +858,9 @@ class ChatService:
             raise ConversationNotFoundError(conversation_id)
         history = [
             Message(t.role, t.text)
-            for t in await self._conversations.turns(conversation_id, limit=HISTORY_TURNS)
+            for t in await self._conversations.turns(
+                conversation_id, limit=self._limits.history_turns
+            )
         ]
         await self._conversations.add_turn(conversation_id, MessageRole.USER, question)
         return self._run(conversation_id, {"question": question, "history": history})

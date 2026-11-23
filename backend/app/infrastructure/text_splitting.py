@@ -25,7 +25,7 @@ class TiktokenCounter:
 
 
 class SentenceTokenSplitter:
-    def __init__(self, chunk_tokens: int = 500, overlap_tokens: int = 50) -> None:
+    def __init__(self, chunk_tokens: int, overlap_tokens: int) -> None:
         # keep_separator="end" keeps ". " on the sentence it ends, so every span starts a sentence.
         self._splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
             encoding_name=ENCODING,

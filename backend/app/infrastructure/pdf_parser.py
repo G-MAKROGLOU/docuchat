@@ -4,9 +4,6 @@ from dataclasses import dataclass
 
 import pymupdf
 
-# Parts whose vertical centers are this close (points) sit on one row.
-_ROW_TOLERANCE = 3.0
-
 
 @dataclass(frozen=True, slots=True)
 class _Part:
@@ -17,11 +14,15 @@ class _Part:
 
 class PyMuPdfParser:
     """Page texts in position order: DailyMed PDFs store list items after the other blocks.
-    The pages are single-column, so a sort by position and a join per row restore the order."""
+    The pages are single-column, so a sort by position and a join per row restore the order.
+    Parts whose vertical centers are row_tolerance points apart or closer sit on one row."""
+
+    def __init__(self, row_tolerance: float) -> None:
+        self._row_tolerance = row_tolerance
 
     def page_texts(self, data: bytes) -> list[str]:
         with pymupdf.open(stream=data, filetype="pdf") as doc:
-            return ["\n".join(_rows(_parts(page))) for page in doc]
+            return ["\n".join(_rows(_parts(page), self._row_tolerance)) for page in doc]
 
 
 def _parts(page: pymupdf.Page) -> list[_Part]:
@@ -42,10 +43,10 @@ def _parts(page: pymupdf.Page) -> list[_Part]:
     return sorted(parts, key=lambda p: (p.y_center, p.x0))
 
 
-def _rows(parts: list[_Part]) -> list[str]:
+def _rows(parts: list[_Part], tolerance: float) -> list[str]:
     rows: list[list[_Part]] = []
     for part in parts:
-        if rows and abs(part.y_center - rows[-1][0].y_center) <= _ROW_TOLERANCE:
+        if rows and abs(part.y_center - rows[-1][0].y_center) <= tolerance:
             rows[-1].append(part)
         else:
             rows.append([part])

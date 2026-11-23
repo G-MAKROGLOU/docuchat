@@ -2,8 +2,9 @@ import uuid
 
 import pytest
 
-from app.application.drug_detection import MAX_CHOICES, DrugDetector, DrugEntry, product_key
+from app.application.drug_detection import DrugDetector, DrugEntry, product_key
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
+from tests.support.tuning import THRESHOLDS
 
 CATALOG = [
     DrugEntry(name="Lipitor", brand="Lipitor", generic="atorvastatin"),
@@ -20,7 +21,7 @@ CATALOG = [
 
 @pytest.fixture
 def detector() -> DrugDetector:
-    return DrugDetector(CATALOG, RapidFuzzSimilarity())
+    return DrugDetector(CATALOG, RapidFuzzSimilarity(), THRESHOLDS)
 
 
 def test_exact_brand_name_any_case(detector: DrugDetector) -> None:
@@ -98,6 +99,7 @@ def test_a_generic_name_inside_a_longer_one_is_another_drug() -> None:
             DrugEntry(name="Pristiq", brand="Pristiq", generic="desvenlafaxine"),
         ],
         RapidFuzzSimilarity(),
+        THRESHOLDS,
     )
 
     result = detector.detect("Compare omeprazole and venlafaxine")
@@ -116,7 +118,7 @@ OZEMPIC = [
 
 
 def test_one_name_with_two_dosage_forms_asks_which_form() -> None:
-    detector = DrugDetector(OZEMPIC, RapidFuzzSimilarity())
+    detector = DrugDetector(OZEMPIC, RapidFuzzSimilarity(), THRESHOLDS)
 
     for question in ("Ozempic dose", "ozempik dose"):
         result = detector.detect(question)
@@ -125,7 +127,7 @@ def test_one_name_with_two_dosage_forms_asks_which_form() -> None:
 
 
 def test_the_named_form_or_a_clicked_candidate_picks_the_product() -> None:
-    detector = DrugDetector(OZEMPIC, RapidFuzzSimilarity())
+    detector = DrugDetector(OZEMPIC, RapidFuzzSimilarity(), THRESHOLDS)
 
     for question in ("Ozempic tablets dose", "OZEMPIC (tablet)", "oral semaglutide dose"):
         result = detector.detect(question)
@@ -149,6 +151,7 @@ def test_labels_of_one_product_give_its_preferred_label() -> None:
             ),
         ],
         RapidFuzzSimilarity(),
+        THRESHOLDS,
     )
 
     for question in ("atorvastatin dose", "Lipitor dose", "Lipitor or atorvastatin?"):
@@ -197,7 +200,7 @@ def test_ambiguous_word_next_to_a_named_drug_means_the_other_one(detector: DrugD
 def test_catalog_names_each_label_once_with_its_generic_name() -> None:
     entries = [*CATALOG, DrugEntry(name="Lipitor", brand="Lipitor", generic="atorvastatin")]
 
-    catalog = DrugDetector(entries, RapidFuzzSimilarity()).catalog()
+    catalog = DrugDetector(entries, RapidFuzzSimilarity(), THRESHOLDS).catalog()
 
     assert catalog[:3] == ["Celebrex (celecoxib)", "Celexa (citalopram)", "Crestor (rosuvastatin)"]
     assert catalog.count("Lipitor (atorvastatin)") == 1
@@ -215,9 +218,9 @@ def test_the_similarity_adapter_ranks_a_whole_list_above_a_floor() -> None:
 def test_a_clarify_question_offers_at_most_five_candidates() -> None:
     # Seven look-alike names, all equally close to the question word.
     names = [f"zentrax{c}" for c in "abcdefg"]
-    detector = DrugDetector([DrugEntry(n, n, n) for n in names], RapidFuzzSimilarity())
+    detector = DrugDetector([DrugEntry(n, n, n) for n in names], RapidFuzzSimilarity(), THRESHOLDS)
 
     result = detector.detect("What is the dose of zentrax?")
 
     assert result.drugs == ()
-    assert len(result.ambiguous) == MAX_CHOICES == 5
+    assert len(result.ambiguous) == THRESHOLDS.max_choices == 5

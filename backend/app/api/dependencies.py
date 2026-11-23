@@ -6,6 +6,7 @@ from fastapi import Request
 from app.application.chat import ChatService
 from app.application.ingestion_control import IngestionControl
 from app.application.readiness import ReadinessCheck
+from app.config import Settings
 from app.domain.corpus_stats import CorpusStatsRepository
 from app.domain.documents import DocumentRepository, PageRenderer
 from app.domain.label_queue import LabelCatalog, LabelQueueRepository
@@ -20,6 +21,10 @@ from app.runtime_config import RuntimeConfig
 
 class DatabaseProbe(Protocol):
     async def check(self) -> DatabaseStatus: ...
+
+
+def get_app_settings(request: Request) -> Settings:
+    return cast(Settings, request.app.state.settings)
 
 
 def get_database_probe(request: Request) -> DatabaseProbe:
@@ -75,7 +80,7 @@ def get_embedding_choices(request: Request) -> Callable[[str], Awaitable[list[st
 
 
 def get_cache(request: Request) -> Cache:
-    return shared_cache(request.app.state.settings.cache_url.get_secret_value())
+    return shared_cache(request.app.state.settings)
 
 
 def get_readiness_checks(request: Request) -> list[ReadinessCheck]:

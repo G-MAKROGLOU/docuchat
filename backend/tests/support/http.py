@@ -51,6 +51,10 @@ def stream_model(handler: Callable[[httpx.Request], httpx.Response]) -> OpenRout
         api_key=SecretStr("key"),
         max_tokens=64,
         reasoning_effort="low",
+        timeout=60.0,
+        max_retries=1,
+        first_backoff_seconds=1.0,
+        max_backoff_seconds=10.0,
         transport=httpx.MockTransport(handler),
     )
 

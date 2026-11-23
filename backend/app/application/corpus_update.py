@@ -28,18 +28,15 @@ def _stored_label(store: DocumentStore, document_id: UUID) -> bytes | None:
         return None
 
 
-# Labels checked at the same time; each still pauses between its own requests.
-CHECK_CONCURRENCY = 4
-
-
 async def check_for_updates(
     source: LabelSource,
     store: DocumentStore,
     repository: DocumentRepository,
     *,
-    delay_seconds: float = 0.3,
-    concurrency: int = CHECK_CONCURRENCY,
+    delay_seconds: float,
+    concurrency: int,
 ) -> UpdateReport:
+    """concurrency labels are checked at the same time; each pauses between its own requests."""
     report = UpdateReport()
     slots = asyncio.Semaphore(concurrency)
 

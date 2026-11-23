@@ -8,7 +8,6 @@ from dataclasses import dataclass
 
 # A check returns (ok, detail) and may raise; the detail must hold no secrets.
 CheckRun = Callable[[], Awaitable[tuple[bool, str | None]]]
-CHECK_TIMEOUT_SECONDS = 2.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,7 +41,7 @@ async def _run(check: ReadinessCheck, limit_seconds: float) -> CheckResult:
 
 
 async def run_checks(
-    checks: Sequence[ReadinessCheck], limit_seconds: float = CHECK_TIMEOUT_SECONDS
+    checks: Sequence[ReadinessCheck], limit_seconds: float
 ) -> tuple[bool, list[CheckResult]]:
     """All checks at once. Ready when every required check passed."""
     results = list(await asyncio.gather(*(_run(c, limit_seconds) for c in checks)))

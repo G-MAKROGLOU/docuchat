@@ -23,7 +23,12 @@ from app.config import get_settings
 from app.domain.documents import DocumentStatus
 from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
-from app.wiring import default_runtime_settings, drug_detector, retrieval_service
+from app.wiring import (
+    default_runtime_settings,
+    detector_thresholds,
+    drug_detector,
+    retrieval_service,
+)
 from evals.detector_calibration import typo_variants
 
 # Topic: the section that answers it, and one question per name.
@@ -180,7 +185,7 @@ async def _run() -> dict[str, Any]:
             for d in documents
         ]
         questions = build_questions(labels)
-        detector = drug_detector(documents)
+        detector = drug_detector(documents, detector_thresholds(settings))
         service = retrieval_service(settings, pool, default_runtime_settings(settings))
         rows = []
         for q in questions:

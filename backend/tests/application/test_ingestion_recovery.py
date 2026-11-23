@@ -20,6 +20,7 @@ from tests.support.fakes_ingestion import (
     ingestion_service,
     stored_label_document,
 )
+from tests.support.tuning import SETTINGS
 
 
 @pytest.fixture
@@ -75,7 +76,10 @@ def test_a_free_document_is_ingested_under_its_lock(
 
 
 def test_a_failure_reason_keeps_our_own_message_but_not_driver_text() -> None:
-    assert public_reason(ValueError("The label gave no chunks")) == "The label gave no chunks"
+    assert (
+        public_reason(ValueError("The label gave no chunks"), SETTINGS.failure_reason_max_chars)
+        == "The label gave no chunks"
+    )
     leak = ConnectionError("connect to http://storage:8333/bucket failed")
-    assert public_reason(leak) == "ConnectionError"
-    assert len(public_reason(ValueError("x" * 900))) == 500
+    assert public_reason(leak, SETTINGS.failure_reason_max_chars) == "ConnectionError"
+    assert len(public_reason(ValueError("x" * 900), SETTINGS.failure_reason_max_chars)) == 500

@@ -2,12 +2,12 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 
 from app.application.ingestion_control import (
-    HEARTBEAT_LIMIT,
     IngestionControl,
     IngestionStatus,
     IngestWorker,
 )
 from app.domain.ingestion_state import IngestionPhase, IngestionState
+from tests.support.tuning import HEARTBEAT, TICK
 
 NOW = datetime(2026, 11, 22, 12, 0, tzinfo=UTC)
 LATER = NOW + timedelta(days=1)
@@ -39,7 +39,7 @@ class FakeState:
 
 
 def control(state: FakeState) -> IngestionControl:
-    return IngestionControl(state, clock=lambda: NOW)
+    return IngestionControl(state, HEARTBEAT, clock=lambda: NOW)
 
 
 def test_an_idle_worker_accepts_a_request_and_reports_it_as_running() -> None:
@@ -73,7 +73,7 @@ def test_a_second_request_is_refused_while_the_first_waits() -> None:
 
 
 def test_a_silent_worker_counts_as_idle_with_no_schedule() -> None:
-    state = FakeState("ingesting", heartbeat=NOW - HEARTBEAT_LIMIT - timedelta(seconds=1))
+    state = FakeState("ingesting", heartbeat=NOW - HEARTBEAT - timedelta(seconds=1))
 
     status = asyncio.run(control(state).status())
 
@@ -106,7 +106,7 @@ def test_a_tick_refreshes_the_settings_takes_a_request_and_reports_the_new_phase
     state, runner, refresh = FakeState(), FakeRunner(), Refresh()
     asyncio.run(state.request(force=True))
 
-    asyncio.run(IngestWorker(runner, state, refresh).tick())
+    asyncio.run(IngestWorker(runner, state, refresh, TICK).tick())
 
     assert refresh.calls == 1
     assert runner.started == [True]
@@ -118,7 +118,7 @@ def test_a_tick_leaves_a_request_waiting_while_a_pass_runs() -> None:
     state, runner = FakeState(), FakeRunner(running=True)
     asyncio.run(state.request(force=False))
 
-    asyncio.run(IngestWorker(runner, state, Refresh()).tick())
+    asyncio.run(IngestWorker(runner, state, Refresh(), TICK).tick())
 
     assert runner.started == []
     assert state.force is False
@@ -128,7 +128,7 @@ def test_a_tick_leaves_a_request_waiting_while_a_pass_runs() -> None:
 def test_a_tick_without_a_request_only_reports() -> None:
     state, runner = FakeState(), FakeRunner()
 
-    asyncio.run(IngestWorker(runner, state, Refresh()).tick())
+    asyncio.run(IngestWorker(runner, state, Refresh(), TICK).tick())
 
     assert runner.started == []
     assert state.reports == [("idle", LATER)]

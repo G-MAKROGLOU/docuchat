@@ -79,7 +79,7 @@ Configuration: one `.env` per project.
 
 | File | Read by | Holds |
 |---|---|---|
-| `backend/.env` | preflight, backend, ingest-worker, corpus-init | OpenRouter key and models, embedding, `STORAGE_BACKEND`, `S3_BUCKET`, `S3_REGION`, Langfuse, `WEB_CONCURRENCY` |
+| `backend/.env` | preflight, backend, ingest-worker, corpus-init | OpenRouter key and models, embedding, `STORAGE_BACKEND`, `S3_BUCKET`, `S3_REGION`, the 76 tuning values (pool, timeouts, limits, thresholds), Langfuse, `WEB_CONCURRENCY` |
 | `infra/.env` | Compose interpolation | Postgres credentials, S3 keys, Grafana admin password, host ports |
 | `frontend/.env` | frontend (optional) | Health page links, polling, `BACKEND_URL` and `CONTRACT_SOURCE` for a run outside Docker |
 

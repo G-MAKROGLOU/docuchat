@@ -18,7 +18,6 @@ from app.infrastructure.stream_chat import OpenRouterStreamChat
 
 logger = logging.getLogger(__name__)
 
-EMBEDDING_BATCH = 100
 # Embedding models that were checked to return 1536 values when asked for dimensions=1536, the
 # size of the vector column. Others return another size or reject the request.
 EMBEDDING_CHOICES = (
@@ -31,17 +30,9 @@ EMBEDDING_CHOICES = (
     "qwen/qwen3-embedding-4b",
     "qwen/qwen3-embedding-8b",
 )
-_LIST_TTL_SECONDS = 600
 # Model clients of this process, shared across settings changes (see ModelFactory).
 _chat_clients: dict[tuple[object, ...], "OpenRouterChatModel"] = {}
 _embedders: dict[tuple[object, ...], CachedEmbedder] = {}
-# Output limits per role, in tokens. The low reasoning effort counts toward them too.
-MAX_OUTPUT_TOKENS = {
-    ModelRole.CHAT: 1024,
-    ModelRole.REWRITE: 1024,
-    ModelRole.GRADE: 2048,
-    ModelRole.GENERATE: 8192,
-}
 
 
 class OpenRouterEmbedder:
@@ -124,10 +115,13 @@ class ModelFactory:
         }
         # The same question and conversation give the same search query, so its vector and
         # the search are reused. The intake (chat role) also writes the query.
-        cache = shared_cache(s.cache_url.get_secret_value())
+        cache = shared_cache(s)
         for role in (ModelRole.CHAT, ModelRole.REWRITE):
             models[role] = CachedChatModel(
-                models[role], cache, f"{role.value}:{names[role]}:{self._reasoning_effort}"
+                models[role],
+                cache,
+                f"{role.value}:{names[role]}:{self._reasoning_effort}",
+                s.cache_chat_ttl_seconds,
             )
         return RoleModels(models)
 
@@ -135,6 +129,13 @@ class ModelFactory:
         """One client pair per role and model in this process: a settings change builds clients
         only for the roles it changes, so the HTTP connections stay in use."""
         s = self._settings
+        # Output limit in tokens; the reasoning effort counts toward it too.
+        max_tokens = {
+            ModelRole.CHAT: s.max_output_tokens_chat,
+            ModelRole.REWRITE: s.max_output_tokens_rewrite,
+            ModelRole.GRADE: s.max_output_tokens_grade,
+            ModelRole.GENERATE: s.max_output_tokens_generate,
+        }[role]
         key = (role, name, self._reasoning_effort, s.openrouter_base_url)
         if key not in _chat_clients:
             _chat_clients[key] = OpenRouterChatModel(
@@ -145,10 +146,10 @@ class ModelFactory:
                     base_url=s.openrouter_base_url,
                     api_key=SecretStr(s.openrouter_api_key.get_secret_value()),
                     temperature=0,
-                    max_tokens=MAX_OUTPUT_TOKENS[role],
-                    # One retry per call, then the turn fails with an error event.
-                    max_retries=1,
-                    timeout=60,
+                    max_tokens=max_tokens,
+                    # Then the turn fails with an error event.
+                    max_retries=s.chat_model_max_retries,
+                    timeout=s.model_timeout_seconds,
                     # Claude 5.5 thinks at medium effort by default, which delays the first
                     # token. Opus 5.5 cannot turn thinking off, so the default is the lowest.
                     extra_body={"reasoning": {"effort": self._reasoning_effort}},
@@ -159,8 +160,12 @@ class ModelFactory:
                     model=name,
                     base_url=s.openrouter_base_url,
                     api_key=SecretStr(s.openrouter_api_key.get_secret_value()),
-                    max_tokens=MAX_OUTPUT_TOKENS[role],
+                    max_tokens=max_tokens,
                     reasoning_effort=self._reasoning_effort,
+                    timeout=s.model_timeout_seconds,
+                    max_retries=s.chat_model_max_retries,
+                    first_backoff_seconds=s.stream_first_backoff_seconds,
+                    max_backoff_seconds=s.stream_max_backoff_seconds,
                     callbacks=[LLM_METRICS],
                 ),
             )
@@ -178,15 +183,16 @@ class ModelFactory:
                 openai_api_key=SecretStr(s.openrouter_api_key.get_secret_value()),
                 # OpenRouter takes text input; skip the client-side token pre-split.
                 check_embedding_ctx_length=False,
-                chunk_size=EMBEDDING_BATCH,
-                max_retries=3,
-                request_timeout=60,
+                chunk_size=s.embedding_batch_size,
+                max_retries=s.embedding_max_retries,
+                request_timeout=s.model_timeout_seconds,
             )
             _embedders[key] = CachedEmbedder(
                 OpenRouterEmbedder(client, s.embedding_dimensions),
-                shared_cache(cache_url),
+                shared_cache(s),
                 s.embedding_model,
                 s.embedding_dimensions,
+                s.cache_embedding_ttl_seconds,
             )
         return _embedders[key]
 
@@ -203,13 +209,13 @@ class ModelFactory:
 
     async def _listed(self, path: str) -> set[str] | None:
         s = self._settings
-        cache = shared_cache(s.cache_url.get_secret_value())
+        cache = shared_cache(s)
         key = f"model-list:{s.openrouter_base_url}{path}"
         if (cached := await cache.get(key)) is not None:
             return set(json.loads(cached))
         ids = await asyncio.to_thread(self._fetch_ids, path)
         if ids is not None:
-            await cache.set(key, json.dumps(sorted(ids)).encode(), _LIST_TTL_SECONDS)
+            await cache.set(key, json.dumps(sorted(ids)).encode(), s.model_list_ttl_seconds)
         return ids
 
     def _fetch_ids(self, path: str) -> set[str] | None:
@@ -219,28 +225,14 @@ class ModelFactory:
             headers={"Authorization": f"Bearer {s.openrouter_api_key.get_secret_value()}"},
         )
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310  # nosec B310
+            with urllib.request.urlopen(  # noqa: S310  # nosec B310
+                request, timeout=s.model_list_timeout_seconds
+            ) as response:
                 ids = {model["id"] for model in json.load(response)["data"]}
         except Exception as exc:  # an unchecked save is better than no save
             logger.warning("model list lookup failed", extra={"error": repr(exc)})
             return None
         return ids
-
-    def embedding_price_per_token(self) -> float | None:
-        """USD per input token from OpenRouter, or None when the lookup fails."""
-        s = self._settings
-        request = urllib.request.Request(  # noqa: S310  # configured https base URL
-            f"{s.openrouter_base_url}/embeddings/models",
-            headers={"Authorization": f"Bearer {s.openrouter_api_key.get_secret_value()}"},
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310  # nosec B310
-                models = json.load(response)["data"]
-            model = next(m for m in models if m["id"] == s.embedding_model)
-            return float(model["pricing"]["prompt"])
-        except Exception as exc:  # the price is for the report only
-            logger.warning("embedding price lookup failed", extra={"error": repr(exc)})
-            return None
 
 
 async def close_model_clients() -> None:

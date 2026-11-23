@@ -60,6 +60,11 @@ if (-not (Get-EnvValue 'backend/.env' 'OPENROUTER_API_KEY')) {
 }
 Test-Empty 'backend/.env' @('OPENROUTER_API_KEY', 'OPENROUTER_BASE_URL', 'LLM_CHAT_MODEL', 'LLM_REWRITE_MODEL',
     'LLM_GRADE_MODEL', 'LLM_GENERATE_MODEL', 'EMBEDDING_MODEL', 'EMBEDDING_DIMENSIONS', 'STORAGE_BACKEND', 'S3_BUCKET', 'S3_REGION')
+# The tuning values: every name in the Tuning section of backend/.env.example.
+$example = Get-Content 'backend/.env.example' -Raw
+$tuningBlock = ($example -split '# --- Tuning', 2)[1] -split '# --- Optional', 2 | Select-Object -First 1
+$tuning = @([regex]::Matches($tuningBlock, '(?m)^([A-Z0-9_]+)=') | ForEach-Object { $_.Groups[1].Value })
+Test-Empty 'backend/.env' $tuning
 Test-Empty 'infra/.env' @('POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB', 'S3_ACCESS_KEY', 'S3_SECRET_KEY',
     'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT', 'STORAGE_PORT')
 Write-Host 'OK  backend/.env and infra/.env have all required values.'

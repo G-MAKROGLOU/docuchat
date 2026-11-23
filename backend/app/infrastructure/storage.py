@@ -17,7 +17,6 @@ from app.domain.storage import DocumentStore, ObjectNotFoundError
 if TYPE_CHECKING:
     from types_boto3_s3 import S3Client
 
-CHUNK_SIZE = 64 * 1024
 _NOT_FOUND = {"404", "NoSuchKey", "NotFound", "NoSuchBucket"}
 
 
@@ -26,7 +25,8 @@ def _is_not_found(exc: ClientError) -> bool:
 
 
 class S3DocumentStore:
-    def __init__(self, client: "S3Client", bucket: str, region: str) -> None:
+    def __init__(self, client: "S3Client", bucket: str, region: str, chunk_bytes: int) -> None:
+        self._chunk_bytes = chunk_bytes
         self._client = client
         self._bucket = bucket
         self._region = region
@@ -56,7 +56,7 @@ class S3DocumentStore:
                 raise ObjectNotFoundError(key) from exc
             raise
         try:
-            yield from body.iter_chunks(CHUNK_SIZE)
+            yield from body.iter_chunks(self._chunk_bytes)
         finally:
             body.close()
 
@@ -85,7 +85,8 @@ class S3DocumentStore:
 
 
 class FileSystemDocumentStore:
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, chunk_bytes: int) -> None:
+        self._chunk_bytes = chunk_bytes
         self._root = root.resolve()
 
     def _path(self, key: str) -> Path:
@@ -108,7 +109,7 @@ class FileSystemDocumentStore:
         if not path.is_file():
             raise ObjectNotFoundError(key)
         with path.open("rb") as handle:
-            while chunk := handle.read(CHUNK_SIZE):
+            while chunk := handle.read(self._chunk_bytes):
                 yield chunk
 
     def get_range(self, key: str, start: int, end: int) -> bytes:
@@ -131,7 +132,9 @@ def build_document_store(settings: Settings) -> DocumentStore:
     if settings.storage_backend == "filesystem":
         if not settings.storage_fs_root:
             raise RuntimeError("STORAGE_FS_ROOT is not set")
-        return FileSystemDocumentStore(Path(settings.storage_fs_root))
+        return FileSystemDocumentStore(
+            Path(settings.storage_fs_root), settings.storage_stream_chunk_bytes
+        )
     if not (settings.s3_bucket and settings.s3_region):
         raise RuntimeError("S3_BUCKET and S3_REGION are not set")
     client = boto3.client(
@@ -147,7 +150,9 @@ def build_document_store(settings: Settings) -> DocumentStore:
         # Emulators such as SeaweedFS need path-style addressing.
         config=Config(s3={"addressing_style": "path" if settings.s3_endpoint_url else "auto"}),
     )
-    store = S3DocumentStore(client, settings.s3_bucket, settings.s3_region)
+    store = S3DocumentStore(
+        client, settings.s3_bucket, settings.s3_region, settings.storage_stream_chunk_bytes
+    )
     store.ensure_bucket()
     return store
 

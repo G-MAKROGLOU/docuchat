@@ -17,6 +17,7 @@ from app.domain.label_queue import CatalogLabel, QueueEntry, QueueListing, Queue
 from app.domain.storage import label_key
 from app.infrastructure.storage import FileSystemDocumentStore
 from tests.support.factories import make_document
+from tests.support.tuning import CHUNK_BYTES, INGEST
 
 # ─────────────────── documents and sources ───────────────────
 
@@ -264,7 +265,7 @@ def stored_label_document(
     document = make_document(
         "Lipitor", "atorvastatin", manufacturer="M", source_id="s1", size_bytes=10
     )
-    store = FileSystemDocumentStore(tmp_path)
+    store = FileSystemDocumentStore(tmp_path, CHUNK_BYTES)
     store.put(document.storage_key, b"%PDF-1.7 test", "application/pdf")
     store.put(label_key(document.id), b"<document/>", "application/xml")
     return SingleDocumentRepository(document), store
@@ -291,6 +292,7 @@ def ingestion_service(
         embedder=embedder,
         embedding_model=model,
         embedding_prefix=True,
+        limits=INGEST,
     )
 
 

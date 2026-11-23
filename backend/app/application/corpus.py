@@ -57,7 +57,7 @@ async def download_corpus(
     store: DocumentStore,
     repository: DocumentRepository,
     *,
-    delay_seconds: float = 0.3,
+    delay_seconds: float,
 ) -> DownloadReport:
     return await _Downloader(source, store, repository, delay_seconds).run(entries)
 

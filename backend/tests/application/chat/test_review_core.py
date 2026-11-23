@@ -2,6 +2,7 @@
 
 import asyncio
 from collections.abc import AsyncIterator, Callable, Sequence
+from dataclasses import replace
 from typing import Any
 
 import httpx
@@ -22,6 +23,7 @@ from tests.support.fakes_ports import (
     FakeTracer,
 )
 from tests.support.http import GOOD, sse_response, stream_model
+from tests.support.tuning import CHAT, SETTINGS
 
 
 class SlowModel(FakeModel):
@@ -40,7 +42,7 @@ def test_a_turn_past_its_deadline_ends_with_an_error_event() -> None:
         FakeDetector(LIPITOR).source,
         FakeRetriever(make_chunk("10 mg")),
         FakeTracer(),
-        turn_deadline=0.2,
+        limits=replace(CHAT, turn_deadline_seconds=0.2),
     )
 
     async def scenario() -> list[dict[str, Any]]:
@@ -100,7 +102,13 @@ def test_a_failed_refresh_keeps_the_old_settings_and_tries_again() -> None:
         builds.append(new)
         return lambda: None
 
-    config = RuntimeConfig(repository, RUNTIME_DEFAULTS, rebuild, clock=clock)
+    config = RuntimeConfig(
+        repository,
+        RUNTIME_DEFAULTS,
+        rebuild,
+        clock=clock,
+        refresh_seconds=SETTINGS.runtime_refresh_seconds,
+    )
     asyncio.run(config.load())
     repository.saved = {"top_k": 30}
     clock.now = 5.0

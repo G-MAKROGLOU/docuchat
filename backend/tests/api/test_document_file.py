@@ -11,13 +11,14 @@ from app.infrastructure.storage import FileSystemDocumentStore
 from app.main import app
 from tests.support.factories import make_document
 from tests.support.fakes_ingestion import FakeDocumentRepository
+from tests.support.tuning import CHUNK_BYTES
 
 PDF = b"%PDF-1.4\n" + bytes(range(256)) * 400
 
 
 @pytest.fixture
 def document(tmp_path: Path) -> Iterator[Document]:
-    store = FileSystemDocumentStore(tmp_path)
+    store = FileSystemDocumentStore(tmp_path, CHUNK_BYTES)
     doc = make_document(size_bytes=len(PDF))
     store.put(doc.storage_key, PDF, "application/pdf")
     app.dependency_overrides[get_document_repository] = lambda: FakeDocumentRepository(doc)
@@ -69,7 +70,7 @@ def test_unknown_document_is_404(document: Document) -> None:
 
 
 def test_missing_stored_object_is_404(document: Document, tmp_path: Path) -> None:
-    FileSystemDocumentStore(tmp_path).delete(document.storage_key)
+    FileSystemDocumentStore(tmp_path, CHUNK_BYTES).delete(document.storage_key)
     client = TestClient(app)
 
     assert client.get(url(document)).status_code == 404
@@ -78,7 +79,7 @@ def test_missing_stored_object_is_404(document: Document, tmp_path: Path) -> Non
 
 class CountingStore(FileSystemDocumentStore):
     def __init__(self, root: Path) -> None:
-        super().__init__(root)
+        super().__init__(root, CHUNK_BYTES)
         self.exists_calls = 0
 
     def exists(self, key: str) -> bool:

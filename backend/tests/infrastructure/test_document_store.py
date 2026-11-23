@@ -11,6 +11,7 @@ from botocore.config import Config
 
 from app.domain.storage import DocumentStore, ObjectNotFoundError, document_key
 from app.infrastructure.storage import FileSystemDocumentStore, S3DocumentStore
+from tests.support.tuning import CHUNK_BYTES
 
 DATA = bytes(range(256)) * 1024  # 256 KiB, larger than one stream chunk
 
@@ -24,7 +25,7 @@ def _s3_store() -> S3DocumentStore:
         aws_secret_access_key=os.environ["S3_TEST_SECRET_KEY"],
         config=Config(s3={"addressing_style": "path"}),
     )
-    store = S3DocumentStore(client, f"test-{uuid.uuid4().hex[:12]}", "us-east-1")
+    store = S3DocumentStore(client, f"test-{uuid.uuid4().hex[:12]}", "us-east-1", CHUNK_BYTES)
     store.ensure_bucket()
     return store
 
@@ -32,7 +33,7 @@ def _s3_store() -> S3DocumentStore:
 @pytest.fixture(params=["filesystem", pytest.param("s3", marks=pytest.mark.s3)])
 def store(request: pytest.FixtureRequest, tmp_path: Path) -> Iterator[DocumentStore]:
     if request.param == "filesystem":
-        yield FileSystemDocumentStore(tmp_path)
+        yield FileSystemDocumentStore(tmp_path, CHUNK_BYTES)
         return
     if not os.environ.get("S3_TEST_ENDPOINT_URL"):
         pytest.skip("S3_TEST_ENDPOINT_URL is not set")
@@ -92,4 +93,6 @@ def test_document_key_format() -> None:
 
 def test_filesystem_rejects_keys_outside_root(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="escapes"):
-        FileSystemDocumentStore(tmp_path).put("../outside.pdf", b"x", "application/pdf")
+        FileSystemDocumentStore(tmp_path, CHUNK_BYTES).put(
+            "../outside.pdf", b"x", "application/pdf"
+        )

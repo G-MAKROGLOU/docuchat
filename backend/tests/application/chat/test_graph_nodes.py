@@ -24,6 +24,7 @@ from app.infrastructure.name_similarity import RapidFuzzSimilarity
 from tests.support.factories import label_of, make_chunk
 from tests.support.fakes_models import BrokenModel, FakeModel, FakeModels
 from tests.support.fakes_ports import FakeDetector, FakeRetriever
+from tests.support.tuning import CHAT, THRESHOLDS
 
 Events = list[dict[str, Any]]
 
@@ -92,6 +93,7 @@ def test_intake_returns_the_action_and_the_reply_of_the_chat_model() -> None:
             {"question": "Hi"},
             models=FakeModels(chat=model),
             detectors=detectors(DrugDetection()),
+            limits=CHAT,
         )
     )
 
@@ -108,6 +110,7 @@ def test_intake_returns_the_medicines_the_question_names() -> None:
             {"question": "Tylenol dose?"},
             models=FakeModels(chat=model),
             detectors=detectors(DrugDetection()),
+            limits=CHAT,
         )
     )
 
@@ -122,6 +125,7 @@ def test_intake_returns_the_search_query_of_the_chat_model() -> None:
             {"question": "And its dose?"},
             models=FakeModels(chat=model),
             detectors=detectors(DrugDetection()),
+            limits=CHAT,
         )
     )
 
@@ -136,6 +140,7 @@ def test_intake_returns_no_query_for_a_reply() -> None:
             {"question": "Hi"},
             models=FakeModels(chat=model),
             detectors=detectors(DrugDetection()),
+            limits=CHAT,
         )
     )
 
@@ -186,6 +191,7 @@ def test_retrieve_returns_numbered_sources_and_the_drugs(events: Events) -> None
             {"query": "Lipitor dose"},
             detectors=detectors(DrugDetection(drugs=("Lipitor",), labels=(label_of("Lipitor"),))),
             retriever=retriever,
+            limits=CHAT,
         )
     )
 
@@ -202,6 +208,7 @@ def test_retrieve_asks_back_on_an_ambiguous_name_and_refuses_an_unknown_drug(
             {"query": "celexa"},
             detectors=detectors(DrugDetection(ambiguous=("Celebrex", "Celexa"))),
             retriever=FakeRetriever(),
+            limits=CHAT,
         )
     )
     unknown = run(
@@ -209,6 +216,7 @@ def test_retrieve_asks_back_on_an_ambiguous_name_and_refuses_an_unknown_drug(
             {"query": "zyrtec"},
             detectors=detectors(DrugDetection(not_in_corpus=("Zyrtec",))),
             retriever=FakeRetriever(),
+            limits=CHAT,
         )
     )
 
@@ -226,6 +234,7 @@ def library() -> Callable[[], Awaitable[DrugDetector]]:
             )
         ],
         RapidFuzzSimilarity(),
+        THRESHOLDS,
     )
 
     async def source() -> DrugDetector:
@@ -245,6 +254,7 @@ def test_retrieve_refuses_a_named_medicine_that_the_library_does_not_have(
             {"query": "tylenol dose", "named": ("Tylenol",)},
             detectors=library(),
             retriever=retriever,
+            limits=CHAT,
         )
     )
 
@@ -259,6 +269,7 @@ def test_retrieve_searches_when_a_named_medicine_is_in_the_library(events: Event
             {"query": "what about its dose", "named": ("lipitr",)},
             detectors=library(),
             retriever=retriever,
+            limits=CHAT,
         )
     )
     run(
@@ -266,6 +277,7 @@ def test_retrieve_searches_when_a_named_medicine_is_in_the_library(events: Event
             {"query": "compare tylenol and lipitor", "named": ("Tylenol", "Lipitor")},
             detectors=library(),
             retriever=retriever,
+            limits=CHAT,
         )
     )
 
@@ -278,6 +290,7 @@ def test_retrieve_refuses_when_nothing_is_found_and_nothing_was_kept(events: Eve
             {"query": "Lipitor dose"},
             detectors=detectors(DrugDetection(drugs=("Lipitor",), labels=(label_of("Lipitor"),))),
             retriever=FakeRetriever(),
+            limits=CHAT,
         )
     )
 
@@ -295,7 +308,7 @@ def test_grade_keeps_relevant_excerpts_and_emits_them(events: Events) -> None:
     grader = FakeModel(['{"relevant": ["S1"], "verdict": "sufficient"}'])
     state: ChatState = {"query": "dose", "sources": [source()], "labels": (label_of("Lipitor"),)}
 
-    graded = run(chat.grade(state, models=FakeModels(grade=grader), mode="llm"))
+    graded = run(chat.grade(state, models=FakeModels(grade=grader), mode="llm", limits=CHAT))
 
     assert graded["retry"] is False
     assert [s.id for s in graded["sources"]] == ["S1"]
@@ -310,8 +323,10 @@ def test_grade_asks_for_a_retry_first_and_refuses_on_the_last_attempt(events: Ev
         "labels": (label_of("Lipitor"),),
     }
 
-    first = run(chat.grade(other_drug, models=FakeModels(), mode="rule"))
-    last = run(chat.grade({**other_drug, "attempt": 1}, models=FakeModels(), mode="rule"))
+    first = run(chat.grade(other_drug, models=FakeModels(), mode="rule", limits=CHAT))
+    last = run(
+        chat.grade({**other_drug, "attempt": 1}, models=FakeModels(), mode="rule", limits=CHAT)
+    )
 
     assert first["retry"] is True
     assert first["attempt"] == 1
@@ -326,7 +341,7 @@ def test_grade_off_keeps_every_excerpt_without_a_model_call(events: Events) -> N
         "labels": (label_of("Lipitor"),),
     }
 
-    graded = run(chat.grade(state, models=FakeModels(), mode="off"))
+    graded = run(chat.grade(state, models=FakeModels(), mode="off", limits=CHAT))
 
     assert [s.chunk.drug_name for s in graded["sources"]] == ["Valium"]
 
@@ -366,11 +381,15 @@ def test_suggest_emits_follow_ups_and_skips_a_refused_turn(events: Events) -> No
 
     after_answer = run(
         chat.suggest(
-            {"question": "dose?", "answer": "Take 10 mg [S1]."}, models=FakeModels(chat=model)
+            {"question": "dose?", "answer": "Take 10 mg [S1]."},
+            models=FakeModels(chat=model),
+            limits=CHAT,
         )
     )
     after_refusal = run(
-        chat.suggest({"question": "dose?", "refusal": "out_of_scope"}, models=FakeModels())
+        chat.suggest(
+            {"question": "dose?", "refusal": "out_of_scope"}, models=FakeModels(), limits=CHAT
+        )
     )
 
     assert after_answer == {} and after_refusal == {}
@@ -380,7 +399,11 @@ def test_suggest_emits_follow_ups_and_skips_a_refused_turn(events: Events) -> No
 
 def test_a_failed_suggestion_call_does_not_fail_the_turn(events: Events) -> None:
     assert (
-        run(chat.suggest({"question": "q", "answer": "a"}, models=FakeModels(chat=BrokenModel())))
+        run(
+            chat.suggest(
+                {"question": "q", "answer": "a"}, models=FakeModels(chat=BrokenModel()), limits=CHAT
+            )
+        )
         == {}
     )
     assert events == []

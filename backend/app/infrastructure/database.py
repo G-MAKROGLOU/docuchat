@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import math
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from typing import Any, Protocol
@@ -19,22 +20,17 @@ class Connections(Protocol):
     def connection(self) -> AbstractAsyncContextManager[psycopg.AsyncConnection[Any]]: ...
 
 
-# A slow query or a long wait for a connection fails the request instead of holding it.
-STATEMENT_TIMEOUT_MS = 30_000
-POOL_TIMEOUT_SECONDS = 10.0
-POOL_MAX_WAITING = 256
-
-
 def build_pool(settings: Settings) -> AsyncConnectionPool[psycopg.AsyncConnection[TupleRow]]:
     # Closed: the owner opens it in its own event loop. One retrieval uses 2 connections at once.
+    # A slow query or a long wait for a connection fails the request instead of holding it.
     return AsyncConnectionPool(
         settings.database_url.get_secret_value(),
-        min_size=2,
-        max_size=10,
+        min_size=settings.db_pool_min_size,
+        max_size=settings.db_pool_max_size,
         open=False,
-        kwargs={"options": f"-c statement_timeout={STATEMENT_TIMEOUT_MS}"},
-        timeout=POOL_TIMEOUT_SECONDS,
-        max_waiting=POOL_MAX_WAITING,
+        kwargs={"options": f"-c statement_timeout={settings.db_statement_timeout_ms}"},
+        timeout=settings.db_pool_timeout_seconds,
+        max_waiting=settings.db_pool_max_waiting,
         # One empty query per checkout: a connection that the server closed is replaced.
         check=AsyncConnectionPool.check_connection,
     )
@@ -47,7 +43,7 @@ class DatabaseStatus:
 
 
 class PostgresProbe:
-    def __init__(self, database_url: str, timeout_seconds: int = 3) -> None:
+    def __init__(self, database_url: str, timeout_seconds: float) -> None:
         self._database_url = database_url
         self._timeout_seconds = timeout_seconds
 
@@ -56,7 +52,7 @@ class PostgresProbe:
             # One limit for connect and query, so a stalled server cannot hang /health.
             async with asyncio.timeout(self._timeout_seconds):
                 async with await psycopg.AsyncConnection.connect(
-                    self._database_url, connect_timeout=self._timeout_seconds
+                    self._database_url, connect_timeout=math.ceil(self._timeout_seconds)
                 ) as conn:
                     cursor = await conn.execute("SELECT extname FROM pg_extension ORDER BY extname")
                     rows = await cursor.fetchall()

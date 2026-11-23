@@ -6,10 +6,14 @@ from uuid import UUID
 
 from app.domain.entities import Chunk
 
-RRF_K = 60
-MAX_CHUNKS = 8
-TOKEN_BUDGET = 3500
-MIN_PER_DRUG = 3
+
+@dataclass(frozen=True, slots=True)
+class SearchLimits:
+    rrf_k: int
+    max_chunks: int
+    token_budget: int
+    min_per_drug: int  # comparison: chunks kept per label before the others
+    leg_timeout_seconds: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,7 +30,11 @@ def _in_hinted_section(section: str, hints: Sequence[str]) -> bool:
 
 
 def fuse(
-    *, vector: Sequence[Chunk], bm25: Sequence[Chunk], section_hints: Sequence[str] = ()
+    limits: SearchLimits,
+    *,
+    vector: Sequence[Chunk],
+    bm25: Sequence[Chunk],
+    section_hints: Sequence[str] = (),
 ) -> list[FusedChunk]:
     chunks: dict[object, Chunk] = {}
     ranks: dict[object, dict[str, int]] = {}
@@ -35,7 +43,7 @@ def fuse(
             chunks.setdefault(chunk.id, chunk)
             ranks.setdefault(chunk.id, {})[source] = rank
 
-    base = {key: sum(1 / (RRF_K + rank) for rank in r.values()) for key, r in ranks.items()}
+    base = {key: sum(1 / (limits.rrf_k + rank) for rank in r.values()) for key, r in ranks.items()}
     # The hinted sections act as a third ranked list: hinted chunks, in fused order, add
     # 1 / (k + rank) like a search hit at that rank. A strong search hit can still win.
     hinted = sorted(
@@ -55,7 +63,7 @@ def fuse(
         fused.append(
             FusedChunk(
                 chunk=chunk,
-                score=base[key] + (1 / (RRF_K + hint) if hint else 0.0),
+                score=base[key] + (1 / (limits.rrf_k + hint) if hint else 0.0),
                 vector_rank=r.get("vector"),
                 bm25_rank=r.get("bm25"),
                 boosted=hint is not None,
@@ -65,14 +73,18 @@ def fuse(
     return sorted(fused, key=lambda f: -f.score)
 
 
-def select(fused: Sequence[FusedChunk], *, labels: Sequence[UUID]) -> list[FusedChunk]:
+def select(
+    limits: SearchLimits, fused: Sequence[FusedChunk], *, labels: Sequence[UUID]
+) -> list[FusedChunk]:
     """Top chunks within the count and token limits; with 2+ labels, a minimum per label."""
     chosen: list[FusedChunk] = []
     comparison = len(labels) >= 2  # noqa: PLR2004
     if comparison:
         # Round robin over the labels, so the token budget cannot use up one label's share first.
-        per_drug = [[f for f in fused if f.chunk.document_id == d][:MIN_PER_DRUG] for d in labels]
-        for rank in range(MIN_PER_DRUG):
+        per_drug = [
+            [f for f in fused if f.chunk.document_id == d][: limits.min_per_drug] for d in labels
+        ]
+        for rank in range(limits.min_per_drug):
             chosen.extend(items[rank] for items in per_drug if rank < len(items))
     for item in fused:
         if item not in chosen:
@@ -82,12 +94,12 @@ def select(fused: Sequence[FusedChunk], *, labels: Sequence[UUID]) -> list[Fused
     tokens = 0
     covered: set[UUID] = set()
     for item in chosen:
-        if len(selected) == MAX_CHUNKS:
+        if len(selected) == limits.max_chunks:
             break
         drug = item.chunk.document_id
         # Like the first chunk overall, the first chunk of each compared label may pass the budget.
         first_of_drug = comparison and drug in labels and drug not in covered
-        if selected and not first_of_drug and tokens + item.chunk.token_count > TOKEN_BUDGET:
+        if selected and not first_of_drug and tokens + item.chunk.token_count > limits.token_budget:
             continue  # a smaller chunk later can still fit
         selected.append(item)
         tokens += item.chunk.token_count

@@ -14,18 +14,12 @@ from app.domain.documents import Document, DocumentRepository
 
 logger = logging.getLogger(__name__)
 
-# DailyMed publishes label updates daily.
-SCHEDULE_INTERVAL = timedelta(days=1)
-# Documents ingested at the same time. Each holds 2 pooled connections at most (lock, writes),
-# so the pool (max_size=10) must stay above 2 times this value.
-INGEST_CONCURRENCY = 4
-
 
 async def ingest_each[T](
     documents: Sequence[Document],
     ingest: Callable[[Document], Awaitable[T]],
     *,
-    concurrency: int = INGEST_CONCURRENCY,
+    concurrency: int,
 ) -> list[T]:
     """Runs ingest for each document, at most concurrency at the same time. The results keep the
     document order. ingest must catch its own errors: on a raise, gather stops waiting."""
@@ -55,8 +49,10 @@ class IngestionRunner:
         take_queue: Callable[[], Awaitable[QueueReport]],
         chunking: ChunkingTracker,
         *,
-        concurrency: int = INGEST_CONCURRENCY,
+        concurrency: int,
     ) -> None:
+        """concurrency: documents ingested at the same time. Each holds 2 pooled connections at
+        most (lock, writes), so the pool size must stay above 2 times this value."""
         self._service = service
         self._concurrency = concurrency
         self._documents = documents
@@ -95,7 +91,7 @@ class IngestionRunner:
         self._task = asyncio.create_task(self._run(force))
         return True
 
-    def start_schedule(self, interval: timedelta = SCHEDULE_INTERVAL) -> None:
+    def start_schedule(self, interval: timedelta) -> None:
         """Start a pass every interval, counted from now. A manual pass does not move it."""
         self._schedule_task = asyncio.create_task(self._schedule(interval))
 

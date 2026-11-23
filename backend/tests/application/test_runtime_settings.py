@@ -32,6 +32,7 @@ from tests.support.fakes_ingestion import (
     StubIngestionControl,
 )
 from tests.support.fakes_ports import Clock
+from tests.support.tuning import SETTINGS
 
 
 def returning(value: object) -> Callable[..., Awaitable[Any]]:
@@ -168,7 +169,12 @@ def test_a_forced_pass_embeds_each_document_again_with_the_new_service() -> None
     async def scenario() -> tuple[list[bool], list[bool]]:
         old, new = RecordingService(), RecordingService()
         runner = IngestionRunner(
-            cast(Any, old), cast(Any, ListedDocuments("a")), no_updates, no_queue, tracker
+            cast(Any, old),
+            cast(Any, ListedDocuments("a")),
+            no_updates,
+            no_queue,
+            tracker,
+            concurrency=SETTINGS.ingest_concurrency,
         )
         runner.use_service(cast(Any, new))
         runner.start(force=True)
@@ -266,6 +272,7 @@ def make_config(
         services.rebuild,
         request_pass=requests,
         clock=clock or Clock(),
+        refresh_seconds=SETTINGS.runtime_refresh_seconds,
     )
     asyncio.run(config.load())
     return config
@@ -382,7 +389,12 @@ def test_a_pass_that_finds_stale_chunks_embeds_everything_and_marks_it_done() ->
     async def scenario() -> tuple[list[bool], int]:
         service, tracker = RecordingService(), FakeTracker(stale=True)
         runner = IngestionRunner(
-            cast(Any, service), cast(Any, ListedDocuments("a")), no_updates, no_queue, tracker
+            cast(Any, service),
+            cast(Any, ListedDocuments("a")),
+            no_updates,
+            no_queue,
+            tracker,
+            concurrency=SETTINGS.ingest_concurrency,
         )
         runner.start()
         await runner._task  # type: ignore[misc]

@@ -2,6 +2,7 @@
 
 from app.infrastructure.pdf_parser import PyMuPdfParser
 from tests.support.factories import make_pdf
+from tests.support.tuning import SETTINGS
 
 
 def test_text_follows_the_page_position_not_the_content_order() -> None:
@@ -15,7 +16,7 @@ def test_text_follows_the_page_position_not_the_content_order() -> None:
         (41, 170, "5 WARNINGS AND PRECAUTIONS", "hebo"),
     )
 
-    assert PyMuPdfParser().page_texts(data) == [
+    assert PyMuPdfParser(SETTINGS.pdf_row_tolerance).page_texts(data) == [
         "4 CONTRAINDICATIONS\n- Acute liver failure.\n- Hypersensitivity to the drug.\n"
         "5 WARNINGS AND PRECAUTIONS"
     ]
@@ -26,8 +27,10 @@ def test_parts_on_one_row_become_one_line() -> None:
         (51, 100, "-", "helv"), (70, 100, "Bold item", "hebo"), (200, 100, "tail", "hebo")
     )
 
-    assert PyMuPdfParser().page_texts(data) == ["- Bold item tail"]
+    assert PyMuPdfParser(SETTINGS.pdf_row_tolerance).page_texts(data) == ["- Bold item tail"]
 
 
 def test_every_page_has_a_text_even_when_empty() -> None:
-    assert PyMuPdfParser().page_texts(make_pdf((41, 100, "Text", "helv"), pages=2)) == ["Text", ""]
+    assert PyMuPdfParser(SETTINGS.pdf_row_tolerance).page_texts(
+        make_pdf((41, 100, "Text", "helv"), pages=2)
+    ) == ["Text", ""]

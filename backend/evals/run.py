@@ -30,7 +30,7 @@ from app.infrastructure.database import Connections, build_pool
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.models import ModelFactory
 from app.infrastructure.tracing import build_tracer
-from app.wiring import chat_service, retrieval_service, runtime_settings
+from app.wiring import chat_service, retrieval_service, runtime_settings, search_limits
 from evals.judge import judge
 from evals.metrics import (
     citation_valid,
@@ -143,8 +143,16 @@ async def _retrieval(
     chunks = await stored_chunks(pool, runtime.embedding_model)
     cache = CACHE / f"unprefixed-{runtime.embedding_model.replace('/', '_')}.json"
     vectors = await unprefixed_vectors(chunks, embedder, cache)
-    search = CosineSearch(PostgresChunkSearch(pool, runtime.embedding_model), vectors)
-    return RetrievalService(search, embedder, top_k=runtime.top_k)
+    search = CosineSearch(
+        PostgresChunkSearch(
+            pool,
+            runtime.embedding_model,
+            title_boost=settings.search_title_boost,
+            phrase_boost=settings.search_phrase_boost,
+        ),
+        vectors,
+    )
+    return RetrievalService(search, embedder, top_k=runtime.top_k, limits=search_limits(settings))
 
 
 def _outcome_ok(expect: str, result: Result) -> bool:

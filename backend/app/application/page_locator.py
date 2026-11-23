@@ -4,15 +4,21 @@ so the letters and digits of a chunk appear in the page texts in about the same 
 import bisect
 import re
 from collections.abc import Sequence
+from dataclasses import dataclass
 
-# Letters and digits of the start and the end of a chunk that must match.
-WINDOW = 40
-# Lines and table cells shorter than this match in too many places.
-MIN_PIECE = 12
-# Letters allowed between the start and the end of a chunk past its own (headers, footers).
-SLACK = 300
-# Page breaks one chunk can cross.
-MAX_SPAN = 2
+
+@dataclass(frozen=True, slots=True)
+class LocatorLimits:
+    # Letters and digits of the start and the end of a chunk that must match.
+    window: int
+    # Lines and table cells shorter than this match in too many places.
+    min_piece: int
+    # Letters allowed between the start and the end of a chunk past its own (headers, footers).
+    slack: int
+    # Page breaks one chunk can cross.
+    max_span: int
+
+
 _CONTENTS = "fullprescribinginformationcontents"
 _BODY = "fullprescribinginformation"
 
@@ -22,7 +28,8 @@ def _normalized(text: str) -> str:
 
 
 class PageLocator:
-    def __init__(self, pages: Sequence[str]) -> None:
+    def __init__(self, pages: Sequence[str], limits: LocatorLimits) -> None:
+        self._limits = limits
         self._pages = [_normalized(p) for p in pages]
         self._starts: list[int] = []
         position = 0
@@ -76,7 +83,7 @@ class PageLocator:
         key = _normalized(content)
         if not key:
             return None
-        head = key[:WINDOW]
+        head = key[: self._limits.window]
         start = self._text.find(head, self._cursor)
         if start < 0:
             # The PDF order inside a page can differ a little from the label order.
@@ -86,16 +93,20 @@ class PageLocator:
             return None
         self._cursor = start
         first = self._page(start)
-        tail = self._text.find(key[-WINDOW:], start, start + len(key) + SLACK)
+        tail = self._text.find(
+            key[-self._limits.window :], start, start + len(key) + self._limits.slack
+        )
         if tail >= 0:
-            return first, self._page(tail + min(WINDOW, len(key)) - 1)
+            return first, self._page(tail + min(self._limits.window, len(key)) - 1)
         # The end is in another order (a table): take the last page that holds its lines or cells.
-        pieces = self._by_pieces(content, first, min(first + MAX_SPAN, len(self._pages)))
+        pieces = self._by_pieces(
+            content, first, min(first + self._limits.max_span, len(self._pages))
+        )
         return first, max(first, pieces[1]) if pieces else first
 
     def _by_pieces(self, content: str, low: int, high: int) -> tuple[int, int] | None:
         pieces = [_normalized(p) for line in content.split("\n") for p in line.split(" | ")]
-        pieces = [p for p in pieces if len(p) >= MIN_PIECE]
+        pieces = [p for p in pieces if len(p) >= self._limits.min_piece]
         counts = {
             page: sum(p in self._pages[page - 1] for p in pieces) for page in range(low, high + 1)
         }

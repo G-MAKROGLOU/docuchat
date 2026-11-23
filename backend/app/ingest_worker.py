@@ -5,7 +5,7 @@ import asyncio
 import logging
 import signal
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from app.application.corpus_update import UpdateReport, check_for_updates
 from app.application.ingestion import IngestionService
@@ -64,15 +64,32 @@ async def run(settings: Settings) -> None:
         documents = PostgresDocumentRepository(pool)
         store = await asyncio.to_thread(build_document_store, settings)
         queue = PostgresLabelQueueRepository(pool)
-        source = DailyMedClient(DEFAULT_PDF_TEMPLATE, DEFAULT_LABEL_TEMPLATE)
+        source = DailyMedClient(
+            DEFAULT_PDF_TEMPLATE,
+            DEFAULT_LABEL_TEMPLATE,
+            timeout_seconds=settings.source_timeout_seconds,
+            max_bytes=settings.source_max_bytes,
+            attempts=settings.source_attempts,
+            first_backoff_seconds=settings.source_first_backoff_seconds,
+        )
+        delay = settings.source_delay_seconds
         state = MeteredState(PostgresIngestionStateRepository(pool))
 
         async def check_updates() -> UpdateReport:
-            return await check_for_updates(source, store, documents)
+            return await check_for_updates(
+                source,
+                store,
+                documents,
+                delay_seconds=delay,
+                concurrency=settings.update_check_concurrency,
+            )
 
         async def take_queue() -> QueueReport:
+            context = QueueContext(
+                source, SplXmlParser(), store, documents, settings.failure_reason_max_chars
+            )
             return await process_queue(
-                queue, QueueContext(source, SplXmlParser(), store, documents)
+                queue, context, limit=settings.label_queue_batch, delay_seconds=delay
             )
 
         runner: IngestionRunner | None = None
@@ -90,10 +107,20 @@ async def run(settings: Settings) -> None:
             return commit
 
         config = RuntimeConfig(
-            PostgresRuntimeSettingsRepository(pool), default_runtime_settings(settings), rebuild
+            PostgresRuntimeSettingsRepository(pool),
+            default_runtime_settings(settings),
+            rebuild,
+            refresh_seconds=settings.runtime_refresh_seconds,
         )
         await config.load()
-        runner = IngestionRunner(services[-1], documents, check_updates, take_queue, config)
+        runner = IngestionRunner(
+            services[-1],
+            documents,
+            check_updates,
+            take_queue,
+            config,
+            concurrency=settings.ingest_concurrency,
+        )
         runner.observe = observe_ingest
 
         stop = asyncio.Event()
@@ -104,11 +131,13 @@ async def run(settings: Settings) -> None:
             # A crash left these half done; a pass now ingests them again.
             logger.info("documents reset after an interrupted pass", extra={"count": interrupted})
             await state.request(force=False)
-        runner.start_schedule()
+        runner.start_schedule(timedelta(hours=settings.ingest_schedule_hours))
         serve(METRICS_PORT)
         logger.info("ingest worker started")
         try:
-            await IngestWorker(runner, state, config.refresh).run(stop)
+            await IngestWorker(
+                runner, state, config.refresh, timedelta(seconds=settings.worker_tick_seconds)
+            ).run(stop)
         finally:
             await runner.stop()
             await state.report("idle", None)

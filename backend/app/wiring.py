@@ -1,12 +1,19 @@
 """Composition root: the API and the commands build their services here."""
 
 from collections.abc import Iterable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from app.application.chat import ChatService, Retriever
-from app.application.drug_detection import DetectorCache, DrugDetector, DrugEntry
-from app.application.ingestion import IngestionService
-from app.application.retrieval import TOP_K, RetrievalService
+from app.application.chat import ChatLimits, ChatService, Retriever
+from app.application.drug_detection import (
+    DetectorCache,
+    DetectorThresholds,
+    DrugDetector,
+    DrugEntry,
+)
+from app.application.fusion import SearchLimits
+from app.application.ingestion import IngestionService, IngestLimits
+from app.application.page_locator import LocatorLimits
+from app.application.retrieval import RetrievalService
 from app.application.runtime_settings import load_runtime_settings
 from app.config import Settings
 from app.domain.documents import Document, DocumentStatus
@@ -27,7 +34,59 @@ from app.infrastructure.storage import shared_document_store
 from app.infrastructure.text_splitting import SentenceTokenSplitter, TiktokenCounter
 
 
-def drug_detector(documents: Iterable[Document]) -> DrugDetector:
+def chat_limits(settings: Settings) -> ChatLimits:
+    return ChatLimits(
+        history_turns=settings.chat_history_turns,
+        max_query_chars=settings.chat_max_query_chars,
+        grade_retries=settings.chat_grade_retries,
+        turn_deadline_seconds=settings.chat_turn_deadline_seconds,
+        max_reply_chars=settings.chat_max_reply_chars,
+        intake_list_max=settings.chat_intake_list_max,
+        max_suggestions=settings.chat_max_suggestions,
+        max_suggestion_chars=settings.chat_max_suggestion_chars,
+    )
+
+
+def search_limits(settings: Settings) -> SearchLimits:
+    return SearchLimits(
+        rrf_k=settings.search_rrf_k,
+        max_chunks=settings.search_max_chunks,
+        token_budget=settings.search_token_budget,
+        min_per_drug=settings.search_min_per_drug,
+        leg_timeout_seconds=settings.search_leg_timeout_seconds,
+    )
+
+
+def detector_thresholds(settings: Settings) -> DetectorThresholds:
+    return DetectorThresholds(
+        min_key_length=settings.detector_min_key_length,
+        min_tail_length=settings.detector_min_tail_length,
+        fuzzy_threshold=settings.detector_fuzzy_threshold,
+        candidate_floor=settings.detector_candidate_floor,
+        ambiguity_margin=settings.detector_ambiguity_margin,
+        max_choices=settings.detector_max_choices,
+    )
+
+
+def ingest_limits(settings: Settings) -> IngestLimits:
+    return IngestLimits(
+        anchor_words=settings.chunk_anchor_words,
+        max_page_misses=settings.ingest_max_page_misses,
+        failure_reason_max_chars=settings.failure_reason_max_chars,
+        locator=LocatorLimits(
+            window=settings.locator_window,
+            min_piece=settings.locator_min_piece,
+            slack=settings.locator_slack,
+            max_span=settings.locator_max_span,
+        ),
+    )
+
+
+def heartbeat_limit(settings: Settings) -> timedelta:
+    return timedelta(seconds=settings.worker_heartbeat_limit_seconds)
+
+
+def drug_detector(documents: Iterable[Document], thresholds: DetectorThresholds) -> DrugDetector:
     """The catalog: one entry per ingested label, named by brand, else by generic name. Brand
     labels come first, then the newest: the first label of a product answers for it."""
     ingested = [d for d in documents if d.status is DocumentStatus.INGESTED]
@@ -45,6 +104,7 @@ def drug_detector(documents: Iterable[Document]) -> DrugDetector:
             for d in ingested
         ],
         RapidFuzzSimilarity(),
+        thresholds,
     )
 
 
@@ -56,9 +116,9 @@ def _is_brand(document: Document) -> bool:
 def default_runtime_settings(settings: Settings) -> RuntimeSettings:
     """The values that apply until the user saves others."""
     return RuntimeSettings(
-        chunk_tokens=500,
-        overlap_tokens=50,
-        top_k=TOP_K,
+        chunk_tokens=settings.default_chunk_tokens,
+        overlap_tokens=settings.default_overlap_tokens,
+        top_k=settings.default_top_k,
         embedding_model=settings.embedding_model,
         chat_model=settings.llm_chat_model,
         rewrite_model=settings.llm_rewrite_model,
@@ -93,9 +153,15 @@ def retrieval_service(
 ) -> RetrievalService:
     effective = _with_models(settings, runtime)
     return RetrievalService(
-        PostgresChunkSearch(connections, effective.embedding_model),
+        PostgresChunkSearch(
+            connections,
+            effective.embedding_model,
+            title_boost=settings.search_title_boost,
+            phrase_boost=settings.search_phrase_boost,
+        ),
         ModelFactory(effective).embedder(),
         top_k=runtime.top_k,
+        limits=search_limits(settings),
     )
 
 
@@ -110,16 +176,19 @@ def chat_service(
     documents = PostgresDocumentRepository(connections)
 
     async def build() -> DrugDetector:
-        return drug_detector(await documents.list_all())
+        return drug_detector(await documents.list_all(), detector_thresholds(settings))
 
     return ChatService(
         PostgresConversationRepository(connections),
         ModelFactory(
             _with_models(settings, runtime), reasoning_effort=runtime.reasoning_effort
         ).chat_models(),
-        DetectorCache(documents.ingested_version, build),
+        DetectorCache(
+            documents.ingested_version, build, min_interval=settings.detector_rebuild_seconds
+        ),
         retriever or retrieval_service(settings, connections, runtime),
         tracer,
+        limits=chat_limits(settings),
         grader_mode=runtime.grader_mode,
     )
 
@@ -132,7 +201,7 @@ def ingestion_service(
         store=shared_document_store(settings),
         documents=PostgresDocumentRepository(connections),
         chunks=PostgresChunkRepository(connections),
-        pdf_parser=PyMuPdfParser(),
+        pdf_parser=PyMuPdfParser(settings.pdf_row_tolerance),
         label_parser=SplXmlParser(),
         splitter=SentenceTokenSplitter(
             chunk_tokens=runtime.chunk_tokens, overlap_tokens=runtime.overlap_tokens
@@ -141,5 +210,6 @@ def ingestion_service(
         embedder=ModelFactory(effective).embedder(),
         embedding_model=effective.embedding_model,
         embedding_prefix=settings.embedding_prefix,
+        limits=ingest_limits(settings),
         locks=PostgresDocumentLocks(connections),
     )

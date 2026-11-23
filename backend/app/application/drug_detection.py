@@ -27,16 +27,20 @@ _DRUG_ENDINGS = (
     "mycin", "cycline", "floxacin", "dipine", "azepam", "zolam", "setron", "triptan",
     "lukast", "parin", "gatran", "afil", "oxetine", "pramine", "barbital", "semide",
 )  # fmt: skip
-_MIN_KEY_LENGTH = 4
-# Shorter word tails ("statin", "pril") are name stems, not drug names.
-_MIN_TAIL_LENGTH = 7
-# Calibrated values (evals/detector_calibration.py).
-FUZZY_THRESHOLD = 80.0
-CANDIDATE_FLOOR = 70.0
-AMBIGUITY_MARGIN = 12.0
-# A clarify question offers at most this many medicines, best first.
-MAX_CHOICES = 5
-_WORD = re.compile(r"[A-Za-z][A-Za-z\-]{3,}")  # words of _MIN_KEY_LENGTH letters or more
+
+
+@dataclass(frozen=True, slots=True)
+class DetectorThresholds:
+    """Calibrated values (evals/detector_calibration.py)."""
+
+    min_key_length: int
+    # Shorter word tails ("statin", "pril") are name stems, not drug names.
+    min_tail_length: int
+    fuzzy_threshold: float
+    candidate_floor: float
+    ambiguity_margin: float
+    # A clarify question offers at most this many medicines, best first.
+    max_choices: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,15 +96,15 @@ class DrugDetector:
         self,
         entries: list[DrugEntry],
         similarity: NameSimilarity,
-        *,
-        fuzzy_threshold: float = FUZZY_THRESHOLD,
-        candidate_floor: float = CANDIDATE_FLOOR,
-        ambiguity_margin: float = AMBIGUITY_MARGIN,
+        thresholds: DetectorThresholds,
     ) -> None:
         self._similarity = similarity
-        self._threshold = fuzzy_threshold
-        self._floor = candidate_floor
-        self._margin = ambiguity_margin
+        self._limits = thresholds
+        self._threshold = thresholds.fuzzy_threshold
+        self._floor = thresholds.candidate_floor
+        self._margin = thresholds.ambiguity_margin
+        # Words of min_key_length letters or more.
+        self._word = re.compile(rf"[A-Za-z][A-Za-z\-]{{{thresholds.min_key_length - 1},}}")
         # Product key -> its preferred label (the first entry). Name key (lower case) ->
         # product keys; one name can cover more products: one brand as an injection and tablets.
         self._products: dict[str, _Product] = {}
@@ -110,7 +114,7 @@ class DrugDetector:
             self._products.setdefault(
                 product, _Product(entry.name, entry.label, form_group(entry.form))
             )
-            for key in _keys(entry):
+            for key in _keys(entry, thresholds.min_key_length):
                 keys[key] = _unique((*keys.get(key, ()), product))
         self._keys = dict(sorted(keys.items(), key=lambda kv: -len(kv[0])))
         self._single_word_keys = {k: v for k, v in self._keys.items() if " " not in k}
@@ -119,7 +123,7 @@ class DrugDetector:
         self._tails = {
             key[i:]
             for key in self._single_word_list
-            for i in range(1, len(key) - _MIN_TAIL_LENGTH + 1)
+            for i in range(1, len(key) - thresholds.min_tail_length + 1)
         }
         # One pattern for all keys, compiled once: per-key patterns overflowed the regex cache
         # with 2000 labels and cost 0.46 s per question. Longer keys first, as above.
@@ -148,7 +152,7 @@ class DrugDetector:
         fuzzy: list[tuple[int, str]] = []
         ambiguous: list[tuple[int, list[str]]] = forms
         outside: list[str] = []
-        for match in _WORD.finditer(text):
+        for match in self._word.finditer(text):
             if any(a < match.end() and match.start() < b for a, b in taken):
                 continue
             word = match[0]
@@ -201,7 +205,7 @@ class DrugDetector:
 
     def _choices(self, keys: Sequence[str]) -> tuple[str, ...]:
         """Clarify candidates; a name shared by two products gets its form: "Ozempic (tablet)"."""
-        keys = keys[:MAX_CHOICES]
+        keys = keys[: self._limits.max_choices]
         names = [self._products[key].name.casefold() for key in keys]
         return tuple(
             f"{self._products[key].name} ({self._products[key].form})"
@@ -213,7 +217,7 @@ class DrugDetector:
     def _is_tail(self, word: str) -> bool:
         """The word ends a longer library name ("omeprazole" in "esomeprazole"): another drug,
         though its fuzzy score is high (calibration 2026-11-23)."""
-        return len(word) >= _MIN_TAIL_LENGTH and word in self._tails
+        return len(word) >= self._limits.min_tail_length and word in self._tails
 
     def _rank(self, word: str) -> list[tuple[tuple[str, ...], float]]:
         """Product groups (the products of one name key) whose best key scores at least the
@@ -226,12 +230,12 @@ class DrugDetector:
         return sorted(best.items(), key=lambda kv: -kv[1])
 
 
-def _keys(entry: DrugEntry) -> set[str]:
+def _keys(entry: DrugEntry, min_length: int) -> set[str]:
     keys = {entry.brand.lower(), entry.generic.lower()}
     base = [w for w in entry.generic.lower().split() if w not in _SALT_WORDS]
     if base:
         keys.add(" ".join(base))
-    return {k for k in keys if len(k) >= _MIN_KEY_LENGTH}
+    return {k for k in keys if len(k) >= min_length}
 
 
 def _names_form(text: str, form: str) -> bool:
@@ -243,20 +247,17 @@ def _unique(names: Iterable[str]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(names))
 
 
-# A new library version rebuilds the detector at most this often.
-REBUILD_SECONDS = 30.0
-
-
 class DetectorCache[T]:
     """Builds the detector once per library version. The version check is one small query;
-    the build reads every document, so it runs only after the library changed."""
+    the build reads every document, so it runs only after the library changed. A new version
+    rebuilds it at most once per min_interval seconds."""
 
     def __init__(
         self,
         version: Callable[[], Awaitable[object]],
         build: Callable[[], Awaitable[T]],
         *,
-        min_interval: float = REBUILD_SECONDS,
+        min_interval: float,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self._version = version

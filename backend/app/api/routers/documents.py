@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response,
 from fastapi.responses import StreamingResponse
 
 from app.api.dependencies import (
+    get_app_settings,
     get_cache,
     get_document_repository,
     get_document_store,
@@ -16,14 +17,12 @@ from app.api.dependencies import (
 )
 from app.api.http_range import RangeNotSatisfiableError, parse_range
 from app.api.schemas.documents import DocumentListResponse, DocumentSummary
+from app.config import Settings
 from app.domain.documents import Document, DocumentRepository, PageRenderer
 from app.domain.ports import Cache
 from app.domain.storage import DocumentStore, ObjectNotFoundError
 
 router = APIRouter(tags=["documents"])
-
-THUMBNAIL_WIDTH = 320
-THUMBNAIL_CACHE_CONTROL = "public, max-age=86400"
 
 
 @router.get("/documents")
@@ -68,21 +67,22 @@ def _etag_matches(if_none_match: str | None, etag: str) -> bool:
     return "*" in tags or etag in tags
 
 
-# A cold thumbnail reads the whole PDF and renders it: a few at a time in each process, and
-# each PNG once for all processes (shared cache).
-THUMBNAIL_CONCURRENCY = 4
-# The key holds the file hash and the width, so a stored PNG never goes stale.
-THUMBNAIL_TTL_SECONDS = 30 * 24 * 3600
-_thumbnail_slots = asyncio.Semaphore(THUMBNAIL_CONCURRENCY)
-
-
-async def thumbnail_png(cache: Cache, key: str, render: Callable[[], bytes]) -> bytes:
-    """The PNG for the key (file and ETag, so a new PDF gets a new image), rendered once."""
+async def thumbnail_png(
+    cache: Cache,
+    key: str,
+    render: Callable[[], bytes],
+    *,
+    slots: asyncio.Semaphore,
+    ttl_seconds: int,
+) -> bytes:
+    """The PNG for the key (file and ETag, so a new PDF gets a new image), rendered once.
+    A cold thumbnail reads the whole PDF and renders it: slots limits the renders of this
+    process. The key holds the file hash and the width, so a stored PNG never goes stale."""
     if (cached := await cache.get(f"thumbnail:{key}")) is not None:
         return cached
-    async with _thumbnail_slots:
+    async with slots:
         png = await asyncio.to_thread(render)
-    await cache.set(f"thumbnail:{key}", png, THUMBNAIL_TTL_SECONDS)
+    await cache.set(f"thumbnail:{key}", png, ttl_seconds)
     return png
 
 
@@ -95,10 +95,11 @@ async def thumbnail_png(cache: Cache, key: str, render: Callable[[], bytes]) -> 
         404: {"description": "Unknown document."},
     },
 )
-async def get_document_thumbnail(  # noqa: PLR0913  # four injected ports
+async def get_document_thumbnail(  # noqa: PLR0913  # four injected ports and the settings
     document_id: UUID,
     request: Request,
     *,
+    settings: Annotated[Settings, Depends(get_app_settings)],
     repository: Annotated[DocumentRepository, Depends(get_document_repository)],
     store: Annotated[DocumentStore, Depends(get_document_store)],
     renderer: Annotated[PageRenderer, Depends(get_page_renderer)],
@@ -109,17 +110,27 @@ async def get_document_thumbnail(  # noqa: PLR0913  # four injected ports
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
 
     # The width is in the tag, so a new width does not revalidate to an old image.
-    etag = f'"{document.sha256}-w{THUMBNAIL_WIDTH}"'
-    headers = {"ETag": etag, "Cache-Control": THUMBNAIL_CACHE_CONTROL}
+    width = settings.thumbnail_width
+    etag = f'"{document.sha256}-w{width}"'
+    headers = {
+        "ETag": etag,
+        "Cache-Control": f"public, max-age={settings.thumbnail_max_age_seconds}",
+    }
     if _etag_matches(request.headers.get("if-none-match"), headers["ETag"]):
         return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
 
     def render() -> bytes:
         pdf = b"".join(store.get_stream(document.storage_key))
-        return renderer.render_first_page(pdf, THUMBNAIL_WIDTH)
+        return renderer.render_first_page(pdf, width)
 
     try:
-        png = await thumbnail_png(cache, f"{document.storage_key}:{etag}", render)
+        png = await thumbnail_png(
+            cache,
+            f"{document.storage_key}:{etag}",
+            render,
+            slots=request.app.state.thumbnail_slots,
+            ttl_seconds=settings.thumbnail_ttl_seconds,
+        )
     except ObjectNotFoundError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document file not found") from exc
     return Response(content=png, media_type="image/png", headers=headers)

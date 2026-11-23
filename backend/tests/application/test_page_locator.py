@@ -1,4 +1,5 @@
 from app.application.page_locator import PageLocator
+from tests.support.tuning import INGEST
 
 PAGES = [
     "HIGHLIGHTS. Take 10 mg once daily. FULL PRESCRIBING INFORMATION: CONTENTS* 1 INDICATIONS",
@@ -9,7 +10,7 @@ PAGES = [
 
 
 def locate(pages: list[str], *contents: str) -> list[tuple[int, int]]:
-    return PageLocator(pages).locate_all(list(contents))
+    return PageLocator(pages, INGEST.locator).locate_all(list(contents))
 
 
 def test_a_chunk_is_found_after_the_body_start_not_in_the_highlights() -> None:
@@ -54,7 +55,7 @@ def test_a_table_chunk_in_another_cell_order_is_found_by_its_cells() -> None:
 
 
 def test_a_chunk_without_any_match_takes_the_pages_between_its_neighbours() -> None:
-    locator = PageLocator(TABLE_PAGES)
+    locator = PageLocator(TABLE_PAGES, INGEST.locator)
 
     pages = locator.locate_all(
         ["The table shows the reactions.", "12 | 8 | 3 | 4", "No interactions with other drugs"]

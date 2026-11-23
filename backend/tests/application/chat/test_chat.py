@@ -3,7 +3,7 @@ import uuid
 from collections.abc import Sequence
 from uuid import UUID
 
-from app.application import chat, chat_prompts
+from app.application import chat_prompts
 from app.application.chat import (
     ChatService,
     GraderMode,
@@ -34,13 +34,20 @@ from tests.support.fakes_ports import (
     FakeTracer,
     run_turn,
 )
+from tests.support.tuning import CHAT
 
 # ─────────────────── plain functions ───────────────────
 
 
 def test_parse_intake_reads_a_reply_and_a_search() -> None:
-    assert parse_intake('{"action": "reply", "reply": " Hi! "}') == ("reply", "Hi!")
-    assert parse_intake('```json\n{"action": "search"}\n```') == ("search", "")
+    assert parse_intake('{"action": "reply", "reply": " Hi! "}', CHAT.max_reply_chars) == (
+        "reply",
+        "Hi!",
+    )
+    assert parse_intake('```json\n{"action": "search"}\n```', CHAT.max_reply_chars) == (
+        "search",
+        "",
+    )
 
 
 def test_intake_medicines_reads_the_named_medicines() -> None:
@@ -55,21 +62,24 @@ def test_intake_medicines_reads_the_named_medicines() -> None:
 def test_intake_query_reads_the_standalone_question() -> None:
     text = '{"action": "search", "query": "  Lipitor  starting dose? "}'
 
-    assert intake_query(text) == "Lipitor starting dose?"
+    assert intake_query(text, CHAT.max_query_chars) == "Lipitor starting dose?"
 
 
 def test_intake_query_is_none_when_the_query_is_not_usable() -> None:
-    assert intake_query('{"action": "search"}') is None
-    assert intake_query('{"action": "search", "query": "   "}') is None
-    assert intake_query('{"action": "search", "query": ["dose"]}') is None
-    assert intake_query('{"action": "search", "query": "' + "a" * 501 + '"}') is None
-    assert intake_query("not json") is None
+    assert intake_query('{"action": "search"}', CHAT.max_query_chars) is None
+    assert intake_query('{"action": "search", "query": "   "}', CHAT.max_query_chars) is None
+    assert intake_query('{"action": "search", "query": ["dose"]}', CHAT.max_query_chars) is None
+    assert (
+        intake_query('{"action": "search", "query": "' + "a" * 501 + '"}', CHAT.max_query_chars)
+        is None
+    )
+    assert intake_query("not json", CHAT.max_query_chars) is None
 
 
 def test_parse_intake_falls_back_to_search() -> None:
-    assert parse_intake("not json") == ("search", "")
-    assert parse_intake('{"action": "reply", "reply": ""}') == ("search", "")
-    assert parse_intake("[1, 2]") == ("search", "")
+    assert parse_intake("not json", CHAT.max_reply_chars) == ("search", "")
+    assert parse_intake('{"action": "reply", "reply": ""}', CHAT.max_reply_chars) == ("search", "")
+    assert parse_intake("[1, 2]", CHAT.max_reply_chars) == ("search", "")
 
 
 def test_parse_relevant_keeps_known_ids_in_source_order() -> None:
@@ -129,20 +139,22 @@ def test_the_chat_model_gets_the_library_list() -> None:
 
 
 def test_intake_prompt_says_when_the_library_is_empty() -> None:
-    assert intake_prompt([]).endswith("these medicines: none yet.")
+    assert intake_prompt([], CHAT.intake_list_max).endswith("these medicines: none yet.")
 
 
 def test_intake_prompt_lists_a_small_library() -> None:
     names = [f"Drug{i}" for i in range(100)]
-    assert intake_prompt(names).endswith(f"these medicines: {', '.join(names)}.")
+    assert intake_prompt(names, CHAT.intake_list_max).endswith(
+        f"these medicines: {', '.join(names)}."
+    )
 
 
 def test_intake_prompt_gives_only_the_count_for_a_large_library() -> None:
-    prompt = intake_prompt([f"Drug{i}" for i in range(2000)])
+    prompt = intake_prompt([f"Drug{i}" for i in range(2000)], CHAT.intake_list_max)
 
     assert "Drug1999" not in prompt
     assert "2000 medicines" in prompt
-    assert len(prompt) < len(intake_prompt([])) + 400
+    assert len(prompt) < len(intake_prompt([], CHAT.intake_list_max)) + 400
 
 
 def test_search_path_streams_status_sources_tokens_and_a_cited_final() -> None:
@@ -352,6 +364,7 @@ def test_a_stream_closed_early_still_ends_its_trace() -> None:
         FakeDetector(LIPITOR).source,
         FakeRetriever(make_chunk("x")),
         tracer,
+        limits=CHAT,
     )
 
     async def scenario() -> None:
@@ -374,6 +387,7 @@ def test_a_stream_closed_after_the_final_event_keeps_the_answer() -> None:
         FakeDetector(LIPITOR).source,
         FakeRetriever(),
         tracer,
+        limits=CHAT,
     )
 
     async def scenario() -> uuid.UUID:
@@ -397,10 +411,26 @@ def test_a_stream_closed_after_the_final_event_keeps_the_answer() -> None:
 
 def test_parse_suggestions_keeps_three_clean_unique_questions() -> None:
     text = '{"suggestions": [" Dose  of Lipitor? ", "Dose of Lipitor?", 4, "", "B?", "C?", "D?"]}'
-    assert parse_suggestions(text) == ["Dose of Lipitor?", "B?", "C?"]
-    assert parse_suggestions('{"suggestions": ["' + "x" * 121 + '"]}') == []
-    assert parse_suggestions("not json") == []
-    assert parse_suggestions('{"suggestions": "Dose?"}') == []
+    assert parse_suggestions(text, CHAT.max_suggestions, CHAT.max_suggestion_chars) == [
+        "Dose of Lipitor?",
+        "B?",
+        "C?",
+    ]
+    assert (
+        parse_suggestions(
+            '{"suggestions": ["' + "x" * 121 + '"]}',
+            CHAT.max_suggestions,
+            CHAT.max_suggestion_chars,
+        )
+        == []
+    )
+    assert parse_suggestions("not json", CHAT.max_suggestions, CHAT.max_suggestion_chars) == []
+    assert (
+        parse_suggestions(
+            '{"suggestions": "Dose?"}', CHAT.max_suggestions, CHAT.max_suggestion_chars
+        )
+        == []
+    )
 
 
 def test_an_answer_ends_with_suggestions_from_the_chat_model() -> None:
@@ -505,13 +535,13 @@ def test_parse_grade_reads_ids_verdict_and_feedback() -> None:
 
 
 def test_grade_decision_retries_once_then_answers_a_partial_result() -> None:
-    assert grade_decision("sufficient", True, 0) == "generate"
-    assert grade_decision("partial", True, 0) == "retry"
-    assert grade_decision("insufficient", False, 0) == "retry"
-    assert grade_decision("partial", True, 1) == "generate"
-    assert grade_decision("insufficient", False, 1) == "refuse"
+    assert grade_decision("sufficient", True, 0, CHAT.grade_retries) == "generate"
+    assert grade_decision("partial", True, 0, CHAT.grade_retries) == "retry"
+    assert grade_decision("insufficient", False, 0, CHAT.grade_retries) == "retry"
+    assert grade_decision("partial", True, 1, CHAT.grade_retries) == "generate"
+    assert grade_decision("insufficient", False, 1, CHAT.grade_retries) == "refuse"
     # The attempt counter cannot pass 1: a later attempt never retries.
-    assert grade_decision("insufficient", False, 5) == "refuse"
+    assert grade_decision("insufficient", False, 5, CHAT.grade_retries) == "refuse"
 
 
 def test_merge_sources_keeps_each_chunk_once_and_numbers_from_s1() -> None:
@@ -858,7 +888,7 @@ def test_an_empty_retry_search_answers_from_the_first_excerpts() -> None:
 def test_a_large_library_is_not_listed_in_the_refusal() -> None:
     class LargeLibrary(FakeDetector):
         def catalog(self) -> list[str]:
-            return [f"Drug {i}" for i in range(chat.INTAKE_LIST_MAX + 1)]
+            return [f"Drug {i}" for i in range(CHAT.intake_list_max + 1)]
 
     events, _, _ = run_turn(
         search_models(),

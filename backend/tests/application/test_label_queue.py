@@ -36,6 +36,7 @@ from tests.support.fakes_ingestion import (
     FakeQueue,
     FakeSource,
 )
+from tests.support.tuning import CHUNK_BYTES, SETTINGS
 
 OTHER = "10a7ba02-42d6-4cae-8904-b256e2da5496"
 
@@ -80,7 +81,11 @@ def test_the_pass_downloads_queued_labels_and_marks_them(tmp_path: Path) -> None
     asyncio.run(queue.add(KNOWN_SET_ID, "t"))
     asyncio.run(queue.add(OTHER, "t"))
     context = QueueContext(
-        FakeSource(), FakeReader(), FileSystemDocumentStore(tmp_path), cast(Any, repo)
+        FakeSource(),
+        FakeReader(),
+        FileSystemDocumentStore(tmp_path, CHUNK_BYTES),
+        cast(Any, repo),
+        SETTINGS.failure_reason_max_chars,
     )
 
     report = asyncio.run(process_queue(queue, context, limit=1, delay_seconds=0))
@@ -99,11 +104,14 @@ def test_a_failed_download_is_marked_with_a_reason(tmp_path: Path) -> None:
     context = QueueContext(
         FakeSource(),
         FakeReader(),
-        FileSystemDocumentStore(tmp_path),
+        FileSystemDocumentStore(tmp_path, CHUNK_BYTES),
         cast(Any, FakeDocumentRepository()),
+        SETTINGS.failure_reason_max_chars,
     )
 
-    report = asyncio.run(process_queue(queue, context, delay_seconds=0))
+    report = asyncio.run(
+        process_queue(queue, context, delay_seconds=0, limit=SETTINGS.label_queue_batch)
+    )
 
     assert (report.added, report.failed) == (0, 1)
     assert queue.entries["broken"].status is QueueStatus.FAILED
@@ -176,11 +184,12 @@ def test_a_label_with_a_stored_pdf_is_marked_with_that_reason(tmp_path: Path) ->
     context = QueueContext(
         FakeSource(payloads={OTHER: b"%PDF-1.7 " + KNOWN_SET_ID.encode()}),
         FakeReader(),
-        FileSystemDocumentStore(tmp_path),
+        FileSystemDocumentStore(tmp_path, CHUNK_BYTES),
         cast(Any, repo),
+        SETTINGS.failure_reason_max_chars,
     )
 
-    asyncio.run(process_queue(queue, context, delay_seconds=0))
+    asyncio.run(process_queue(queue, context, delay_seconds=0, limit=SETTINGS.label_queue_batch))
 
     assert queue.entries[OTHER].status is QueueStatus.FAILED
     assert (

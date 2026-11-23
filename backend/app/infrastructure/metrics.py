@@ -121,8 +121,8 @@ class PoolStats(Protocol):
     def get_stats(self) -> dict[str, int]: ...
 
 
-async def watch_pool(pool: PoolStats, every: float = 5.0) -> None:
-    """Copies the pool counters into the gauge until cancelled."""
+async def watch_pool(pool: PoolStats, every: float) -> None:
+    """Copies the pool counters into the gauge every few seconds until cancelled."""
     while True:
         stats = pool.get_stats()
         DB_POOL.labels("open").set(stats.get("pool_size", 0))

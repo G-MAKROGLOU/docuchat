@@ -30,6 +30,10 @@ check_empty() {
 
 check_empty backend/.env OPENROUTER_API_KEY OPENROUTER_BASE_URL LLM_CHAT_MODEL LLM_REWRITE_MODEL \
   LLM_GRADE_MODEL LLM_GENERATE_MODEL EMBEDDING_MODEL EMBEDDING_DIMENSIONS STORAGE_BACKEND S3_BUCKET S3_REGION
+# The tuning values: every name in the Tuning section of backend/.env.example.
+tuning=$(sed -n '/^# --- Tuning/,/^# --- Optional/p' /workspace/backend/.env.example | sed -n 's/^\([A-Z0-9_]*\)=.*/\1/p')
+# shellcheck disable=SC2086  # one name per word
+check_empty backend/.env $tuning
 check_empty infra/.env POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB S3_ACCESS_KEY S3_SECRET_KEY
 
 case "$EMBEDDING_DIMENSIONS" in

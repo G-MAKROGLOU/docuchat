@@ -18,6 +18,7 @@ from tests.support.fakes_ingestion import (
     ListedDocuments,
     StubIngestionControl,
 )
+from tests.support.tuning import SETTINGS
 
 
 class FakeService:
@@ -47,7 +48,12 @@ def make_runner(service: FakeService) -> IngestionRunner:
         return UpdateReport()
 
     return IngestionRunner(
-        cast(Any, service), cast(Any, ListedDocuments()), no_updates, no_queue, NeverStale()
+        cast(Any, service),
+        cast(Any, ListedDocuments()),
+        no_updates,
+        no_queue,
+        NeverStale(),
+        concurrency=SETTINGS.ingest_concurrency,
     )
 
 
@@ -300,6 +306,7 @@ def test_a_pass_takes_the_queue_until_it_is_empty_before_it_ingests() -> None:
             no_updates,
             take_queue,
             FakeTracker(stale=False),
+            concurrency=SETTINGS.ingest_concurrency,
         )
         runner.start()
         await runner._task  # type: ignore[misc]

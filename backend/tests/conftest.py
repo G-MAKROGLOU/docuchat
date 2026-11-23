@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 
@@ -21,6 +22,13 @@ TEST_ENV = {
     "STORAGE_BACKEND": "filesystem",
     "STORAGE_FS_ROOT": tempfile.mkdtemp(prefix="storage-"),
 }
+# The tuning values: the documented ones from .env.example.
+_EXAMPLE = (Path(__file__).parents[1] / ".env.example").read_text(encoding="utf-8")
+_TUNING = _EXAMPLE.split("# --- Tuning", 1)[1].split("# --- Optional", 1)[0]
+for line in _TUNING.splitlines():
+    if line and not line.startswith("#"):
+        key, _, value = line.partition("=")
+        TEST_ENV[key] = value
 for key, value in TEST_ENV.items():
     os.environ[key] = value
 # Keys from a developer .env must not start a real Langfuse client in tests.

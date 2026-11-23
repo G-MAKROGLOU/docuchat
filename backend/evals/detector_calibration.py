@@ -14,15 +14,12 @@ import json
 import sys
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from app.application.drug_detection import (
-    AMBIGUITY_MARGIN,
-    CANDIDATE_FLOOR,
-    FUZZY_THRESHOLD,
     DrugDetection,
     DrugDetector,
     DrugEntry,
@@ -33,6 +30,7 @@ from app.domain.ports import NameSimilarity
 from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
+from app.wiring import detector_thresholds
 
 QUESTION = "What is the dose of {}?"
 # The detector ignores shorter names.
@@ -162,12 +160,13 @@ class CachedSimilarity:
 def _detector(
     entries: Sequence[DrugEntry], similarity: NameSimilarity, t: Thresholds
 ) -> DrugDetector:
+    calibrated = detector_thresholds(get_settings())
     return DrugDetector(
         list(entries),
         similarity,
-        fuzzy_threshold=t.fuzzy,
-        candidate_floor=t.floor,
-        ambiguity_margin=t.margin,
+        replace(
+            calibrated, fuzzy_threshold=t.fuzzy, candidate_floor=t.floor, ambiguity_margin=t.margin
+        ),
     )
 
 
@@ -256,10 +255,12 @@ def main() -> int:
     cases = build_cases(entries)
     similarity = CachedSimilarity(RapidFuzzSimilarity())
     rows = [_row(t, evaluate(entries, similarity, t, cases)) for t in grid()]
+    now = detector_thresholds(get_settings())
     current = next(
         r
         for r in rows
-        if r["thresholds"] == Thresholds(FUZZY_THRESHOLD, CANDIDATE_FLOOR, AMBIGUITY_MARGIN)
+        if r["thresholds"]
+        == Thresholds(now.fuzzy_threshold, now.candidate_floor, now.ambiguity_margin)
     )
     chosen = best(rows)
     kinds = Counter(c.kind for c in cases)

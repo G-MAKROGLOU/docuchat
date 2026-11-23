@@ -3,6 +3,7 @@ import uuid
 from app.domain.documents import Document, DocumentStatus
 from app.wiring import drug_detector
 from tests.support.factories import make_document
+from tests.support.tuning import THRESHOLDS
 
 
 def document(brand: str, generic: str, status: DocumentStatus) -> Document:
@@ -15,7 +16,8 @@ def test_the_catalog_has_ingested_labels_named_by_brand_else_generic() -> None:
             document("Lipitor", "atorvastatin", DocumentStatus.INGESTED),
             document("", "terbinafine", DocumentStatus.INGESTED),
             document("Crestor", "rosuvastatin", DocumentStatus.STORED),
-        ]
+        ],
+        THRESHOLDS,
     )
 
     assert detector.detect("atorvastatin, terbinafine or Crestor?").drugs == (

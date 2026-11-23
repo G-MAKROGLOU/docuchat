@@ -14,6 +14,7 @@ from app.domain.storage import label_key
 from app.infrastructure.storage import FileSystemDocumentStore
 from tests.support.factories import make_document
 from tests.support.fakes_ingestion import FakeDocumentRepository, FakeSource
+from tests.support.tuning import CHUNK_BYTES
 
 MANIFEST = """
 {"source": "DailyMed", "pdf_url_template": "https://example.test/{source_id}",
@@ -32,7 +33,7 @@ MANIFEST = """
 def run(
     entries: list[CorpusEntry], source: FakeSource, repo: FakeDocumentRepository, tmp_path: Path
 ) -> dict[str, int]:
-    store = FileSystemDocumentStore(tmp_path)
+    store = FileSystemDocumentStore(tmp_path, CHUNK_BYTES)
     report = asyncio.run(download_corpus(entries, source, store, repo, delay_seconds=0))
     return {"downloaded": report.downloaded, "skipped": report.skipped, "failed": report.failed}
 
@@ -52,8 +53,8 @@ def test_download_stores_documents_and_a_second_run_downloads_nothing(tmp_path: 
     assert stored.brand_name == ""
     assert stored.sha256 == hashlib.sha256(b"%PDF-1.7 s2").hexdigest()
     assert stored.storage_key == f"documents/{stored.id}/{stored.sha256}.pdf"
-    assert FileSystemDocumentStore(tmp_path).exists(stored.storage_key)
-    assert FileSystemDocumentStore(tmp_path).exists(label_key(stored.id))
+    assert FileSystemDocumentStore(tmp_path, CHUNK_BYTES).exists(stored.storage_key)
+    assert FileSystemDocumentStore(tmp_path, CHUNK_BYTES).exists(label_key(stored.id))
 
     source.calls.clear()
     assert run(entries, source, repo, tmp_path) == {"downloaded": 0, "skipped": 3, "failed": 0}
@@ -116,18 +117,20 @@ def test_missing_object_for_a_known_document_is_stored_again(tmp_path: Path) -> 
     known = known_document()
 
     assert run(ENTRY, FakeSource(), FakeDocumentRepository(known), tmp_path)["downloaded"] == 1
-    assert FileSystemDocumentStore(tmp_path).exists(known.storage_key)
-    assert FileSystemDocumentStore(tmp_path).exists(label_key(known.id))
+    assert FileSystemDocumentStore(tmp_path, CHUNK_BYTES).exists(known.storage_key)
+    assert FileSystemDocumentStore(tmp_path, CHUNK_BYTES).exists(label_key(known.id))
 
 
 def test_a_known_document_without_its_label_gets_only_the_label(tmp_path: Path) -> None:
     known = known_document()
-    FileSystemDocumentStore(tmp_path).put(known.storage_key, b"%PDF-1.7 s1", "application/pdf")
+    FileSystemDocumentStore(tmp_path, CHUNK_BYTES).put(
+        known.storage_key, b"%PDF-1.7 s1", "application/pdf"
+    )
     source = FakeSource()
 
     assert run(ENTRY, source, FakeDocumentRepository(known), tmp_path)["downloaded"] == 1
     assert source.calls == ["s1.xml"]
-    assert FileSystemDocumentStore(tmp_path).exists(label_key(known.id))
+    assert FileSystemDocumentStore(tmp_path, CHUNK_BYTES).exists(label_key(known.id))
 
 
 @pytest.mark.parametrize("bad", ['{"documents": [{"source_id": "x"}]}', "[]"])

@@ -1,6 +1,7 @@
 import asyncio
 
 from app.application.drug_detection import DetectorCache
+from tests.support.tuning import SETTINGS
 
 
 class Library:
@@ -19,7 +20,9 @@ class Library:
 
 def test_the_detector_is_built_once_while_the_library_is_unchanged() -> None:
     library = Library()
-    cache = DetectorCache(library.current_version, library.load)
+    cache = DetectorCache(
+        library.current_version, library.load, min_interval=SETTINGS.detector_rebuild_seconds
+    )
 
     async def calls() -> list[str]:
         return [await cache(), await cache(), await cache()]
@@ -42,7 +45,9 @@ def test_a_library_change_rebuilds_the_detector() -> None:
 
 def test_concurrent_first_calls_build_the_detector_once() -> None:
     library = Library()
-    cache = DetectorCache(library.current_version, library.load)
+    cache = DetectorCache(
+        library.current_version, library.load, min_interval=SETTINGS.detector_rebuild_seconds
+    )
 
     async def calls() -> list[str]:
         return list(await asyncio.gather(*(cache() for _ in range(20))))

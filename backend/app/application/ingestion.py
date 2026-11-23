@@ -9,7 +9,7 @@ from uuid import UUID
 
 from app.application.chunking import build_chunks, embedding_input
 from app.application.label_sections import split_sections
-from app.application.page_locator import PageLocator
+from app.application.page_locator import LocatorLimits, PageLocator
 from app.domain.documents import (
     Document,
     DocumentLocks,
@@ -28,16 +28,22 @@ from app.domain.ports import (
 from app.domain.storage import DocumentStore, ObjectNotFoundError, label_key
 
 logger = logging.getLogger(__name__)
-# More chunks than this share without a page match means the PDF is another version.
-MAX_PAGE_MISSES = 0.2
-FAILURE_REASON_MAX = 500
 
 
-def public_reason(exc: Exception) -> str:
+@dataclass(frozen=True, slots=True)
+class IngestLimits:
+    anchor_words: int
+    # More chunks than this share without a page match means the PDF is another version.
+    max_page_misses: float
+    failure_reason_max_chars: int
+    locator: LocatorLimits
+
+
+def public_reason(exc: Exception, max_chars: int) -> str:
     """The failure text that the API returns. Our own checks raise ValueError with a message
     for the user; driver, S3 and HTTP messages can hold hosts or SQL, so only their type."""
     text = str(exc) if isinstance(exc, ValueError) else ""
-    return (text or type(exc).__name__)[:FAILURE_REASON_MAX]
+    return (text or type(exc).__name__)[:max_chars]
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,6 +67,7 @@ class IngestionService:
     embedder: Embedder
     embedding_model: str
     embedding_prefix: bool
+    limits: IngestLimits
     # Keeps the ingest worker and the ingest command off the same document.
     locks: DocumentLocks | None = None
 
@@ -86,7 +93,7 @@ class IngestionService:
             return await self._ingest(document)
         except Exception as exc:
             logger.exception("ingestion failed", extra={"document_id": str(document.id)})
-            error = public_reason(exc)
+            error = public_reason(exc, self.limits.failure_reason_max_chars)
             await self.documents.update_ingestion(
                 document.id, DocumentStatus.FAILED, failure_reason=error
             )
@@ -132,11 +139,18 @@ class IngestionService:
             raise ValueError("The label XML is not stored; run the corpus download") from exc
         pages = self.pdf_parser.page_texts(pdf)
         sections = split_sections(self.label_parser.sections(label))
-        locator = PageLocator(pages)
-        drafts = build_chunks(document, sections, self.splitter, self.counter, locator.locate_all)
+        locator = PageLocator(pages, self.limits.locator)
+        drafts = build_chunks(
+            document,
+            sections,
+            self.splitter,
+            self.counter,
+            locator.locate_all,
+            anchor_words=self.limits.anchor_words,
+        )
         if not drafts:
             raise ValueError("The label gave no chunks")
-        if locator.misses > MAX_PAGE_MISSES * len(drafts):
+        if locator.misses > self.limits.max_page_misses * len(drafts):
             raise ValueError(
                 f"The PDF does not match the label XML: {locator.misses} of {len(drafts)} "
                 "chunks are not in the PDF"

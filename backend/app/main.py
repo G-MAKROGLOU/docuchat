@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.factory import create_api
-from app.application.ingestion_control import HEARTBEAT_LIMIT, IngestionControl
+from app.application.ingestion_control import IngestionControl
 from app.application.readiness import ReadinessCheck
 from app.config import Settings, get_settings
 from app.domain.runtime_settings import RuntimeSettings
@@ -27,7 +27,7 @@ from app.infrastructure.runtime_settings_repository import PostgresRuntimeSettin
 from app.infrastructure.storage import build_document_store
 from app.infrastructure.tracing import build_tracer
 from app.runtime_config import RuntimeConfig
-from app.wiring import chat_service, default_runtime_settings
+from app.wiring import chat_service, default_runtime_settings, heartbeat_limit
 
 
 @asynccontextmanager
@@ -48,10 +48,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.corpus_stats_repository = CachedCorpusStats(
             PostgresCorpusStatsRepository(app.state.pool),
             app.state.document_repository.ingested_version,
+            min_interval=app.state.settings.detector_rebuild_seconds,
         )
         # Passes run in the ingest worker (app.ingest_worker); this process only asks for them.
         app.state.ingestion_control = IngestionControl(
-            PostgresIngestionStateRepository(app.state.pool)
+            PostgresIngestionStateRepository(app.state.pool), heartbeat_limit(app.state.settings)
         )
 
         async def rebuild(new: RuntimeSettings) -> Callable[[], None]:
@@ -66,15 +67,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             PostgresRuntimeSettingsRepository(app.state.pool),
             default_runtime_settings(app.state.settings),
             rebuild,
+            refresh_seconds=app.state.settings.runtime_refresh_seconds,
             request_pass=lambda: app.state.ingestion_control.request(force=True),
         )
         await app.state.runtime_config.load()
         # The S3 adapter creates the bucket here when it is absent.
         app.state.document_store = await asyncio.to_thread(build_document_store, app.state.settings)
         app.state.label_queue_repository = PostgresLabelQueueRepository(app.state.pool)
-        app.state.label_catalog = DailyMedCatalog()
+        app.state.label_catalog = DailyMedCatalog(
+            timeout_seconds=app.state.settings.catalog_timeout_seconds,
+            max_bytes=app.state.settings.source_max_bytes,
+        )
         app.state.readiness_checks = readiness_checks(app)
-        pool_watch = asyncio.create_task(watch_pool(app.state.pool))
+        pool_watch = asyncio.create_task(
+            watch_pool(app.state.pool, app.state.settings.pool_metrics_interval_seconds)
+        )
         yield
         pool_watch.cancel()
     finally:
@@ -89,6 +96,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def readiness_checks(app: FastAPI) -> list[ReadinessCheck]:
     pool, store, control = app.state.pool, app.state.document_store, app.state.ingestion_control
+    limit = heartbeat_limit(app.state.settings).total_seconds()
 
     async def database() -> tuple[bool, str | None]:
         async with pool.connection() as conn:
@@ -104,7 +112,7 @@ def readiness_checks(app: FastAPI) -> list[ReadinessCheck]:
         age = await control.heartbeat_age()
         if age is None:
             return False, "no heartbeat"
-        return age <= HEARTBEAT_LIMIT.total_seconds(), f"last heartbeat {age:.0f} s ago"
+        return age <= limit, f"last heartbeat {age:.0f} s ago"
 
     return [
         ReadinessCheck("database", True, database),
@@ -118,7 +126,8 @@ def create_app(settings: Settings) -> FastAPI:
     app = create_api(lifespan)
     app.state.settings = settings
     database_url = settings.database_url.get_secret_value()
-    app.state.database_probe = PostgresProbe(database_url)
+    app.state.database_probe = PostgresProbe(database_url, settings.db_probe_timeout_seconds)
+    app.state.thumbnail_slots = asyncio.Semaphore(settings.thumbnail_concurrency)
     app.state.tracer = build_tracer(settings)
     return app
 

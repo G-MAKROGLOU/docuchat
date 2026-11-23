@@ -10,6 +10,7 @@ Source material for the author, who writes `README.md`. Each fact names its evid
 - On the first start, `corpus-init` puts the labels of `backend/corpus/manifest.json` into the label queue and asks the ingest worker for a pass. The worker downloads them from DailyMed and ingests them; the Corpus page shows the queue. A full ingest of the 53 labels: 3956 chunks, about 1.25 M tokens, about 0.025 USD of embeddings, about 85 s (agent-log, RAG fix 6).
 - URLs (ports in `infra/.env`): app `http://localhost:3000`, API docs `http://localhost:8000/api/v1/docs`, Grafana `http://127.0.0.1:3001`, Prometheus `http://127.0.0.1:9090`.
 - Langfuse tracing is optional: set the three `LANGFUSE_*` values in `backend/.env`.
+- Every tunable number is a required variable in the Tuning section of `backend/.env.example` (76 values: database pool, timeouts, cache lifetimes, model limits, chat and search limits, detector thresholds, worker intervals, DailyMed pacing). Preflight and the setup scripts read the names from that section and stop on an empty value. Only fixed rules stay in code: the API request limits, the 17 top-level label sections of the regulation, HTTP status codes, retry doubling, the advisory lock key.
 
 ## What is in the box
 

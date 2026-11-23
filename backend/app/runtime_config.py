@@ -16,8 +16,6 @@ logger = logging.getLogger(__name__)
 # Saved next to the settings: the chunk settings and embedding model that the index was built with.
 EMBEDDED_KEY = "embedded_index"
 _INDEX = INDEX_FIELDS
-# How often a process looks for a save by another process.
-REFRESH_SECONDS = 1.0
 
 # Builds the services for the settings and returns the step that puts them in use.
 Rebuild = Callable[[RuntimeSettings], Awaitable[Callable[[], None]]]
@@ -28,15 +26,18 @@ def _index(settings: RuntimeSettings) -> dict[str, object]:
 
 
 class RuntimeConfig:
-    def __init__(
+    def __init__(  # noqa: PLR0913  # three ports, the refresh interval and two hooks
         self,
         repository: RuntimeSettingsRepository,
         defaults: RuntimeSettings,
         rebuild: Rebuild,
         *,
+        refresh_seconds: float,
         request_pass: Callable[[], Awaitable[bool]] | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
+        """refresh_seconds: how often this process looks for a save by another process."""
+        self._refresh_seconds = refresh_seconds
         self._repository = repository
         self._defaults = defaults
         self._rebuild = rebuild
@@ -63,7 +64,7 @@ class RuntimeConfig:
     async def refresh(self) -> bool:
         """Use the settings that another process saved. True when they changed. A failed
         rebuild keeps the running settings and is tried again at the next check."""
-        if self._clock() - self._checked_at < REFRESH_SECONDS:
+        if self._clock() - self._checked_at < self._refresh_seconds:
             return False
         self._checked_at = self._clock()
         async with self._lock:

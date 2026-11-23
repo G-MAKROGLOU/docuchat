@@ -20,21 +20,17 @@ _ROLES = {"human": "user", "ai": "assistant", "system": "system"}
 _RETRY_STATUSES = {408, 429, 500, 502, 503, 504}
 
 
-FIRST_BACKOFF_SECONDS = 1.0
-MAX_BACKOFF_SECONDS = 10.0
-
-
 class ModelStreamError(RuntimeError):
     pass
 
 
-def _retry_after(response: httpx.Response) -> float:
-    """The wait that a 429 or 5xx asks for, else one second; never more than ten."""
+def _retry_after(response: httpx.Response, first: float, most: float) -> float:
+    """The wait that a 429 or 5xx asks for, else first; never more than most."""
     try:
-        wait = float(response.headers.get("retry-after", FIRST_BACKOFF_SECONDS))
+        wait = float(response.headers.get("retry-after", first))
     except ValueError:
-        wait = FIRST_BACKOFF_SECONDS
-    return min(max(wait, 0.0), MAX_BACKOFF_SECONDS)
+        wait = first
+    return min(max(wait, 0.0), most)
 
 
 def usage_metadata(usage: dict[str, Any]) -> UsageMetadata:
@@ -66,8 +62,10 @@ class OpenRouterStreamChat(BaseChatModel):
     api_key: SecretStr
     max_tokens: int
     reasoning_effort: str
-    timeout: float = 60.0
-    max_retries: int = 1
+    timeout: float
+    max_retries: int
+    first_backoff_seconds: float
+    max_backoff_seconds: float
     # Tests pass a mock transport and a sleep that records; production uses the defaults.
     transport: httpx.AsyncBaseTransport | None = None
     sleep: Callable[[float], Awaitable[None]] = Field(default=asyncio.sleep, exclude=True)
@@ -139,7 +137,11 @@ class OpenRouterStreamChat(BaseChatModel):
                     if response.status_code != httpx.codes.OK:
                         text = (await response.aread()).decode(errors="replace")[:300]
                         if response.status_code in _RETRY_STATUSES and not last:
-                            await self.sleep(_retry_after(response))
+                            await self.sleep(
+                                _retry_after(
+                                    response, self.first_backoff_seconds, self.max_backoff_seconds
+                                )
+                            )
                             continue
                         raise ModelStreamError(f"model call failed: {response.status_code} {text}")
                     async for line in response.aiter_lines():
@@ -156,7 +158,7 @@ class OpenRouterStreamChat(BaseChatModel):
                 # A second try after text was sent would repeat that text.
                 if started or last:
                     raise ModelStreamError(f"model call failed: {type(exc).__name__}") from exc
-                await self.sleep(FIRST_BACKOFF_SECONDS)
+                await self.sleep(self.first_backoff_seconds)
 
     @staticmethod
     def _chunks(event: dict[str, Any]) -> Iterator[ChatGenerationChunk]:

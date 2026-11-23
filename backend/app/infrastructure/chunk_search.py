@@ -28,7 +28,6 @@ _FIELDS = (
 )
 _COLUMNS = sql.SQL(", ").join(map(sql.Identifier, _FIELDS))
 # A title match counts half a content match. ASSUMED value, to tune on the golden set.
-TITLE_BOOST = 0.5
 
 
 def _filter(labels: Sequence[UUID]) -> tuple[sql.Composable, tuple[Any, ...]]:
@@ -38,7 +37,16 @@ def _filter(labels: Sequence[UUID]) -> tuple[sql.Composable, tuple[Any, ...]]:
 
 
 class PostgresChunkSearch:
-    def __init__(self, connections: Connections, embedding_model: str | None = None) -> None:
+    def __init__(
+        self,
+        connections: Connections,
+        embedding_model: str | None,
+        *,
+        title_boost: float,
+        phrase_boost: float,
+    ) -> None:
+        self._title_boost = title_boost
+        self._phrase_boost = phrase_boost
         self._connections = connections
         # Vectors of another model are not comparable; a re-embed pass can leave both for a while.
         self._model = embedding_model
@@ -71,10 +79,10 @@ class PostgresChunkSearch:
         # "5 mg ... twice daily". A section title match ("Lactation") adds a smaller share.
         statement = sql.SQL(
             "SELECT {} FROM chunks "
-            "WHERE (content ||| %s OR content ### %s::pdb.boost(2) "
+            "WHERE (content ||| %s OR content ### %s::pdb.boost({}) "
             "OR section_title ||| %s::pdb.boost({})){} "
             "ORDER BY pdb.score(id) DESC LIMIT %s"
-        ).format(_COLUMNS, sql.Literal(TITLE_BOOST), where)
+        ).format(_COLUMNS, sql.Literal(self._phrase_boost), sql.Literal(self._title_boost), where)
         async with self._connections.connection() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             with SEARCH_SECONDS.labels("bm25").time():

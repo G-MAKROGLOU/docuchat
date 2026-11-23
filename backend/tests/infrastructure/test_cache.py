@@ -12,6 +12,7 @@ import pytest
 from app.domain.entities import Message, MessageRole
 from app.infrastructure.cache import KEY_PREFIX, CachedChatModel, CachedEmbedder, RedisCache
 from tests.support.fakes_ports import FakeCache
+from tests.support.tuning import SETTINGS
 
 
 class CountingEmbedder:
@@ -35,8 +36,8 @@ def run(coro: Any) -> Any:
 def test_a_repeated_question_is_embedded_once_for_all_processes() -> None:
     inner, cache = CountingEmbedder(), FakeCache()
     # Two processes: two embedders on one shared cache.
-    first = CachedEmbedder(inner, cache, "m/embed", 2)
-    second = CachedEmbedder(inner, cache, "m/embed", 2)
+    first = CachedEmbedder(inner, cache, "m/embed", 2, SETTINGS.cache_embedding_ttl_seconds)
+    second = CachedEmbedder(inner, cache, "m/embed", 2, SETTINGS.cache_embedding_ttl_seconds)
 
     a = run(first.embed_query("lipitor dose"))
     b = run(second.embed_query("lipitor dose"))
@@ -53,9 +54,21 @@ def test_a_repeated_question_is_embedded_once_for_all_processes() -> None:
 def test_another_model_or_size_never_reuses_a_vector() -> None:
     inner, cache = CountingEmbedder(), FakeCache()
 
-    run(CachedEmbedder(inner, cache, "m/embed", 2).embed_query("dose"))
-    run(CachedEmbedder(inner, cache, "m/other", 2).embed_query("dose"))
-    run(CachedEmbedder(inner, cache, "m/embed", 3).embed_query("dose"))
+    run(
+        CachedEmbedder(
+            inner, cache, "m/embed", 2, SETTINGS.cache_embedding_ttl_seconds
+        ).embed_query("dose")
+    )
+    run(
+        CachedEmbedder(
+            inner, cache, "m/other", 2, SETTINGS.cache_embedding_ttl_seconds
+        ).embed_query("dose")
+    )
+    run(
+        CachedEmbedder(
+            inner, cache, "m/embed", 3, SETTINGS.cache_embedding_ttl_seconds
+        ).embed_query("dose")
+    )
 
     assert inner.queries == ["dose", "dose", "dose"]
 
@@ -63,7 +76,11 @@ def test_another_model_or_size_never_reuses_a_vector() -> None:
 def test_document_vectors_are_not_cached() -> None:
     inner, cache = CountingEmbedder(), FakeCache()
 
-    run(CachedEmbedder(inner, cache, "m/embed", 2).embed_documents(["a", "b"]))
+    run(
+        CachedEmbedder(
+            inner, cache, "m/embed", 2, SETTINGS.cache_embedding_ttl_seconds
+        ).embed_documents(["a", "b"])
+    )
 
     assert inner.documents == [["a", "b"]]
     assert cache.values == {}
@@ -71,10 +88,12 @@ def test_document_vectors_are_not_cached() -> None:
 
 def test_an_unreachable_cache_counts_as_a_miss() -> None:
     async def scenario() -> tuple[bytes | None, list[float]]:
-        cache = RedisCache("redis://127.0.0.1:1/0")
+        cache = RedisCache("redis://127.0.0.1:1/0", SETTINGS.cache_timeout_seconds)
         try:
             await cache.set("embedding:x", b"1", 60)
-            embedder = CachedEmbedder(CountingEmbedder(), cache, "m/embed", 2)
+            embedder = CachedEmbedder(
+                CountingEmbedder(), cache, "m/embed", 2, SETTINGS.cache_embedding_ttl_seconds
+            )
             return await cache.get("embedding:x"), await embedder.embed_query("dose")
         finally:
             await cache.aclose()
@@ -106,16 +125,16 @@ def conversation(question: str) -> list[Message]:
 
 def test_the_same_messages_give_the_same_reply_from_the_cache() -> None:
     inner, cache = CountingChat(), FakeCache()
-    model = CachedChatModel(inner, cache, "m/rewrite:low")
+    model = CachedChatModel(inner, cache, "m/rewrite:low", SETTINGS.cache_chat_ttl_seconds)
 
     async def scenario() -> list[str]:
         return [
             await model.complete(conversation("Lipitor in pregnancy?")),
             await model.complete(conversation("Lipitor in pregnancy?")),
             await model.complete(conversation("Crestor dose?")),
-            await CachedChatModel(inner, cache, "m/other:low").complete(
-                conversation("Crestor dose?")
-            ),
+            await CachedChatModel(
+                inner, cache, "m/other:low", SETTINGS.cache_chat_ttl_seconds
+            ).complete(conversation("Crestor dose?")),
         ]
 
     assert run(scenario()) == ["reply 1", "reply 1", "reply 2", "reply 3"]
@@ -124,7 +143,7 @@ def test_the_same_messages_give_the_same_reply_from_the_cache() -> None:
 
 def test_structured_and_streamed_calls_are_not_cached() -> None:
     inner, cache = CountingChat(), FakeCache()
-    model = CachedChatModel(inner, cache, "m/rewrite:low")
+    model = CachedChatModel(inner, cache, "m/rewrite:low", SETTINGS.cache_chat_ttl_seconds)
 
     async def scenario() -> None:
         for _ in range(2):
@@ -148,7 +167,10 @@ def test_values_are_shared_and_expire() -> None:
     key = f"test:{uuid.uuid4()}"
 
     async def scenario() -> tuple[bytes | None, bytes | None, int]:
-        writer, reader = RedisCache(url), RedisCache(url)
+        writer, reader = (
+            RedisCache(url, SETTINGS.cache_timeout_seconds),
+            RedisCache(url, SETTINGS.cache_timeout_seconds),
+        )
         try:
             missing = await reader.get(key)
             await writer.set(key, b"\x00png", 60)

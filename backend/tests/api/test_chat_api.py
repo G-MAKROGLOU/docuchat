@@ -20,6 +20,7 @@ from tests.support.fakes_ports import (
     FakeTracer,
 )
 from tests.support.http import sse_events
+from tests.support.tuning import CHAT
 
 
 @pytest.fixture
@@ -31,6 +32,7 @@ def client() -> Iterator[TestClient]:
         FakeDetector(DrugDetection()).source,
         FakeRetriever(),
         FakeTracer(),
+        limits=CHAT,
     )
     app.dependency_overrides[get_chat_service] = lambda: service
     yield TestClient(app)
@@ -98,6 +100,7 @@ def service_with(models: FakeModels, detection: DrugDetection, *chunks: Chunk) -
         FakeDetector(detection).source,
         FakeRetriever(*chunks),
         FakeTracer(),
+        limits=CHAT,
     )
 
 

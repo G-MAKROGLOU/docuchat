@@ -13,10 +13,6 @@ from app.domain.ingestion_state import IngestionPhase, IngestionStateRepository
 
 logger = logging.getLogger(__name__)
 
-# The worker reports every TICK; after HEARTBEAT_LIMIT without a report it counts as gone.
-TICK = timedelta(seconds=1)
-HEARTBEAT_LIMIT = timedelta(seconds=60)
-
 
 @dataclass(frozen=True, slots=True)
 class IngestionStatus:
@@ -31,15 +27,18 @@ class IngestionControl:
     def __init__(
         self,
         state: IngestionStateRepository,
+        heartbeat_limit: timedelta,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
+        """heartbeat_limit: a worker without a report for this long counts as gone."""
         self._state = state
+        self._heartbeat_limit = heartbeat_limit
         self._clock = clock
 
     async def status(self) -> IngestionStatus:
         state = await self._state.load()
         alive = state.heartbeat_at is not None and (
-            self._clock() - state.heartbeat_at <= HEARTBEAT_LIMIT
+            self._clock() - state.heartbeat_at <= self._heartbeat_limit
         )
         phase: IngestionPhase = state.phase if alive else "idle"
         return IngestionStatus(
@@ -84,7 +83,10 @@ class IngestWorker:
         runner: PassRunner,
         state: IngestionStateRepository,
         refresh_settings: Callable[[], Awaitable[bool]],
+        tick: timedelta,
     ) -> None:
+        """tick: how often the worker takes requests and reports."""
+        self._tick = tick
         self._runner = runner
         self._state = state
         self._refresh_settings = refresh_settings
@@ -105,4 +107,4 @@ class IngestWorker:
             except Exception:
                 logger.exception("ingest worker tick failed")
             with contextlib.suppress(TimeoutError):
-                await asyncio.wait_for(stop.wait(), TICK.total_seconds())
+                await asyncio.wait_for(stop.wait(), self._tick.total_seconds())

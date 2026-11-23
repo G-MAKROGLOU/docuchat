@@ -37,7 +37,16 @@ class Opener:
 
 
 def dailymed_client(opener: Opener, waits: list[float]) -> DailyMedClient:
-    return DailyMedClient(TEMPLATE, TEMPLATE, opener=opener, sleep=waits.append)
+    return DailyMedClient(
+        TEMPLATE,
+        TEMPLATE,
+        timeout_seconds=60,
+        max_bytes=1024,
+        attempts=3,
+        first_backoff_seconds=1.0,
+        opener=opener,
+        sleep=waits.append,
+    )
 
 
 def test_a_server_error_or_a_timeout_is_tried_again_with_backoff() -> None:

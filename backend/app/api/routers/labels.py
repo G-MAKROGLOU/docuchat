@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.api.dependencies import (
+    get_app_settings,
     get_document_repository,
     get_label_catalog,
     get_label_queue_repository,
@@ -16,19 +17,16 @@ from app.api.schemas.labels import (
     QueueResponse,
 )
 from app.application.label_queue import (
-    LABELS_PER_PASS,
     LabelKnownError,
     LabelNotFoundError,
     add_label,
 )
+from app.config import Settings
 from app.domain.documents import DocumentRepository
 from app.domain.label_queue import LabelCatalog, LabelQueueRepository, QueueEntry
 
 router = APIRouter(tags=["labels"])
 
-SEARCH_LIMIT = 20
-# DailyMed is asked for more, because the labels that are known already are left out.
-FETCH_LIMIT = 50
 CATALOG_ERRORS = (OSError, ValueError, KeyError)
 UNAVAILABLE = "DailyMed could not be reached."
 
@@ -46,6 +44,7 @@ def _entry(entry: QueueEntry) -> QueueEntryResponse:
 @router.get("/labels")
 async def list_labels(
     queue: Annotated[LabelQueueRepository, Depends(get_label_queue_repository)],
+    settings: Annotated[Settings, Depends(get_app_settings)],
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 10,
 ) -> QueueResponse:
@@ -56,7 +55,7 @@ async def list_labels(
         queued_total=listing.queued_total,
         added_total=listing.added_total,
         failed_total=listing.failed_total,
-        labels_per_pass=LABELS_PER_PASS,
+        labels_per_pass=settings.label_queue_batch,
     )
 
 
@@ -65,17 +64,19 @@ async def search_labels(
     catalog: Annotated[LabelCatalog, Depends(get_label_catalog)],
     queue: Annotated[LabelQueueRepository, Depends(get_label_queue_repository)],
     documents: Annotated[DocumentRepository, Depends(get_document_repository)],
+    settings: Annotated[Settings, Depends(get_app_settings)],
     q: Annotated[str, Query(min_length=2, max_length=100)],
 ) -> list[CatalogLabelResponse]:
     """Labels that DailyMed has for the name, without those in the corpus or in the queue."""
+    # DailyMed is asked for more than are shown, because the known labels are left out.
     try:
-        found = await asyncio.to_thread(catalog.search, q, FETCH_LIMIT)
+        found = await asyncio.to_thread(catalog.search, q, settings.label_fetch_limit)
     except CATALOG_ERRORS:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, UNAVAILABLE) from None
     set_ids = [label.set_id for label in found]
     taken = await queue.known(set_ids) | await documents.known_source_ids(set_ids)
     new = [label for label in found if label.set_id not in taken]
-    return [CatalogLabelResponse(**asdict(label)) for label in new[:SEARCH_LIMIT]]
+    return [CatalogLabelResponse(**asdict(label)) for label in new[: settings.label_search_limit]]
 
 
 @router.post(

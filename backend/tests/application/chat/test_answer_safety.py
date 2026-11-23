@@ -4,6 +4,7 @@ import pytest
 
 from app.application.chat import SourceRef, parse_intake, validate_answer
 from tests.support.factories import make_chunk, sources_of
+from tests.support.tuning import CHAT
 
 
 def reply(text: str) -> str:
@@ -19,7 +20,7 @@ def reply(text: str) -> str:
     ],
 )
 def test_a_plain_intake_reply_is_kept(text: str) -> None:
-    assert parse_intake(reply(text)) == ("reply", text)
+    assert parse_intake(reply(text), CHAT.max_reply_chars) == ("reply", text)
 
 
 @pytest.mark.parametrize(
@@ -34,11 +35,11 @@ def test_a_plain_intake_reply_is_kept(text: str) -> None:
     ],
 )
 def test_an_intake_reply_with_a_dose_or_a_link_goes_to_the_search(text: str) -> None:
-    assert parse_intake(reply(text)) == ("search", "")
+    assert parse_intake(reply(text), CHAT.max_reply_chars) == ("search", "")
 
 
 def test_an_intake_reply_that_is_too_long_goes_to_the_search() -> None:
-    assert parse_intake(reply("Hello. " * 120)) == ("search", "")
+    assert parse_intake(reply("Hello. " * 120), CHAT.max_reply_chars) == ("search", "")
 
 
 def test_a_dose_that_no_cited_excerpt_has_refuses_the_answer() -> None:

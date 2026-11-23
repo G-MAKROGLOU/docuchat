@@ -16,6 +16,7 @@ from app.domain.conversations import Turn
 from app.domain.entities import Chunk, MessageRole
 from tests.support.factories import label_of
 from tests.support.fakes_models import FakeModels
+from tests.support.tuning import CHAT
 
 LIPITOR = DrugDetection(drugs=("Lipitor",), labels=(label_of("Lipitor"),))
 
@@ -138,6 +139,7 @@ def run_turn(
         retriever,
         tracer or FakeTracer(),
         grader_mode=grader_mode,
+        limits=CHAT,
     )
 
     async def scenario() -> tuple[list[dict[str, Any]], uuid.UUID]:

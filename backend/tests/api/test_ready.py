@@ -10,6 +10,7 @@ from app.application.ingestion_control import IngestionControl
 from app.application.readiness import ReadinessCheck, run_checks
 from app.domain.ingestion_state import IngestionState
 from app.main import app
+from tests.support.tuning import HEARTBEAT
 
 
 async def ok() -> tuple[bool, str | None]:
@@ -110,6 +111,6 @@ NOW = datetime(2026, 11, 22, 12, 0, tzinfo=UTC)
 def test_the_control_reports_the_heartbeat_age(
     heartbeat: datetime | None, age: float | None
 ) -> None:
-    control = IngestionControl(State(heartbeat), clock=lambda: NOW)  # type: ignore[arg-type]
+    control = IngestionControl(State(heartbeat), HEARTBEAT, clock=lambda: NOW)  # type: ignore[arg-type]
 
     assert asyncio.run(control.heartbeat_age()) == age

@@ -23,7 +23,6 @@ from app.domain.storage import DocumentStore
 
 logger = logging.getLogger(__name__)
 
-LABELS_PER_PASS = 50
 SET_ID = re.compile(r"^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 
 
@@ -104,14 +103,15 @@ class QueueContext:
     reader: LabelMetadataReader
     store: DocumentStore
     documents: DocumentRepository
+    failure_reason_max_chars: int
 
 
 async def process_queue(
     queue: LabelQueueRepository,
     context: QueueContext,
     *,
-    limit: int = LABELS_PER_PASS,
-    delay_seconds: float = 0.3,
+    limit: int,
+    delay_seconds: float,
 ) -> QueueReport:
     report = QueueReport()
     for entry in await queue.next_queued(limit):
@@ -154,5 +154,5 @@ async def _take(entry: QueueEntry, context: QueueContext, delay_seconds: float) 
             return "The download failed. See the API log."
     except Exception as exc:
         logger.exception("label queue entry failed", extra={"source_id": entry.set_id})
-        return public_reason(exc)
+        return public_reason(exc, context.failure_reason_max_chars)
     return None

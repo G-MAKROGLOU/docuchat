@@ -12,6 +12,7 @@ from typing import cast
 
 import redis.asyncio as redis
 
+from app.config import Settings
 from app.domain.entities import Message
 from app.domain.ports import Cache, ChatModel, Embedder
 from app.infrastructure.metrics import CACHE_REQUESTS
@@ -20,12 +21,6 @@ logger = logging.getLogger(__name__)
 
 # All keys start with this; the version changes when a stored value changes its format.
 KEY_PREFIX = "docuchat:v1:"
-# A slow cache must not slow a request much: after this, the value is computed instead.
-TIMEOUT_SECONDS = 0.5
-# A question vector of one model never changes; the memory limit evicts old ones first.
-EMBEDDING_TTL_SECONDS = 30 * 24 * 3600
-# A model reply for the same messages, model and effort.
-CHAT_TTL_SECONDS = 7 * 24 * 3600
 
 
 def _kind(key: str) -> str:
@@ -33,9 +28,11 @@ def _kind(key: str) -> str:
 
 
 class RedisCache:
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, timeout_seconds: float) -> None:
+        """timeout_seconds: a slow cache must not slow a request much; after this, the value
+        is computed instead."""
         self._client = redis.Redis.from_url(
-            url, socket_timeout=TIMEOUT_SECONDS, socket_connect_timeout=TIMEOUT_SECONDS
+            url, socket_timeout=timeout_seconds, socket_connect_timeout=timeout_seconds
         )
 
     async def get(self, key: str) -> bytes | None:
@@ -64,9 +61,10 @@ class RedisCache:
 _caches: dict[str, RedisCache] = {}
 
 
-def shared_cache(url: str) -> RedisCache:
+def shared_cache(settings: Settings) -> RedisCache:
+    url = settings.cache_url.get_secret_value()
     if url not in _caches:
-        _caches[url] = RedisCache(url)
+        _caches[url] = RedisCache(url, settings.cache_timeout_seconds)
     return _caches[url]
 
 
@@ -78,9 +76,13 @@ async def close_caches() -> None:
 
 
 class CachedEmbedder:
-    """Question vectors from the shared cache; document vectors always from the model."""
+    """Question vectors from the shared cache; document vectors always from the model. A question
+    vector of one model never changes; the memory limit evicts old ones first."""
 
-    def __init__(self, inner: Embedder, cache: Cache, model: str, dimensions: int) -> None:
+    def __init__(
+        self, inner: Embedder, cache: Cache, model: str, dimensions: int, ttl_seconds: int
+    ) -> None:
+        self._ttl = ttl_seconds
         self._inner = inner
         self._cache = cache
         self._namespace = f"embedding:{model}:{dimensions}:"
@@ -94,7 +96,7 @@ class CachedEmbedder:
             return array("f", cached).tolist()
         # 4-byte floats, as in the pgvector column; a miss returns the same values as a hit.
         vector = array("f", await self._inner.embed_query(text))
-        await self._cache.set(key, vector.tobytes(), EMBEDDING_TTL_SECONDS)
+        await self._cache.set(key, vector.tobytes(), self._ttl)
         return vector.tolist()
 
 
@@ -102,7 +104,8 @@ class CachedChatModel:
     """Plain replies from the shared cache when the messages are the same, so a repeated
     question gets the same search query. Structured and streamed replies are not cached."""
 
-    def __init__(self, inner: ChatModel, cache: Cache, name: str) -> None:
+    def __init__(self, inner: ChatModel, cache: Cache, name: str, ttl_seconds: int) -> None:
+        self._ttl = ttl_seconds
         self._inner = inner
         self._cache = cache
         self._namespace = f"chat:{name}:"
@@ -117,7 +120,7 @@ class CachedChatModel:
         if (cached := await self._cache.get(key)) is not None:
             return cached.decode()
         reply = await self._inner.complete(messages)
-        await self._cache.set(key, reply.encode(), CHAT_TTL_SECONDS)
+        await self._cache.set(key, reply.encode(), self._ttl)
         return reply
 
     def stream(self, messages: Sequence[Message]) -> AsyncIterator[str]:

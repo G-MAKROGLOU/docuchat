@@ -1,10 +1,10 @@
 import asyncio
 from collections.abc import Sequence
+from dataclasses import replace
 from uuid import UUID
 
 import pytest
 
-from app.application import retrieval
 from app.application.retrieval import (
     RetrievalService,
     SearchMode,
@@ -12,6 +12,7 @@ from app.application.retrieval import (
 from app.domain.entities import Chunk
 from tests.support.factories import label_of, make_chunk
 from tests.support.fakes_ingestion import QueryEmbedder
+from tests.support.tuning import SEARCH
 
 
 def chunk(name: str, drug: str = "Lipitor") -> Chunk:
@@ -38,7 +39,7 @@ def test_hybrid_runs_both_searches_with_the_same_filter() -> None:
     search, embedder = FakeSearch(), QueryEmbedder()
 
     result = asyncio.run(
-        RetrievalService(search, embedder, top_k=20).retrieve(
+        RetrievalService(search, embedder, top_k=20, limits=SEARCH).retrieve(
             "dose?", labels=[label_of("Lipitor")], section_hints=["2"]
         )
     )
@@ -62,7 +63,9 @@ def test_vector_only_mode_skips_bm25() -> None:
     search = FakeSearch()
 
     result = asyncio.run(
-        RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q", mode=SearchMode.VECTOR)
+        RetrievalService(search, QueryEmbedder(), top_k=20, limits=SEARCH).retrieve(
+            "q", mode=SearchMode.VECTOR
+        )
     )
 
     assert [c[0] for c in search.calls] == ["vector"]
@@ -72,7 +75,11 @@ def test_vector_only_mode_skips_bm25() -> None:
 def test_bm25_only_mode_does_not_embed() -> None:
     search, embedder = FakeSearch(), QueryEmbedder()
 
-    asyncio.run(RetrievalService(search, embedder, top_k=20).retrieve("q", mode=SearchMode.BM25))
+    asyncio.run(
+        RetrievalService(search, embedder, top_k=20, limits=SEARCH).retrieve(
+            "q", mode=SearchMode.BM25
+        )
+    )
 
     assert [c[0] for c in search.calls] == ["bm25"]
     assert embedder.queries == []
@@ -102,7 +109,7 @@ def test_a_comparison_searches_each_drug_on_its_own_and_embeds_the_question_once
     search, embedder = PerDrugSearch(), QueryEmbedder()
 
     result = asyncio.run(
-        RetrievalService(search, embedder, top_k=20).retrieve(
+        RetrievalService(search, embedder, top_k=20, limits=SEARCH).retrieve(
             "compare", labels=(label_of("A"), label_of("B"))
         )
     )
@@ -122,7 +129,9 @@ def test_one_drug_is_searched_once_with_its_filter() -> None:
     search = PerDrugSearch()
 
     asyncio.run(
-        RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q", labels=(label_of("A"),))
+        RetrievalService(search, QueryEmbedder(), top_k=20, limits=SEARCH).retrieve(
+            "q", labels=(label_of("A"),)
+        )
     )
 
     assert sorted(search.calls) == [("bm25", ("A",)), ("vector", ("A",))]
@@ -148,17 +157,21 @@ class FlakySearch(FakeSearch):
 def test_a_failed_search_leg_leaves_the_other_leg() -> None:
     search = FlakySearch(vector_error=TimeoutError("statement timeout"))
 
-    result = asyncio.run(RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q"))
+    result = asyncio.run(
+        RetrievalService(search, QueryEmbedder(), top_k=20, limits=SEARCH).retrieve("q")
+    )
 
     assert [f.chunk.content for f in result.candidates] == ["b"]
     assert result.degraded == ("vector",)
 
 
-def test_a_slow_search_leg_is_cut_off(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(retrieval, "LEG_TIMEOUT_SECONDS", 0.05)
+def test_a_slow_search_leg_is_cut_off() -> None:
     search = FlakySearch(vector_delay=1.0)
+    limits = replace(SEARCH, leg_timeout_seconds=0.05)
 
-    result = asyncio.run(RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q"))
+    result = asyncio.run(
+        RetrievalService(search, QueryEmbedder(), top_k=20, limits=limits).retrieve("q")
+    )
 
     assert [f.chunk.content for f in result.candidates] == ["b"]
     assert result.degraded == ("vector",)
@@ -171,7 +184,9 @@ def test_a_failed_embedding_searches_with_bm25_only() -> None:
 
     search = FakeSearch()
 
-    result = asyncio.run(RetrievalService(search, BrokenEmbedder(), top_k=20).retrieve("q"))
+    result = asyncio.run(
+        RetrievalService(search, BrokenEmbedder(), top_k=20, limits=SEARCH).retrieve("q")
+    )
 
     assert [c[0] for c in search.calls] == ["bm25"]
     assert result.degraded == ("embedding",)
@@ -185,4 +200,6 @@ def test_the_turn_fails_when_both_legs_fail() -> None:
     search = DeadSearch(vector_error=ConnectionError("database down"))
 
     with pytest.raises(ConnectionError):
-        asyncio.run(RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q"))
+        asyncio.run(
+            RetrievalService(search, QueryEmbedder(), top_k=20, limits=SEARCH).retrieve("q")
+        )

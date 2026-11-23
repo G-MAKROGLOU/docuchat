@@ -40,7 +40,7 @@ class CachedCorpusStats:
         inner: CorpusStatsRepository,
         version: Callable[[], Awaitable[object]],
         *,
-        min_interval: float = 30.0,
+        min_interval: float,
     ) -> None:
         self._inner = inner
         self._stats = DetectorCache(version, inner.stats, min_interval=min_interval)

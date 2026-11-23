@@ -6,6 +6,7 @@ from app.domain.documents import Document
 from app.domain.entities import LabelSection, TextSpan
 from tests.support.factories import make_document
 from tests.support.fakes_ingestion import SentenceSplitter, WordCounter
+from tests.support.tuning import INGEST
 
 DOC = uuid.uuid4()
 
@@ -31,7 +32,12 @@ def test_chunks_carry_section_pages_anchor_and_tokens() -> None:
     ]
 
     chunks = build_chunks(
-        document("Lipitor"), sections, SentenceSplitter(), WordCounter(), pages_of
+        document("Lipitor"),
+        sections,
+        SentenceSplitter(),
+        WordCounter(),
+        pages_of,
+        anchor_words=INGEST.anchor_words,
     )
 
     assert [(c.content, c.page_start, c.page_end) for c in chunks] == [
@@ -48,7 +54,14 @@ def test_chunks_carry_section_pages_anchor_and_tokens() -> None:
 def test_sections_without_content_give_no_chunks() -> None:
     sections = [section("2", "DOSAGE AND ADMINISTRATION"), section("2.1", "Dose", "One tablet.")]
 
-    chunks = build_chunks(document("X"), sections, SentenceSplitter(), WordCounter(), pages_of)
+    chunks = build_chunks(
+        document("X"),
+        sections,
+        SentenceSplitter(),
+        WordCounter(),
+        pages_of,
+        anchor_words=INGEST.anchor_words,
+    )
 
     assert [c.section_number for c in chunks] == ["2.1"]
 
@@ -59,7 +72,14 @@ def test_chunks_never_cross_sections() -> None:
         section("5", "WARNINGS", "Liver injury."),
     ]
 
-    chunks = build_chunks(document("X"), sections, SentenceSplitter(), WordCounter(), pages_of)
+    chunks = build_chunks(
+        document("X"),
+        sections,
+        SentenceSplitter(),
+        WordCounter(),
+        pages_of,
+        anchor_words=INGEST.anchor_words,
+    )
 
     assert [(c.section_number, c.content) for c in chunks] == [
         ("4", "None."),
@@ -68,10 +88,10 @@ def test_chunks_never_cross_sections() -> None:
 
 
 def test_anchor_is_the_first_eight_words() -> None:
-    assert anchor_of("one two three four five six seven eight nine ten") == (
+    assert anchor_of("one two three four five six seven eight nine ten", INGEST.anchor_words) == (
         "one two three four five six seven eight"
     )
-    assert anchor_of("  short   text ") == "short text"
+    assert anchor_of("  short   text ", INGEST.anchor_words) == "short text"
 
 
 def test_embedding_input_prefix_is_switchable() -> None:
@@ -91,7 +111,12 @@ def test_a_label_without_a_brand_uses_the_generic_name() -> None:
     sections = [section("1", "USE", "Treats fungus.")]
 
     chunks = build_chunks(
-        document("", "terbinafine"), sections, SentenceSplitter(), WordCounter(), pages_of
+        document("", "terbinafine"),
+        sections,
+        SentenceSplitter(),
+        WordCounter(),
+        pages_of,
+        anchor_words=INGEST.anchor_words,
     )
 
     assert chunks[0].drug_name == "terbinafine"
@@ -105,7 +130,14 @@ def test_the_first_chunk_of_a_section_is_located_with_its_heading() -> None:
         return [(1, 1)] * len(contents)
 
     sections = [section("4", "CONTRAINDICATIONS", "None. Really none.")]
-    chunks = build_chunks(document("X"), sections, SentenceSplitter(), WordCounter(), record)
+    chunks = build_chunks(
+        document("X"),
+        sections,
+        SentenceSplitter(),
+        WordCounter(),
+        record,
+        anchor_words=INGEST.anchor_words,
+    )
 
     assert seen == ["4 CONTRAINDICATIONS\nNone.", "Really none."]
     assert chunks[0].content == "None."
@@ -143,6 +175,7 @@ def test_a_split_table_keeps_its_caption_and_header_row_as_context() -> None:
         TwoLineSplitter(),
         WordCounter(),
         pages_of,
+        anchor_words=INGEST.anchor_words,
     )
 
     assert [c.table_header for c in chunks] == [

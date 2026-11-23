@@ -8,11 +8,9 @@ from app.domain.documents import Document
 from app.domain.entities import Chunk, LabelSection
 from app.domain.ports import TextSplitter, TokenCounter
 
-ANCHOR_WORDS = 8
 
-
-def anchor_of(content: str) -> str:
-    return " ".join(content.split()[:ANCHOR_WORDS])
+def anchor_of(content: str, words: int) -> str:
+    return " ".join(content.split()[:words])
 
 
 def embedding_input(  # noqa: PLR0913  # the parts of one embedding input
@@ -52,12 +50,14 @@ def table_context(text: str, start: int) -> str:
     return "\n".join(line for off, line in context if off < start)
 
 
-def build_chunks(
+def build_chunks(  # noqa: PLR0913  # the document, its parts, two ports and the anchor size
     document: Document,
     sections: Sequence[LabelSection],
     splitter: TextSplitter,
     counter: TokenCounter,
     pages_of: Callable[[Sequence[str]], list[tuple[int, int]]],
+    *,
+    anchor_words: int,
 ) -> list[Chunk]:
     """pages_of gives the first and last PDF page of each chunk text, in reading order."""
     drug_name = document.brand_name or document.generic_name
@@ -86,7 +86,7 @@ def build_chunks(
             page_start=page_start,
             page_end=page_end,
             content=content,
-            anchor=anchor_of(content),
+            anchor=anchor_of(content, anchor_words),
             token_count=counter.count(content),
             table_header=header,
         )

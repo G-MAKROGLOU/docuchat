@@ -13,6 +13,7 @@ from app.application.drug_detection import DrugDetection
 from app.main import app
 from tests.support.fakes_models import FakeModels
 from tests.support.fakes_ports import FakeConversations, FakeDetector, FakeRetriever, FakeTracer
+from tests.support.tuning import CHAT
 
 
 @pytest.fixture
@@ -23,6 +24,7 @@ def client() -> Iterator[TestClient]:
         FakeDetector(DrugDetection()).source,
         FakeRetriever(),
         FakeTracer(),
+        limits=CHAT,
     )
     app.dependency_overrides[get_chat_service] = lambda: service
     yield TestClient(app, raise_server_exceptions=False)

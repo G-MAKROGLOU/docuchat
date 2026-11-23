@@ -19,6 +19,7 @@ from app.main import app
 from tests.support.factories import make_document, make_pdf
 from tests.support.fakes_ingestion import FakeDocumentRepository
 from tests.support.fakes_ports import FakeCache
+from tests.support.tuning import CHUNK_BYTES
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
@@ -53,7 +54,7 @@ DOCS = [
 
 @pytest.fixture
 def client(tmp_path: Path) -> Iterator[TestClient]:
-    store = FileSystemDocumentStore(tmp_path)
+    store = FileSystemDocumentStore(tmp_path, CHUNK_BYTES)
     for doc in DOCS:
         store.put(doc.storage_key, make_pdf(pages=2, size=(600, 800)), "application/pdf")
     app.dependency_overrides[get_document_repository] = lambda: FakeDocumentRepository(*DOCS)
@@ -137,7 +138,7 @@ def test_thumbnail_of_unknown_document_is_404(client: TestClient) -> None:
 
 
 def test_thumbnail_of_missing_stored_object_is_404(client: TestClient, tmp_path: Path) -> None:
-    FileSystemDocumentStore(tmp_path).delete(DOCS[0].storage_key)
+    FileSystemDocumentStore(tmp_path, CHUNK_BYTES).delete(DOCS[0].storage_key)
 
     assert client.get(f"/api/v1/documents/{DOCS[0].id}/thumbnail").status_code == 404
 
@@ -153,7 +154,7 @@ def test_renderer_scales_page_one_to_the_width() -> None:
 
 def test_download_is_an_attachment_named_by_title(client: TestClient, tmp_path: Path) -> None:
     doc = library_document("", "alpha cillin/é", "4" * 64)
-    FileSystemDocumentStore(tmp_path).put(
+    FileSystemDocumentStore(tmp_path, CHUNK_BYTES).put(
         doc.storage_key, make_pdf(pages=2, size=(600, 800)), "application/pdf"
     )
     app.dependency_overrides[get_document_repository] = lambda: FakeDocumentRepository(doc)

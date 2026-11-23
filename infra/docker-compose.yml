@@ -148,7 +148,7 @@ services:
       - /app/.venv
     healthcheck:
       # Healthy while the worker loop reports; the metrics server alone is not enough.
-      test: ["CMD", "python", "-c", "import time, urllib.request as u; body = u.urlopen('http://127.0.0.1:9100/metrics', timeout=3).read().decode(); t = [float(l.split()[-1]) for l in body.splitlines() if l.startswith('docuchat_ingest_worker_report_timestamp_seconds ')]; raise SystemExit(0 if t and time.time() - t[0] < 60 else 1)"]
+      test: ["CMD", "python", "-c", "import os, time, urllib.request as u; body = u.urlopen('http://127.0.0.1:9100/metrics', timeout=3).read().decode(); t = [float(l.split()[-1]) for l in body.splitlines() if l.startswith('docuchat_ingest_worker_report_timestamp_seconds ')]; raise SystemExit(0 if t and time.time() - t[0] < float(os.environ['WORKER_HEARTBEAT_LIMIT_SECONDS']) else 1)"]
       interval: 15s
       timeout: 5s
       retries: 4

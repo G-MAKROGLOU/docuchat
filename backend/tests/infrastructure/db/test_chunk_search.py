@@ -19,6 +19,7 @@ from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.migrations import apply_migrations
 from tests.support.db import DirectConnections
 from tests.support.factories import label_of, make_document
+from tests.support.tuning import SETTINGS
 
 pytestmark = [
     pytest.mark.db,
@@ -81,7 +82,12 @@ def search() -> Iterator[PostgresChunkSearch]:
             )
 
     asyncio.run(load())
-    yield PostgresChunkSearch(DirectConnections(conninfo))
+    yield PostgresChunkSearch(
+        DirectConnections(conninfo),
+        None,
+        title_boost=SETTINGS.search_title_boost,
+        phrase_boost=SETTINGS.search_phrase_boost,
+    )
     with psycopg.connect(conninfo) as conn:
         conn.execute("DELETE FROM documents WHERE brand_name = ANY(%s)", (list(DRUGS),))
 
@@ -125,8 +131,18 @@ def test_vector_search_reads_only_chunks_of_the_query_model(
 ) -> None:
     q = query("paraphrase")
     connections = search._connections
-    same = PostgresChunkSearch(connections, FIXTURE["model"])
-    other = PostgresChunkSearch(connections, "other/model")
+    same = PostgresChunkSearch(
+        connections,
+        FIXTURE["model"],
+        title_boost=SETTINGS.search_title_boost,
+        phrase_boost=SETTINGS.search_phrase_boost,
+    )
+    other = PostgresChunkSearch(
+        connections,
+        "other/model",
+        title_boost=SETTINGS.search_title_boost,
+        phrase_boost=SETTINGS.search_phrase_boost,
+    )
 
     assert asyncio.run(same.vector_search(q["embedding"], LABELS, 20))
     assert asyncio.run(other.vector_search(q["embedding"], LABELS, 20)) == []
