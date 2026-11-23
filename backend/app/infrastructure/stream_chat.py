@@ -15,9 +15,9 @@ from langchain_core.messages.ai import UsageMetadata
 from langchain_core.outputs import ChatGenerationChunk, ChatResult
 from pydantic import Field, PrivateAttr, SecretStr
 
+from app.infrastructure.http_retry import RETRY_STATUSES
+
 _ROLES = {"human": "user", "ai": "assistant", "system": "system"}
-# Worth one more try before any text arrived; other errors are final.
-_RETRY_STATUSES = {408, 429, 500, 502, 503, 504}
 
 
 class ModelStreamError(RuntimeError):
@@ -136,7 +136,8 @@ class OpenRouterStreamChat(BaseChatModel):
                 ) as response:
                     if response.status_code != httpx.codes.OK:
                         text = (await response.aread()).decode(errors="replace")[:300]
-                        if response.status_code in _RETRY_STATUSES and not last:
+                        # Worth one more try before any text arrived; other errors are final.
+                        if response.status_code in RETRY_STATUSES and not last:
                             await self.sleep(
                                 _retry_after(
                                     response, self.first_backoff_seconds, self.max_backoff_seconds

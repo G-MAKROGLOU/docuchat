@@ -9,17 +9,17 @@ from typing import Any
 from urllib.parse import quote, urlencode, urlparse
 
 from app.domain.label_queue import CatalogLabel
+from app.infrastructure.http_retry import RETRY_STATUSES
 
 DEFAULT_PDF_TEMPLATE = "https://dailymed.nlm.nih.gov/dailymed/downloadpdffile.cfm?setId={source_id}"
 DEFAULT_LABEL_TEMPLATE = "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls/{source_id}.xml"
 DEFAULT_CATALOG_URL = "https://dailymed.nlm.nih.gov/dailymed/services/v2/spls.json"
 USER_AGENT = "label-corpus-downloader/1.0"
-_RETRY_STATUSES = {408, 429, 500, 502, 503, 504}
 
 
 def _retryable(error: Exception) -> bool:
     if isinstance(error, urllib.error.HTTPError):
-        return error.code in _RETRY_STATUSES
+        return error.code in RETRY_STATUSES
     return isinstance(error, urllib.error.URLError | TimeoutError | ConnectionError)
 
 
