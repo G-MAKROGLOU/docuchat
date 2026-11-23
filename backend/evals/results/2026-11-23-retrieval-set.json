@@ -1,0 +1,236 @@
+{
+  "labels": 53,
+  "questions": 578,
+  "overall": {
+    "questions": 578,
+    "recall_at_8": 0.969,
+    "mrr": 0.93,
+    "clarify": 16
+  },
+  "by_topic": {
+    "children": {
+      "questions": 53,
+      "recall_at_8": 0.981,
+      "mrr": 0.934,
+      "clarify": 1
+    },
+    "contraindications": {
+      "questions": 53,
+      "recall_at_8": 0.962,
+      "mrr": 0.903,
+      "clarify": 2
+    },
+    "dosage": {
+      "questions": 53,
+      "recall_at_8": 0.981,
+      "mrr": 0.981,
+      "clarify": 1
+    },
+    "interactions": {
+      "questions": 78,
+      "recall_at_8": 0.962,
+      "mrr": 0.873,
+      "clarify": 2
+    },
+    "lactation": {
+      "questions": 53,
+      "recall_at_8": 0.962,
+      "mrr": 0.962,
+      "clarify": 2
+    },
+    "overdose": {
+      "questions": 50,
+      "recall_at_8": 0.98,
+      "mrr": 0.98,
+      "clarify": 1
+    },
+    "pregnancy": {
+      "questions": 53,
+      "recall_at_8": 0.962,
+      "mrr": 0.962,
+      "clarify": 2
+    },
+    "side_effects": {
+      "questions": 79,
+      "recall_at_8": 0.975,
+      "mrr": 0.873,
+      "clarify": 1
+    },
+    "storage": {
+      "questions": 53,
+      "recall_at_8": 0.962,
+      "mrr": 0.962,
+      "clarify": 2
+    },
+    "warnings": {
+      "questions": 53,
+      "recall_at_8": 0.962,
+      "mrr": 0.925,
+      "clarify": 2
+    }
+  },
+  "by_name_kind": {
+    "both": {
+      "questions": 52,
+      "recall_at_8": 0.942,
+      "mrr": 0.656,
+      "clarify": 1
+    },
+    "brand": {
+      "questions": 132,
+      "recall_at_8": 0.97,
+      "mrr": 0.961,
+      "clarify": 4
+    },
+    "generic": {
+      "questions": 133,
+      "recall_at_8": 1.0,
+      "mrr": 0.963,
+      "clarify": 0
+    },
+    "lower": {
+      "questions": 131,
+      "recall_at_8": 0.962,
+      "mrr": 0.958,
+      "clarify": 5
+    },
+    "typo": {
+      "questions": 130,
+      "recall_at_8": 0.954,
+      "mrr": 0.946,
+      "clarify": 6
+    }
+  },
+  "misses": [
+    {
+      "id": "42bdd912-2393-44c4-b7e0-47672ca28991:contraindications",
+      "text": "Who should not take ozmpic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "42bdd912-2393-44c4-b7e0-47672ca28991:warnings",
+      "text": "What are the serious warnings and precautions for ozempic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "42bdd912-2393-44c4-b7e0-47672ca28991:side_effects",
+      "text": "What are the most common side effects of Ozempic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "42bdd912-2393-44c4-b7e0-47672ca28991:pregnancy",
+      "text": "Is it safe to take ozmpic during pregnancy?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "42bdd912-2393-44c4-b7e0-47672ca28991:lactation",
+      "text": "Can I breastfeed while taking ozempic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "42bdd912-2393-44c4-b7e0-47672ca28991:children",
+      "text": "Can children take Ozempic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "42bdd912-2393-44c4-b7e0-47672ca28991:storage",
+      "text": "How should I store ozmpic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98:dosage",
+      "text": "What is the recommended dose of ozmpic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98:contraindications",
+      "text": "Who should not take ozempic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98:warnings",
+      "text": "What are the serious warnings and precautions for OZEMPIC?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98:interactions",
+      "text": "Which other medicines interact with ozmpic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98:pregnancy",
+      "text": "Is it safe to take ozempic during pregnancy?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98:lactation",
+      "text": "Can I breastfeed while taking OZEMPIC?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98:overdose",
+      "text": "What happens in an overdose of ozmpic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98:storage",
+      "text": "How should I store ozempic?",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "f4853677-1622-4037-688b-fdf533a11d96+42bdd912-2393-44c4-b7e0-47672ca28991:side_effects",
+      "text": "Compare the side effects of Nexium and Ozempic",
+      "detected": [
+        "Nexium"
+      ],
+      "clarify": false
+    },
+    {
+      "id": "27f15fac-7d98-4114-a2ec-92494a91da98+ef3b5cbe-f9e1-c1ac-79da-cfe14e3a7e7e:side_effects",
+      "text": "Compare the side effects of OZEMPIC and Paxil",
+      "detected": [
+        "Paxil"
+      ],
+      "clarify": false
+    },
+    {
+      "id": "97935fd9-1d4a-43b6-a5d9-de994591187b+f4853677-1622-4037-688b-fdf533a11d96:interactions",
+      "text": "Compare the drug interactions of Neurontin and Nexium",
+      "detected": [
+        "Neurontin",
+        "Nexium"
+      ],
+      "clarify": false
+    },
+    {
+      "id": "42bdd912-2393-44c4-b7e0-47672ca28991+27f15fac-7d98-4114-a2ec-92494a91da98:interactions",
+      "text": "Compare the drug interactions of Ozempic and OZEMPIC",
+      "detected": [],
+      "clarify": true
+    },
+    {
+      "id": "496ddfaa-7c9c-4888-b747-a210249b367a+c797ea5c-cab7-494b-9044-27eba0cfe40f:interactions",
+      "text": "Compare the drug interactions of Toprol XL and Tradjenta",
+      "detected": [
+        "Toprol XL",
+        "Tradjenta"
+      ],
+      "clarify": false
+    }
+  ]
+}
