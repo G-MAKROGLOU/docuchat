@@ -651,8 +651,8 @@ async def grade(state: ChatState, *, models: ChatModelProvider, mode: GraderMode
 
 
 async def generate(state: ChatState, *, models: ChatModelProvider) -> ChatState:
+    """Collects the answer but sends no tokens: the user sees only text that validate passed."""
     _status("generate", "Writing the answer")
-    write = get_stream_writer()
     parts: list[str] = []
     messages = [
         Message(MessageRole.SYSTEM, chat_prompts.GENERATE),
@@ -663,7 +663,6 @@ async def generate(state: ChatState, *, models: ChatModelProvider) -> ChatState:
     ]
     async for token in models.for_role(ModelRole.GENERATE).stream(messages):
         parts.append(token)
-        write({"type": "token", "text": token})
     return {"answer": "".join(parts)}
 
 
@@ -677,7 +676,10 @@ async def validate(state: ChatState) -> ChatState:
         logger.info(
             "answer numbers not in the cited excerpts", extra={"numbers": result.ungrounded}
         )
-    get_stream_writer()({"type": "final", "answer": result.answer, "citations": result.citations})
+    write = get_stream_writer()
+    # The checked answer is the first answer text the client gets.
+    write({"type": "token", "text": result.answer})
+    write({"type": "final", "answer": result.answer, "citations": result.citations})
     return {
         "answer": result.answer,
         "citations": result.citations,

@@ -147,9 +147,8 @@ def test_search_path_streams_status_sources_tokens_and_a_cited_final() -> None:
         "status",
         "sources",
         "status",
-        "token",
-        "token",
         "status",
+        "token",
         "final",
     ]
     assert [e["stage"] for e in events if e["type"] == "status"] == [
@@ -619,14 +618,14 @@ def test_path_clarify_asks_without_a_search() -> None:
     assert not models.by_role[ModelRole.GRADE].calls
 
 
-def test_a_no_answer_reply_is_a_refusal_after_its_tokens() -> None:
+def test_a_no_answer_reply_is_a_refusal_without_its_tokens() -> None:
     events, _, _ = run_turn(
         search_models(tokens=["NO_ANSWER"]),
         FakeDetector(LIPITOR),
         FakeRetriever(make_chunk("x")),
     )
 
-    assert {"type": "token", "text": "NO_ANSWER"} in events
+    assert not [e for e in events if e["type"] == "token"]
     assert events[-1] == {"type": "refusal", "reason": "no_relevant_context"}
 
 
