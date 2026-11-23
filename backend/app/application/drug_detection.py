@@ -4,8 +4,9 @@ Thresholds calibrated on 2026-11-23 with evals/detector_calibration.py (see docs
 import asyncio
 import re
 import time
-from collections.abc import Awaitable, Callable, Iterable
-from dataclasses import dataclass
+from collections.abc import Awaitable, Callable, Iterable, Sequence
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
 
 from app.domain.ports import NameSimilarity
 
@@ -14,7 +15,10 @@ _SALT_WORDS = {
     "hydrochloride", "hcl", "sodium", "potassium", "calcium", "magnesium", "succinate",
     "tartrate", "mesylate", "maleate", "fumarate", "citrate", "besylate", "bromide",
     "sulfate", "acetate", "phosphate", "monohydrate", "anhydrous", "extended", "release",
+    "bitartrate",
 }  # fmt: skip
+# Route words of a generic name ("oral semaglutide"); the dosage form tells the product apart.
+_ROUTE_WORDS = {"oral", "topical", "ophthalmic", "nasal", "transdermal", "injectable"}
 # Endings of drug names (stems). A word with one of them is a drug name, so when it is not
 # in the corpus it is reported as not_in_corpus. ASSUMED heuristic, to review on the golden set.
 _DRUG_ENDINGS = (
@@ -35,9 +39,14 @@ _WORD = re.compile(r"[A-Za-z][A-Za-z\-]{3,}")  # words of _MIN_KEY_LENGTH letter
 
 @dataclass(frozen=True, slots=True)
 class DrugEntry:
-    name: str  # canonical name: the chunk drug_name filter value
+    """One label. The detector takes the entries in preference order: the first label of a
+    product is the one that answers for it."""
+
+    name: str  # display name: brand, else generic
     brand: str
     generic: str
+    label: UUID = field(default_factory=uuid4)  # the document ID, the search filter
+    form: str = ""  # SPL dosage form, for example "TABLET, FILM COATED"
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +55,28 @@ class DrugDetection:
     fuzzy: tuple[str, ...] = ()
     ambiguous: tuple[str, ...] = ()
     not_in_corpus: tuple[str, ...] = ()
+    labels: tuple[UUID, ...] = ()  # the preferred label of each drug, in the order of drugs
+
+
+@dataclass(frozen=True, slots=True)
+class _Product:
+    name: str
+    label: UUID
+    form: str  # form group: "tablet", "injection"
+
+
+def form_group(dosage_form: str) -> str:
+    """The first part of an SPL dosage form: "TABLET, FILM COATED" is a tablet."""
+    return dosage_form.split(",", maxsplit=1)[0].strip().lower()
+
+
+def product_key(generic: str, dosage_form: str) -> str:
+    """A product is its active ingredients plus its dosage form group. Generic labels of one
+    product carry the text of the brand label, so one label answers for all of them."""
+    parts = re.split(r",|/| and | with ", generic.lower())
+    drop = _SALT_WORDS | _ROUTE_WORDS
+    ingredients = {" ".join(w for w in part.split() if w not in drop) for part in parts}
+    return f"{'+'.join(sorted(ingredients - {''}))}|{form_group(dosage_form)}"
 
 
 def _catalog_name(entry: DrugEntry) -> str:
@@ -68,12 +99,17 @@ class DrugDetector:
         self._threshold = fuzzy_threshold
         self._floor = candidate_floor
         self._margin = ambiguity_margin
-        # Name key (lower case) -> canonical names. Longer keys first, for multi-word names.
-        # One key can name more labels: one brand as an injection and as tablets.
+        # Product key -> its preferred label (the first entry). Name key (lower case) ->
+        # product keys; one name can cover more products: one brand as an injection and tablets.
+        self._products: dict[str, _Product] = {}
         keys: dict[str, tuple[str, ...]] = {}
         for entry in entries:
+            product = product_key(entry.generic or entry.name, entry.form)
+            self._products.setdefault(
+                product, _Product(entry.name, entry.label, form_group(entry.form))
+            )
             for key in _keys(entry):
-                keys[key] = _unique((*keys.get(key, ()), entry.name))
+                keys[key] = _unique((*keys.get(key, ()), product))
         self._keys = dict(sorted(keys.items(), key=lambda kv: -len(kv[0])))
         self._single_word_keys = {k: v for k, v in self._keys.items() if " " not in k}
         # One pattern for all keys, compiled once: per-key patterns overflowed the regex cache
@@ -93,13 +129,15 @@ class DrugDetector:
         text = question.lower()
         found: list[tuple[int, str]] = []
         taken: list[tuple[int, int]] = []
+        # Names that cover several products and a question that names no form: ask which.
+        forms: list[tuple[int, list[str]]] = []
         if self._key_pattern is not None:
             for match in self._key_pattern.finditer(text):
                 taken.append(match.span())
-                found.extend((match.start(), name) for name in self._keys[match[0]])
+                found.extend(self._pick(match.start(), self._keys[match[0]], text, forms))
 
         fuzzy: list[tuple[int, str]] = []
-        ambiguous: list[tuple[int, list[str]]] = []
+        ambiguous: list[tuple[int, list[str]]] = forms
         outside: list[str] = []
         for match in _WORD.finditer(text):
             if any(a < match.end() and match.start() < b for a, b in taken):
@@ -114,7 +152,7 @@ class DrugDetector:
                 and ranked[0][1] >= self._threshold
                 and (len(ranked) == 1 or ranked[1][1] < ranked[0][1] - self._margin)
             ):
-                fuzzy.extend((match.start(), name) for name in ranked[0][0])
+                fuzzy.extend(self._pick(match.start(), ranked[0][0], text, forms))
             elif len(ranked) > 1 and ranked[1][1] >= ranked[0][1] - self._margin:
                 ambiguous.append((match.start(), list(_unique(n for g, _ in ranked for n in g))))
             elif word.endswith(_DRUG_ENDINGS) and not any(word == e for e in _DRUG_ENDINGS):
@@ -130,12 +168,36 @@ class DrugDetector:
             else:
                 unresolved.extend(rest)
 
-        drugs = _unique(name for _, name in sorted(found + fuzzy))
+        products = _unique(key for _, key in sorted(found + fuzzy))
+        fuzzy_products = {key for _, key in fuzzy}
         return DrugDetection(
-            drugs=drugs,
-            fuzzy=_unique(name for _, name in sorted(fuzzy) if name in drugs),
-            ambiguous=_unique(unresolved),
+            drugs=tuple(self._products[key].name for key in products),
+            fuzzy=_unique(self._products[key].name for key in products if key in fuzzy_products),
+            ambiguous=self._choices(_unique(unresolved)),
             not_in_corpus=_unique(outside),
+            labels=tuple(self._products[key].label for key in products),
+        )
+
+    def _pick(
+        self, start: int, group: Sequence[str], text: str, forms: list[tuple[int, list[str]]]
+    ) -> list[tuple[int, str]]:
+        """The products of one name: all when it is one, else the ones whose dosage form the
+        question names. With no form named, the group waits in forms for a clarify question."""
+        if len(group) == 1:
+            return [(start, group[0])]
+        named = [key for key in group if _names_form(text, self._products[key].form)]
+        if not named:
+            forms.append((start, list(group)))
+        return [(start, key) for key in named]
+
+    def _choices(self, keys: Sequence[str]) -> tuple[str, ...]:
+        """Clarify candidates; a name shared by two products gets its form: "Ozempic (tablet)"."""
+        names = [self._products[key].name.casefold() for key in keys]
+        return tuple(
+            f"{self._products[key].name} ({self._products[key].form})"
+            if names.count(name) > 1 and self._products[key].form
+            else self._products[key].name
+            for key, name in zip(keys, names, strict=True)
         )
 
     def _is_tail(self, word: str) -> bool:
@@ -146,13 +208,13 @@ class DrugDetector:
         )
 
     def _rank(self, word: str) -> list[tuple[tuple[str, ...], float]]:
-        """Name groups (the labels of one key) whose best key scores at least the floor,
-        best first."""
+        """Product groups (the products of one name key) whose best key scores at least the
+        floor, best first."""
         best: dict[tuple[str, ...], float] = {}
-        for key, names in self._single_word_keys.items():
+        for key, products in self._single_word_keys.items():
             score = self._similarity.ratio(word, key)
-            if score >= self._floor and score > best.get(names, 0):
-                best[names] = score
+            if score >= self._floor and score > best.get(products, 0):
+                best[products] = score
         return sorted(best.items(), key=lambda kv: -kv[1])
 
 
@@ -162,6 +224,11 @@ def _keys(entry: DrugEntry) -> set[str]:
     if base:
         keys.add(" ".join(base))
     return {k for k in keys if len(k) >= _MIN_KEY_LENGTH}
+
+
+def _names_form(text: str, form: str) -> bool:
+    """The question names the dosage form: "tablet", "tablets", "injection"."""
+    return bool(form) and re.search(rf"\b{re.escape(form)}s?\b", text) is not None
 
 
 def _unique(names: Iterable[str]) -> tuple[str, ...]:

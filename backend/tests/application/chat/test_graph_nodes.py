@@ -21,7 +21,7 @@ from app.application.chat import (
 from app.application.drug_detection import DrugDetection, DrugDetector, DrugEntry
 from app.domain.entities import MessageRole
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
-from tests.support.factories import make_chunk
+from tests.support.factories import label_of, make_chunk
 from tests.support.fakes_models import BrokenModel, FakeModel, FakeModels
 from tests.support.fakes_ports import FakeDetector, FakeRetriever
 
@@ -154,14 +154,14 @@ def test_retrieve_returns_numbered_sources_and_the_drugs(events: Events) -> None
     state = run(
         chat.retrieve(
             {"query": "Lipitor dose"},
-            detectors=detectors(DrugDetection(drugs=("Lipitor",))),
+            detectors=detectors(DrugDetection(drugs=("Lipitor",), labels=(label_of("Lipitor"),))),
             retriever=retriever,
         )
     )
 
     assert [s.id for s in state["sources"]] == ["S1"]
-    assert state["drugs"] == ("Lipitor",)
-    assert retriever.queries == [("Lipitor dose", ("Lipitor",))]
+    assert state["labels"] == (label_of("Lipitor"),)
+    assert retriever.queries == [("Lipitor dose", (label_of("Lipitor"),))]
 
 
 def test_retrieve_asks_back_on_an_ambiguous_name_and_refuses_an_unknown_drug(
@@ -190,7 +190,11 @@ def test_retrieve_asks_back_on_an_ambiguous_name_and_refuses_an_unknown_drug(
 
 def library() -> Callable[[], Awaitable[DrugDetector]]:
     detector = DrugDetector(
-        [DrugEntry(name="Lipitor", brand="Lipitor", generic="atorvastatin")],
+        [
+            DrugEntry(
+                name="Lipitor", brand="Lipitor", generic="atorvastatin", label=label_of("Lipitor")
+            )
+        ],
         RapidFuzzSimilarity(),
     )
 
@@ -235,14 +239,14 @@ def test_retrieve_searches_when_a_named_medicine_is_in_the_library(events: Event
         )
     )
 
-    assert [drugs for _, drugs in retriever.queries] == [(), ("Lipitor",)]
+    assert [labels for _, labels in retriever.queries] == [(), (label_of("Lipitor"),)]
 
 
 def test_retrieve_refuses_when_nothing_is_found_and_nothing_was_kept(events: Events) -> None:
     state = run(
         chat.retrieve(
             {"query": "Lipitor dose"},
-            detectors=detectors(DrugDetection(drugs=("Lipitor",))),
+            detectors=detectors(DrugDetection(drugs=("Lipitor",), labels=(label_of("Lipitor"),))),
             retriever=FakeRetriever(),
         )
     )
@@ -259,7 +263,7 @@ def test_clarify_asks_which_medicine(events: Events) -> None:
 
 def test_grade_keeps_relevant_excerpts_and_emits_them(events: Events) -> None:
     grader = FakeModel(['{"relevant": ["S1"], "verdict": "sufficient"}'])
-    state: ChatState = {"query": "dose", "sources": [source()], "drugs": ("Lipitor",)}
+    state: ChatState = {"query": "dose", "sources": [source()], "labels": (label_of("Lipitor"),)}
 
     graded = run(chat.grade(state, models=FakeModels(grade=grader), mode="llm"))
 
@@ -270,7 +274,11 @@ def test_grade_keeps_relevant_excerpts_and_emits_them(events: Events) -> None:
 
 
 def test_grade_asks_for_a_retry_first_and_refuses_on_the_last_attempt(events: Events) -> None:
-    other_drug: ChatState = {"query": "dose", "sources": [source("Valium")], "drugs": ("Lipitor",)}
+    other_drug: ChatState = {
+        "query": "dose",
+        "sources": [source("Valium")],
+        "labels": (label_of("Lipitor"),),
+    }
 
     first = run(chat.grade(other_drug, models=FakeModels(), mode="rule"))
     last = run(chat.grade({**other_drug, "attempt": 1}, models=FakeModels(), mode="rule"))
@@ -282,7 +290,11 @@ def test_grade_asks_for_a_retry_first_and_refuses_on_the_last_attempt(events: Ev
 
 
 def test_grade_off_keeps_every_excerpt_without_a_model_call(events: Events) -> None:
-    state: ChatState = {"query": "dose", "sources": [source("Valium")], "drugs": ("Lipitor",)}
+    state: ChatState = {
+        "query": "dose",
+        "sources": [source("Valium")],
+        "labels": (label_of("Lipitor"),),
+    }
 
     graded = run(chat.grade(state, models=FakeModels(), mode="off"))
 

@@ -1,12 +1,13 @@
 import asyncio
 from collections.abc import Sequence
+from uuid import UUID
 
 from app.application.retrieval import (
     RetrievalService,
     SearchMode,
 )
 from app.domain.entities import Chunk
-from tests.support.factories import make_chunk
+from tests.support.factories import label_of, make_chunk
 from tests.support.fakes_ingestion import QueryEmbedder
 
 
@@ -16,17 +17,17 @@ def chunk(name: str, drug: str = "Lipitor") -> Chunk:
 
 class FakeSearch:
     def __init__(self) -> None:
-        self.calls: list[tuple[str, tuple[str, ...]]] = []
+        self.calls: list[tuple[str, tuple[UUID, ...]]] = []
         self.a, self.b = chunk("a"), chunk("b")
 
     async def vector_search(
-        self, embedding: Sequence[float], drugs: Sequence[str], limit: int
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
     ) -> list[Chunk]:
-        self.calls.append(("vector", tuple(drugs)))
+        self.calls.append(("vector", tuple(labels)))
         return [self.a, self.b]
 
-    async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]:
-        self.calls.append(("bm25", tuple(drugs)))
+    async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
+        self.calls.append(("bm25", tuple(labels)))
         return [self.b]
 
 
@@ -35,15 +36,18 @@ def test_hybrid_runs_both_searches_with_the_same_filter() -> None:
 
     result = asyncio.run(
         RetrievalService(search, embedder, top_k=20).retrieve(
-            "dose?", drugs=["Lipitor"], section_hints=["2"]
+            "dose?", labels=[label_of("Lipitor")], section_hints=["2"]
         )
     )
 
-    assert sorted(search.calls) == [("bm25", ("Lipitor",)), ("vector", ("Lipitor",))]
+    assert sorted(search.calls) == [
+        ("bm25", (label_of("Lipitor"),)),
+        ("vector", (label_of("Lipitor"),)),
+    ]
     assert embedder.queries == ["dose?"]
     assert [f.chunk.content for f in result.candidates] == ["b", "a"]
-    assert (result.drugs, result.section_hints, result.mode) == (
-        ("Lipitor",),
+    assert (result.labels, result.section_hints, result.mode) == (
+        (label_of("Lipitor"),),
         ("2",),
         SearchMode.HYBRID,
     )
@@ -71,28 +75,33 @@ def test_bm25_only_mode_does_not_embed() -> None:
     assert embedder.queries == []
 
 
+DRUG_OF = {label_of(name): name for name in "AB"}
+
+
 class PerDrugSearch:
-    """Each search returns chunks of the drugs in its filter, and records the filter."""
+    """Each search returns chunks of the labels in its filter, and records the drug names."""
 
     def __init__(self) -> None:
         self.calls: list[tuple[str, tuple[str, ...]]] = []
 
     async def vector_search(
-        self, embedding: Sequence[float], drugs: Sequence[str], limit: int
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
     ) -> list[Chunk]:
-        self.calls.append(("vector", tuple(drugs)))
-        return [chunk(f"v-{d}", d) for d in drugs]
+        self.calls.append(("vector", tuple(DRUG_OF[label] for label in labels)))
+        return [chunk(f"v-{DRUG_OF[label]}", DRUG_OF[label]) for label in labels]
 
-    async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]:
-        self.calls.append(("bm25", tuple(drugs)))
-        return [chunk(f"b-{d}", d) for d in drugs]
+    async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
+        self.calls.append(("bm25", tuple(DRUG_OF[label] for label in labels)))
+        return [chunk(f"b-{DRUG_OF[label]}", DRUG_OF[label]) for label in labels]
 
 
 def test_a_comparison_searches_each_drug_on_its_own_and_embeds_the_question_once() -> None:
     search, embedder = PerDrugSearch(), QueryEmbedder()
 
     result = asyncio.run(
-        RetrievalService(search, embedder, top_k=20).retrieve("compare", drugs=("A", "B"))
+        RetrievalService(search, embedder, top_k=20).retrieve(
+            "compare", labels=(label_of("A"), label_of("B"))
+        )
     )
 
     assert sorted(search.calls) == [
@@ -109,6 +118,8 @@ def test_a_comparison_searches_each_drug_on_its_own_and_embeds_the_question_once
 def test_one_drug_is_searched_once_with_its_filter() -> None:
     search = PerDrugSearch()
 
-    asyncio.run(RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q", drugs=("A",)))
+    asyncio.run(
+        RetrievalService(search, QueryEmbedder(), top_k=20).retrieve("q", labels=(label_of("A"),))
+    )
 
     assert sorted(search.calls) == [("bm25", ("A",)), ("vector", ("A",))]

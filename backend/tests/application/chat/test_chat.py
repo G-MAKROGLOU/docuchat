@@ -1,6 +1,7 @@
 import asyncio
 import uuid
 from collections.abc import Sequence
+from uuid import UUID
 
 from app.application import chat_prompts
 from app.application.chat import (
@@ -22,7 +23,7 @@ from app.application.chat import (
 from app.application.drug_detection import DrugDetection
 from app.application.retrieval import RetrievalResult
 from app.domain.entities import Message, MessageRole, ModelRole
-from tests.support.factories import make_chunk, sources_of
+from tests.support.factories import label_of, make_chunk, sources_of
 from tests.support.fakes_models import NOTHING, BrokenModel, FakeModel, FakeModels, search_models
 from tests.support.fakes_ports import (
     LIPITOR,
@@ -176,7 +177,7 @@ def test_search_path_streams_status_sources_tokens_and_a_cited_final() -> None:
         "answer": "Start with 10 to 20 mg [S1].",
         "citations": ["S1"],
     }
-    assert retriever.queries == [("Recommended starting dose of Lipitor", ("Lipitor",))]
+    assert retriever.queries == [("Recommended starting dose of Lipitor", (label_of("Lipitor"),))]
     assert retriever.hints == [("2",)]
     assert store.turns_by_id[cid][-1].citations == ("S1",)
 
@@ -776,7 +777,10 @@ def test_a_retry_keeps_the_drug_and_the_first_excerpts() -> None:
 
     events, _, _ = run_turn(models, RetryDetector(LIPITOR), retriever)
 
-    assert retriever.queries == [("query", ("Lipitor",)), ("query again", ("Lipitor",))]
+    assert retriever.queries == [
+        ("query", (label_of("Lipitor"),)),
+        ("query again", (label_of("Lipitor"),)),
+    ]
     assert events[-1] == {"type": "final", "answer": "Adults take 10 mg [S1].", "citations": ["S1"]}
 
 
@@ -786,9 +790,9 @@ def test_an_empty_retry_search_answers_from_the_first_excerpts() -> None:
 
     class EmptySecondSearch(FakeRetriever):
         async def retrieve(
-            self, query: str, *, drugs: Sequence[str] = (), section_hints: Sequence[str] = ()
+            self, query: str, *, labels: Sequence[UUID] = (), section_hints: Sequence[str] = ()
         ) -> RetrievalResult:
-            result = await super().retrieve(query, drugs=drugs, section_hints=section_hints)
+            result = await super().retrieve(query, labels=labels, section_hints=section_hints)
             if query == "query again":
                 result.selected.clear()
             return result

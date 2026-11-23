@@ -4,6 +4,7 @@ import asyncio
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
+from uuid import UUID
 
 from app.application.fusion import FusedChunk, fuse, select
 from app.domain.entities import Chunk
@@ -23,7 +24,7 @@ class RetrievalResult:
     """Everything the trace needs: the query, the applied filter, both ranks per chunk."""
 
     query: str
-    drugs: tuple[str, ...]
+    labels: tuple[UUID, ...]
     section_hints: tuple[str, ...]
     mode: SearchMode
     candidates: list[FusedChunk] = field(default_factory=list)
@@ -40,15 +41,15 @@ class RetrievalService:
         self,
         query: str,
         embedding: Sequence[float] | None,
-        drugs: Sequence[str],
+        labels: Sequence[UUID],
         *,
         use_bm25: bool,
     ) -> tuple[list[Chunk], list[Chunk]]:
         vector, bm25 = await asyncio.gather(
-            self._search.vector_search(embedding, drugs, self._top_k)
+            self._search.vector_search(embedding, labels, self._top_k)
             if embedding is not None
             else _empty(),
-            self._search.text_search(query, drugs, self._top_k) if use_bm25 else _empty(),
+            self._search.text_search(query, labels, self._top_k) if use_bm25 else _empty(),
         )
         return vector, bm25
 
@@ -56,15 +57,15 @@ class RetrievalService:
         self,
         query: str,
         *,
-        drugs: Sequence[str] = (),
+        labels: Sequence[UUID] = (),
         section_hints: Sequence[str] = (),
         mode: SearchMode = SearchMode.HYBRID,
     ) -> RetrievalResult:
         use_vector = mode in {SearchMode.VECTOR, SearchMode.HYBRID}
         use_bm25 = mode in {SearchMode.BM25, SearchMode.HYBRID}
         embedding = await self._embedder.embed_query(query) if use_vector else None
-        # A comparison searches each drug on its own, so one drug cannot fill the candidates.
-        groups = [[drug] for drug in drugs] if len(drugs) > 1 else [list(drugs)]
+        # A comparison searches each label on its own, so one label cannot fill the candidates.
+        groups = [[label] for label in labels] if len(labels) > 1 else [list(labels)]
         runs = await asyncio.gather(
             *(self._search_drugs(query, embedding, g, use_bm25=use_bm25) for g in groups)
         )
@@ -73,11 +74,11 @@ class RetrievalService:
         fused = fuse(vector=vector, bm25=bm25, section_hints=section_hints)
         return RetrievalResult(
             query=query,
-            drugs=tuple(drugs),
+            labels=tuple(labels),
             section_hints=tuple(section_hints),
             mode=mode,
             candidates=fused,
-            selected=select(fused, drugs=drugs),
+            selected=select(fused, labels=labels),
         )
 
 

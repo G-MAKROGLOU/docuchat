@@ -27,6 +27,7 @@ class LabelMetadata:
     brand_name: str
     generic_name: str
     manufacturer: str
+    dosage_form: str = ""  # SPL form, for example "TABLET, FILM COATED"
 
 
 @dataclass(frozen=True, slots=True)

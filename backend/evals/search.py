@@ -12,6 +12,7 @@ import math
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Protocol
+from uuid import UUID
 
 from psycopg.rows import dict_row
 
@@ -27,7 +28,7 @@ class ModeSearch(Protocol):
         self,
         query: str,
         *,
-        drugs: Sequence[str] = (),
+        labels: Sequence[UUID] = (),
         section_hints: Sequence[str] = (),
         mode: SearchMode = SearchMode.HYBRID,
     ) -> RetrievalResult: ...
@@ -40,10 +41,10 @@ class ModeRetriever:
         self._results: list[RetrievalResult] = []
 
     async def retrieve(
-        self, query: str, *, drugs: Sequence[str] = (), section_hints: Sequence[str] = ()
+        self, query: str, *, labels: Sequence[UUID] = (), section_hints: Sequence[str] = ()
     ) -> RetrievalResult:
         result = await self._inner.retrieve(
-            query, drugs=drugs, section_hints=section_hints, mode=self._mode
+            query, labels=labels, section_hints=section_hints, mode=self._mode
         )
         self._results.append(result)
         return result
@@ -65,20 +66,20 @@ class CosineSearch:
         self._vectors = [(chunk, _unit(vector)) for chunk, vector in vectors]
 
     async def vector_search(
-        self, embedding: Sequence[float], drugs: Sequence[str], limit: int
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
     ) -> list[Chunk]:
         query = _unit(embedding)
-        wanted = set(drugs)
+        wanted = set(labels)
         scored = [
             (math.sumprod(query, vector), chunk)
             for chunk, vector in self._vectors
-            if not wanted or chunk.drug_name in wanted
+            if not wanted or chunk.document_id in wanted
         ]
         scored.sort(key=lambda pair: pair[0], reverse=True)
         return [chunk for _, chunk in scored[:limit]]
 
-    async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]:
-        return await self._text.text_search(query, drugs, limit)
+    async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
+        return await self._text.text_search(query, labels, limit)
 
 
 _FIELDS = (

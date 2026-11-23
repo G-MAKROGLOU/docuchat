@@ -77,7 +77,9 @@ class FakeDocumentRepository:
         status: DocumentStatus,
         page_count: int | None = None,
         ingested_at: datetime | None = None,
+        *,
         failure_reason: str | None = None,
+        dosage_form: str | None = None,
     ) -> None:
         self._by_id[document_id] = replace(
             self._by_id[document_id],
@@ -101,7 +103,9 @@ class SingleDocumentRepository:
         status: DocumentStatus,
         page_count: int | None = None,
         ingested_at: datetime | None = None,
+        *,
         failure_reason: str | None = None,
+        dosage_form: str | None = None,
     ) -> None:
         self.statuses.append(status)
         self.document = replace(
@@ -220,6 +224,9 @@ class FakeLabelParser:
         assert data.startswith(b"<document")
         self.calls += 1
         return self.nodes
+
+    def dosage_form(self, data: bytes) -> str:
+        return "TABLET"
 
 
 class FakeEmbedder:

@@ -46,14 +46,14 @@ class ChunkRepository(Protocol):
 
 
 class ChunkSearch(Protocol):
-    """The two retrieval lists. An empty drugs sequence means no drug filter. The vector list
+    """The two retrieval lists. labels are document IDs; empty means no filter. The vector list
     holds only chunks embedded with the query's model, so a half-done re-embed still works."""
 
     async def vector_search(
-        self, embedding: Sequence[float], drugs: Sequence[str], limit: int
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
     ) -> list[Chunk]: ...
 
-    async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]: ...
+    async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]: ...
 
 
 class DocumentParser(Protocol):
@@ -65,6 +65,10 @@ class DocumentParser(Protocol):
 class LabelParser(Protocol):
     def sections(self, data: bytes) -> list[LabelNode]:
         """Return the top-level sections of the label body in document order."""
+        ...
+
+    def dosage_form(self, data: bytes) -> str:
+        """The SPL dosage form of the product, for example "TABLET"; empty when absent."""
         ...
 
 

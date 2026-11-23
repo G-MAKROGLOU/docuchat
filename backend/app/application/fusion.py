@@ -2,6 +2,7 @@
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from uuid import UUID
 
 from app.domain.entities import Chunk
 
@@ -64,13 +65,13 @@ def fuse(
     return sorted(fused, key=lambda f: -f.score)
 
 
-def select(fused: Sequence[FusedChunk], *, drugs: Sequence[str]) -> list[FusedChunk]:
-    """Top chunks within the count and token limits; with 2+ drugs, a minimum per drug."""
+def select(fused: Sequence[FusedChunk], *, labels: Sequence[UUID]) -> list[FusedChunk]:
+    """Top chunks within the count and token limits; with 2+ labels, a minimum per label."""
     chosen: list[FusedChunk] = []
-    comparison = len(drugs) >= 2  # noqa: PLR2004
+    comparison = len(labels) >= 2  # noqa: PLR2004
     if comparison:
-        # Round robin over the drugs, so the token budget cannot use up one drug's share first.
-        per_drug = [[f for f in fused if f.chunk.drug_name == d][:MIN_PER_DRUG] for d in drugs]
+        # Round robin over the labels, so the token budget cannot use up one label's share first.
+        per_drug = [[f for f in fused if f.chunk.document_id == d][:MIN_PER_DRUG] for d in labels]
         for rank in range(MIN_PER_DRUG):
             chosen.extend(items[rank] for items in per_drug if rank < len(items))
     for item in fused:
@@ -79,13 +80,13 @@ def select(fused: Sequence[FusedChunk], *, drugs: Sequence[str]) -> list[FusedCh
 
     selected: list[FusedChunk] = []
     tokens = 0
-    covered: set[str] = set()
+    covered: set[UUID] = set()
     for item in chosen:
         if len(selected) == MAX_CHUNKS:
             break
-        drug = item.chunk.drug_name
-        # Like the first chunk overall, the first chunk of each compared drug may pass the budget.
-        first_of_drug = comparison and drug in drugs and drug not in covered
+        drug = item.chunk.document_id
+        # Like the first chunk overall, the first chunk of each compared label may pass the budget.
+        first_of_drug = comparison and drug in labels and drug not in covered
         if selected and not first_of_drug and tokens + item.chunk.token_count > TOKEN_BUDGET:
             continue  # a smaller chunk later can still fit
         selected.append(item)

@@ -14,9 +14,10 @@ from app.application.fusion import FusedChunk
 from app.application.retrieval import RetrievalResult, SearchMode
 from app.domain.conversations import Turn
 from app.domain.entities import Chunk, MessageRole
+from tests.support.factories import label_of
 from tests.support.fakes_models import FakeModels
 
-LIPITOR = DrugDetection(drugs=("Lipitor",))
+LIPITOR = DrugDetection(drugs=("Lipitor",), labels=(label_of("Lipitor"),))
 
 
 class FakeDetector:
@@ -36,17 +37,17 @@ class FakeDetector:
 class FakeRetriever:
     def __init__(self, *chunks: Chunk) -> None:
         self._chunks = chunks
-        self.queries: list[tuple[str, tuple[str, ...]]] = []
+        self.queries: list[tuple[str, tuple[uuid.UUID, ...]]] = []
         self.hints: list[tuple[str, ...]] = []
 
     async def retrieve(
-        self, query: str, *, drugs: Sequence[str] = (), section_hints: Sequence[str] = ()
+        self, query: str, *, labels: Sequence[uuid.UUID] = (), section_hints: Sequence[str] = ()
     ) -> RetrievalResult:
-        self.queries.append((query, tuple(drugs)))
+        self.queries.append((query, tuple(labels)))
         self.hints.append(tuple(section_hints))
         selected = [FusedChunk(c, 0.1, 1, 1) for c in self._chunks]
         return RetrievalResult(
-            query, tuple(drugs), tuple(section_hints), SearchMode.HYBRID, selected, selected
+            query, tuple(labels), tuple(section_hints), SearchMode.HYBRID, selected, selected
         )
 
 

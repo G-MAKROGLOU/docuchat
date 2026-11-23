@@ -1,7 +1,8 @@
-"""ChunkSearch adapter: pgvector HNSW (cosine) and ParadeDB BM25, with the same drug filter."""
+"""ChunkSearch adapter: pgvector HNSW (cosine) and ParadeDB BM25, with the same label filter."""
 
 from collections.abc import Sequence
 from typing import Any
+from uuid import UUID
 
 from psycopg import sql
 from psycopg.rows import dict_row
@@ -27,10 +28,10 @@ _FIELDS = (
 _COLUMNS = sql.SQL(", ").join(map(sql.Identifier, _FIELDS))
 
 
-def _filter(drugs: Sequence[str]) -> tuple[sql.Composable, tuple[Any, ...]]:
-    if not drugs:
+def _filter(labels: Sequence[UUID]) -> tuple[sql.Composable, tuple[Any, ...]]:
+    if not labels:
         return sql.SQL(""), ()
-    return sql.SQL(" AND drug_name = ANY(%s)"), (list(drugs),)
+    return sql.SQL(" AND document_id = ANY(%s)"), (list(labels),)
 
 
 class PostgresChunkSearch:
@@ -40,9 +41,9 @@ class PostgresChunkSearch:
         self._model = embedding_model
 
     async def vector_search(
-        self, embedding: Sequence[float], drugs: Sequence[str], limit: int
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
     ) -> list[Chunk]:
-        where, params = _filter(drugs)
+        where, params = _filter(labels)
         if self._model is not None:
             where = sql.SQL("{} AND embedding_model = %s").format(where)
             params = (*params, self._model)
@@ -53,7 +54,7 @@ class PostgresChunkSearch:
             self._connections.connection() as conn,
             conn.transaction(),
         ):
-            # With a drug filter, keep scanning the HNSW graph until enough rows match.
+            # With a label filter, keep scanning the HNSW graph until enough rows match.
             await conn.execute("SET LOCAL hnsw.iterative_scan = strict_order")
             cursor = conn.cursor(row_factory=dict_row)
             with SEARCH_SECONDS.labels("vector").time():
@@ -61,8 +62,8 @@ class PostgresChunkSearch:
                 rows = await cursor.fetchall()
         return [Chunk(**row) for row in rows]
 
-    async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]:
-        where, params = _filter(drugs)
+    async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
+        where, params = _filter(labels)
         # ||| matches any token; ### boosts tokens in order, so "2.5 mg twice daily" ranks above
         # "5 mg ... twice daily". Both tokenize the text and do not parse query syntax.
         statement = sql.SQL(

@@ -4,7 +4,7 @@ import pytest
 
 from app.application.fusion import RRF_K, fuse, select
 from app.domain.entities import Chunk
-from tests.support.factories import make_chunk
+from tests.support.factories import label_of, make_chunk
 
 IDS = {name: uuid.uuid4() for name in "abcdefghijklmnop"}
 
@@ -80,7 +80,7 @@ def test_hinted_sections_count_as_a_third_ranked_list() -> None:
 def test_select_takes_top_eight_within_the_token_budget() -> None:
     fused = fuse(vector=[chunk(n, tokens=400) for n in "abcdefghij"], bm25=[])
 
-    selected = select(fused, drugs=())
+    selected = select(fused, labels=())
 
     assert names(selected) == list("abcdefgh")
     assert sum(s.chunk.token_count for s in selected) <= 3500
@@ -89,20 +89,23 @@ def test_select_takes_top_eight_within_the_token_budget() -> None:
 def test_select_stops_at_the_token_budget() -> None:
     fused = fuse(vector=[chunk(n, tokens=1000) for n in "abcde"], bm25=[])
 
-    assert names(select(fused, drugs=())) == ["a", "b", "c"]
+    assert names(select(fused, labels=())) == ["a", "b", "c"]
 
 
 def test_select_keeps_at_least_one_chunk_over_budget() -> None:
     fused = fuse(vector=[chunk("a", tokens=5000)], bm25=[])
 
-    assert names(select(fused, drugs=())) == ["a"]
+    assert names(select(fused, labels=())) == ["a"]
 
 
 def test_two_drugs_get_at_least_three_chunks_each() -> None:
     eliquis = [chunk(n, drug="Eliquis") for n in "abcdefg"]
     xarelto = [chunk(n, drug="Xarelto") for n in "hijk"]
 
-    selected = select(fuse(vector=[*eliquis, *xarelto], bm25=[]), drugs=("Eliquis", "Xarelto"))
+    selected = select(
+        fuse(vector=[*eliquis, *xarelto], bm25=[]),
+        labels=(label_of("Eliquis"), label_of("Xarelto")),
+    )
 
     by_drug = [s.chunk.drug_name for s in selected]
     assert by_drug.count("Xarelto") >= 3
@@ -117,7 +120,10 @@ def test_a_drug_with_fewer_chunks_gives_what_it_has() -> None:
     eliquis = [chunk(n, drug="Eliquis") for n in "abcdefg"]
     xarelto = [chunk("h", drug="Xarelto")]
 
-    selected = select(fuse(vector=[*eliquis, *xarelto], bm25=[]), drugs=("Eliquis", "Xarelto"))
+    selected = select(
+        fuse(vector=[*eliquis, *xarelto], bm25=[]),
+        labels=(label_of("Eliquis"), label_of("Xarelto")),
+    )
 
     assert [s.chunk.drug_name for s in selected].count("Xarelto") == 1
     assert len(selected) == 8
@@ -127,7 +133,10 @@ def test_large_chunks_still_give_each_drug_a_chunk() -> None:
     eliquis = [chunk(n, drug="Eliquis", tokens=1200) for n in "abcd"]
     xarelto = [chunk(n, drug="Xarelto", tokens=1200) for n in "hij"]
 
-    selected = select(fuse(vector=[*eliquis, *xarelto], bm25=[]), drugs=("Eliquis", "Xarelto"))
+    selected = select(
+        fuse(vector=[*eliquis, *xarelto], bm25=[]),
+        labels=(label_of("Eliquis"), label_of("Xarelto")),
+    )
 
     assert names(selected) == ["a", "h"]
 
@@ -137,7 +146,7 @@ def test_a_chunk_over_the_budget_is_skipped_not_the_end() -> None:
         vector=[chunk("a", tokens=3000), chunk("b", tokens=600), chunk("c", tokens=400)], bm25=[]
     )
 
-    assert names(select(fused, drugs=())) == ["a", "c"]
+    assert names(select(fused, labels=())) == ["a", "c"]
 
 
 def test_each_drug_gets_its_first_chunk_even_over_the_budget() -> None:
@@ -151,4 +160,4 @@ def test_each_drug_gets_its_first_chunk_even_over_the_budget() -> None:
         bm25=[],
     )
 
-    assert names(select(fused, drugs=("Eliquis", "Xarelto"))) == ["a", "h"]
+    assert names(select(fused, labels=(label_of("Eliquis"), label_of("Xarelto")))) == ["a", "h"]

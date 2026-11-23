@@ -39,12 +39,12 @@ async def _print_question(
         f"ambiguous={list(detection.ambiguous)} not_in_corpus={list(detection.not_in_corpus)}"
     )
     if detection.ambiguous:
-        print("   -> clarify: more than one close drug name")
+        print("   -> clarify: more than one close drug name or product")
         return
-    result = await service.retrieve(question, drugs=detection.drugs, mode=mode)
+    result = await service.retrieve(question, labels=detection.labels, mode=mode)
     tokens = sum(f.chunk.token_count for f in result.selected)
     print(
-        f"   mode={result.mode} filter={list(result.drugs) or 'none'} "
+        f"   mode={result.mode} filter={list(map(str, result.labels)) or 'none'} "
         f"candidates={len(result.candidates)} selected={len(result.selected)} tokens={tokens}"
     )
     for f in result.selected:

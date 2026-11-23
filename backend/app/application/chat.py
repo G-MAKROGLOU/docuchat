@@ -88,7 +88,7 @@ DetectorSource = Callable[[], Awaitable[Detector]]
 
 class Retriever(Protocol):
     async def retrieve(
-        self, query: str, *, drugs: Sequence[str] = (), section_hints: Sequence[str] = ()
+        self, query: str, *, labels: Sequence[UUID] = (), section_hints: Sequence[str] = ()
     ) -> RetrievalResult: ...
 
 
@@ -106,7 +106,7 @@ class ChatState(TypedDict, total=False):
     # Medicines the intake model found in the question; code checks them against the library.
     named: tuple[str, ...]
     query: str
-    drugs: tuple[str, ...]
+    labels: tuple[UUID, ...]  # the searched labels (document IDs)
     candidates: list[str]
     sources: list[SourceRef]
     # Relevant excerpts of the first search, kept for the second one.
@@ -198,13 +198,13 @@ def parse_grade(text: str, valid_ids: Sequence[str]) -> tuple[list[str], Verdict
     return relevant, verdict, feedback.strip() if isinstance(feedback, str) else ""
 
 
-def rule_check(sources: Sequence[SourceRef], drugs: Sequence[str]) -> list[SourceRef]:
-    """Plain pre-check: drop empty excerpts and, when drugs were named, other drugs' excerpts."""
-    wanted = {d.casefold() for d in drugs}
+def rule_check(sources: Sequence[SourceRef], labels: Sequence[UUID]) -> list[SourceRef]:
+    """Plain pre-check: drop empty excerpts and, when labels were searched, other labels'."""
+    wanted = set(labels)
     return [
         s
         for s in sources
-        if s.chunk.content.strip() and (not wanted or s.chunk.drug_name.casefold() in wanted)
+        if s.chunk.content.strip() and (not wanted or s.chunk.document_id in wanted)
     ]
 
 
@@ -474,27 +474,27 @@ async def retrieve(
     _status("retrieve", "Searching the drug labels")
     detector = await detectors()
     detection = detector.detect(state["query"])
-    drugs = detection.drugs
-    # A retry keeps the drugs of the first search; its rewrite can drop or misspell the name.
-    retry_drugs = state.get("drugs", ()) if state.get("attempt", 0) else ()
-    if retry_drugs:
-        drugs = drugs or retry_drugs
+    labels = detection.labels
+    # A retry keeps the labels of the first search; its rewrite can drop or misspell the name.
+    retry_labels = state.get("labels", ()) if state.get("attempt", 0) else ()
+    if retry_labels:
+        labels = labels or retry_labels
     elif detection.ambiguous:
         return {"candidates": list(detection.ambiguous)}
-    elif not drugs and (
+    elif not labels and (
         detection.not_in_corpus or outside_library(detector, state.get("named", ()))
     ):
         return _refuse("drug_not_in_corpus", available_drugs=detector.catalog())
     result = await retriever.retrieve(
         state["query"],
-        drugs=drugs,
-        section_hints=section_hints(state["query"], comparing=len(drugs) > 1),
+        labels=labels,
+        section_hints=section_hints(state["query"], comparing=len(labels) > 1),
     )
     sources = [SourceRef(f"S{i}", f.chunk) for i, f in enumerate(result.selected, start=1)]
     # On a retry, grade merges in the first search's excerpts, so an empty result can go on.
     if not sources and not state.get("kept"):
         return _refuse("no_relevant_context")
-    return {"sources": sources, "drugs": drugs}
+    return {"sources": sources, "labels": labels}
 
 
 async def clarify(state: ChatState) -> ChatState:
@@ -537,7 +537,7 @@ async def grade(state: ChatState, *, models: ChatModelProvider, mode: GraderMode
     if mode == "off":
         kept, verdict, feedback = sources, "sufficient", ""
     else:
-        kept = rule_check(sources, state.get("drugs", ()))
+        kept = rule_check(sources, state.get("labels", ()))
         verdict, feedback = ("sufficient" if kept else "insufficient"), ""
         if mode == "llm" and kept:
             kept, verdict, feedback = await _llm_grade(state, kept, models)

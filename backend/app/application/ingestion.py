@@ -93,7 +93,7 @@ class IngestionService:
             return IngestResult(document.id, error=error)
 
     async def _ingest(self, document: Document) -> IngestResult:
-        page_count, drafts = await asyncio.to_thread(self._chunks, document)
+        page_count, form, drafts = await asyncio.to_thread(self._chunks, document)
 
         inputs = [
             embedding_input(
@@ -112,13 +112,17 @@ class IngestionService:
         ]
         await self.chunks.replace_for_document(document.id, chunks)
         await self.documents.update_ingestion(
-            document.id, DocumentStatus.INGESTED, page_count, datetime.now(UTC)
+            document.id,
+            DocumentStatus.INGESTED,
+            page_count,
+            datetime.now(UTC),
+            dosage_form=form,
         )
         return IngestResult(
             document.id, chunks=len(chunks), tokens=sum(self.counter.count(t) for t in inputs)
         )
 
-    def _chunks(self, document: Document) -> tuple[int, list[Chunk]]:
+    def _chunks(self, document: Document) -> tuple[int, str, list[Chunk]]:
         """Parse, split and locate in a worker thread: this is CPU work."""
         pdf = b"".join(self.store.get_stream(document.storage_key))
         try:
@@ -141,4 +145,4 @@ class IngestionService:
                 "chunk pages not found",
                 extra={"document_id": str(document.id), "misses": locator.misses},
             )
-        return len(pages), drafts
+        return len(pages), self.label_parser.dosage_form(label), drafts

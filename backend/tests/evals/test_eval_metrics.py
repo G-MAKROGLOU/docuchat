@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Mapping, Sequence
+from uuid import UUID
 
 from app.application.retrieval import RetrievalResult, SearchMode
 from app.domain.entities import Chunk, Message
@@ -13,7 +14,7 @@ from evals.metrics import (
     summarize,
 )
 from evals.search import CosineSearch, ModeRetriever
-from tests.support.factories import make_chunk
+from tests.support.factories import label_of, make_chunk
 
 
 def source(id_: str, drug: str, section: str, text: str) -> dict[str, object]:
@@ -128,15 +129,15 @@ def test_the_judge_reads_a_verdict_and_treats_bad_output_as_unknown() -> None:
 
 class FakeSearch:
     async def vector_search(
-        self, embedding: Sequence[float], drugs: Sequence[str], limit: int
+        self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
     ) -> list[Chunk]:
         raise AssertionError("not used")
 
-    async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]:
+    async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
         return [make_chunk("bm25")]
 
 
-def test_cosine_search_ranks_by_similarity_with_the_drug_filter() -> None:
+def test_cosine_search_ranks_by_similarity_with_the_label_filter() -> None:
     near = make_chunk("near", drug="Lipitor")
     far = make_chunk("far", drug="Lipitor")
     other = make_chunk("other", drug="Zoloft")
@@ -144,7 +145,7 @@ def test_cosine_search_ranks_by_similarity_with_the_drug_filter() -> None:
         FakeSearch(), [(near, (1.0, 0.0)), (far, (0.0, 1.0)), (other, (1.0, 0.1))]
     )
 
-    ranked = asyncio.run(search.vector_search((2.0, 0.1), ["Lipitor"], 5))
+    ranked = asyncio.run(search.vector_search((2.0, 0.1), [label_of("Lipitor")], 5))
     assert [c.content for c in ranked] == ["near", "far"]
     assert [c.content for c in asyncio.run(search.vector_search((1.0, 0.0), [], 1))] == ["near"]
     assert [c.content for c in asyncio.run(search.text_search("q", [], 3))] == ["bm25"]
@@ -158,19 +159,19 @@ class InnerRetriever:
         self,
         query: str,
         *,
-        drugs: Sequence[str] = (),
+        labels: Sequence[UUID] = (),
         section_hints: Sequence[str] = (),
         mode: SearchMode = SearchMode.HYBRID,
     ) -> RetrievalResult:
         self.modes.append(mode)
-        return RetrievalResult(query, tuple(drugs), tuple(section_hints), mode)
+        return RetrievalResult(query, tuple(labels), tuple(section_hints), mode)
 
 
 def test_the_mode_retriever_forces_the_mode_and_records_each_result() -> None:
     inner = InnerRetriever()
     retriever = ModeRetriever(inner, "vector")
 
-    asyncio.run(retriever.retrieve("q", drugs=["Lipitor"]))
+    asyncio.run(retriever.retrieve("q", labels=[label_of("Lipitor")]))
     asyncio.run(retriever.retrieve("q2"))
 
     assert inner.modes == ["vector", "vector"]

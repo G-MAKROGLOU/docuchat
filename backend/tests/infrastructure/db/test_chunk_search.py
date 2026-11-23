@@ -18,7 +18,7 @@ from app.infrastructure.chunk_search import PostgresChunkSearch
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.migrations import apply_migrations
 from tests.support.db import DirectConnections
-from tests.support.factories import make_document
+from tests.support.factories import label_of, make_document
 
 pytestmark = [
     pytest.mark.db,
@@ -30,13 +30,14 @@ FIXTURE: dict[str, Any] = json.loads(
     (Path(__file__).parents[2] / "fixtures" / "retrieval_fixture.json").read_text(encoding="utf-8")
 )
 DRUGS = ("Fixtorvan", "Fixaban")
+LABELS = tuple(label_of(name) for name in DRUGS)
 
 
 @pytest.fixture(scope="module")
 def search() -> Iterator[PostgresChunkSearch]:
     conninfo = os.environ["TEST_DATABASE_URL"]
     apply_migrations(conninfo)
-    documents = {name: uuid.uuid4() for name in DRUGS}
+    documents = {name: label_of(name) for name in DRUGS}
     with psycopg.connect(conninfo) as conn:
         conn.execute("DELETE FROM documents WHERE brand_name = ANY(%s)", (list(DRUGS),))
 
@@ -90,25 +91,25 @@ def query(name: str) -> dict[str, Any]:
 
 
 def test_bm25_finds_the_exact_dose_string(search: PostgresChunkSearch) -> None:
-    results = asyncio.run(search.text_search(query("exact_dose")["text"], DRUGS, 20))
+    results = asyncio.run(search.text_search(query("exact_dose")["text"], LABELS, 20))
 
     assert "2.5 mg twice daily" in results[0].content
 
 
 def test_vector_search_finds_the_paraphrased_question(search: PostgresChunkSearch) -> None:
     q = query("paraphrase")
-    vector = asyncio.run(search.vector_search(q["embedding"], DRUGS, 20))
-    bm25 = asyncio.run(search.text_search(q["text"], DRUGS, 20))
+    vector = asyncio.run(search.vector_search(q["embedding"], LABELS, 20))
+    bm25 = asyncio.run(search.text_search(q["text"], LABELS, 20))
 
     assert vector[0].section_number == "5.1"  # myopathy and rhabdomyolysis
     # The words of the question are not in that chunk, so BM25 alone does not rank it first.
     assert not bm25 or bm25[0].section_number != "5.1"
 
 
-def test_the_drug_filter_applies_to_both_searches(search: PostgresChunkSearch) -> None:
+def test_the_label_filter_applies_to_both_searches(search: PostgresChunkSearch) -> None:
     q = query("exact_dose")
-    vector = asyncio.run(search.vector_search(q["embedding"], ["Fixtorvan"], 20))
-    bm25 = asyncio.run(search.text_search("dose mg daily", ["Fixtorvan"], 20))
+    vector = asyncio.run(search.vector_search(q["embedding"], [label_of("Fixtorvan")], 20))
+    bm25 = asyncio.run(search.text_search("dose mg daily", [label_of("Fixtorvan")], 20))
 
     assert vector
     assert bm25
@@ -116,7 +117,7 @@ def test_the_drug_filter_applies_to_both_searches(search: PostgresChunkSearch) -
 
 
 def test_a_query_without_tokens_gives_no_rows(search: PostgresChunkSearch) -> None:
-    assert asyncio.run(search.text_search("?? --", DRUGS, 20)) == []
+    assert asyncio.run(search.text_search("?? --", LABELS, 20)) == []
 
 
 def test_vector_search_reads_only_chunks_of_the_query_model(
@@ -127,7 +128,7 @@ def test_vector_search_reads_only_chunks_of_the_query_model(
     same = PostgresChunkSearch(connections, FIXTURE["model"])
     other = PostgresChunkSearch(connections, "other/model")
 
-    assert asyncio.run(same.vector_search(q["embedding"], DRUGS, 20))
-    assert asyncio.run(other.vector_search(q["embedding"], DRUGS, 20)) == []
+    assert asyncio.run(same.vector_search(q["embedding"], LABELS, 20))
+    assert asyncio.run(other.vector_search(q["embedding"], LABELS, 20)) == []
     # BM25 has no vectors, so a half-done re-embed keeps the text list.
-    assert asyncio.run(other.text_search("dose mg daily", DRUGS, 20))
+    assert asyncio.run(other.text_search("dose mg daily", LABELS, 20))

@@ -29,6 +29,7 @@ class Document:
     page_count: int | None = None
     ingested_at: datetime | None = None
     failure_reason: str | None = None
+    dosage_form: str = ""  # from the SPL XML at ingestion; it separates the products
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,16 +58,18 @@ class DocumentLocks(Protocol):
 
 
 class IngestionStatusRepository(Protocol):
-    async def update_ingestion(
+    async def update_ingestion(  # noqa: PLR0913  # status fields of one row
         self,
         document_id: UUID,
         status: DocumentStatus,
         page_count: int | None = None,
         ingested_at: datetime | None = None,
+        *,
         failure_reason: str | None = None,
+        dosage_form: str | None = None,
     ) -> None:
-        """Set the status and the failure reason (cleared when None); set page_count and
-        ingested_at only when given."""
+        """Set the status and the failure reason (cleared when None); set page_count,
+        ingested_at and dosage_form only when given."""
         ...
 
 

@@ -1,6 +1,8 @@
+import uuid
+
 import pytest
 
-from app.application.drug_detection import DrugDetector, DrugEntry
+from app.application.drug_detection import DrugDetector, DrugEntry, product_key
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
 
 CATALOG = [
@@ -106,19 +108,62 @@ def test_a_generic_name_inside_a_longer_one_is_another_drug() -> None:
     assert detector.detect("esomeprazol dose").drugs == ("Nexium",)
 
 
-def test_one_brand_name_finds_every_label_with_that_name() -> None:
-    # Two products of one brand: an injection and tablets, named in a different case.
+INJECTION, TABLETS = uuid.uuid4(), uuid.uuid4()
+OZEMPIC = [
+    DrugEntry("Ozempic", "Ozempic", "semaglutide", label=INJECTION, form="INJECTION, SOLUTION"),
+    DrugEntry("OZEMPIC", "OZEMPIC", "oral semaglutide", label=TABLETS, form="TABLET"),
+]
+
+
+def test_one_name_with_two_dosage_forms_asks_which_form() -> None:
+    detector = DrugDetector(OZEMPIC, RapidFuzzSimilarity())
+
+    for question in ("Ozempic dose", "ozempik dose"):
+        result = detector.detect(question)
+        assert result.drugs == ()
+        assert result.ambiguous == ("Ozempic (injection)", "OZEMPIC (tablet)")
+
+
+def test_the_named_form_or_a_clicked_candidate_picks_the_product() -> None:
+    detector = DrugDetector(OZEMPIC, RapidFuzzSimilarity())
+
+    for question in ("Ozempic tablets dose", "OZEMPIC (tablet)", "oral semaglutide dose"):
+        result = detector.detect(question)
+        assert (result.drugs, result.labels) == (("OZEMPIC",), (TABLETS,)), question
+    both = detector.detect("Compare the Ozempic injection and the tablets")
+    assert both.labels == (INJECTION, TABLETS)
+
+
+def test_labels_of_one_product_give_its_preferred_label() -> None:
+    # Entries come in preference order: the brand label first, then the generic labels.
+    brand, generic = uuid.uuid4(), uuid.uuid4()
     detector = DrugDetector(
         [
-            DrugEntry(name="Ozempic", brand="Ozempic", generic="semaglutide"),
-            DrugEntry(name="OZEMPIC", brand="OZEMPIC", generic="oral semaglutide"),
+            DrugEntry("Lipitor", "Lipitor", "atorvastatin calcium", label=brand, form="TABLET"),
+            DrugEntry(
+                "atorvastatin calcium",
+                "",
+                "atorvastatin calcium",
+                label=generic,
+                form="TABLET, FILM COATED",
+            ),
         ],
         RapidFuzzSimilarity(),
     )
 
-    assert detector.detect("Ozempic dose").drugs == ("OZEMPIC", "Ozempic")
-    assert detector.detect("ozempik dose").drugs == ("OZEMPIC", "Ozempic")
-    assert detector.detect("oral semaglutide dose").drugs == ("OZEMPIC",)
+    for question in ("atorvastatin dose", "Lipitor dose", "Lipitor or atorvastatin?"):
+        result = detector.detect(question)
+        assert (result.drugs, result.labels) == (("Lipitor",), (brand,)), question
+
+
+def test_a_product_is_its_ingredients_and_its_dosage_form() -> None:
+    assert product_key("atorvastatin calcium", "TABLET, FILM COATED") == "atorvastatin|tablet"
+    assert product_key("oral semaglutide", "TABLET") == "semaglutide|tablet"
+    assert product_key("semaglutide", "INJECTION, SOLUTION") == "semaglutide|injection"
+    assert (
+        product_key("Hydrocodone Bitartrate and Acetaminophen", "TABLET")
+        == "acetaminophen+hydrocodone|tablet"
+    )
 
 
 def test_exact_match_wins_over_the_outside_corpus_rule(detector: DrugDetector) -> None:

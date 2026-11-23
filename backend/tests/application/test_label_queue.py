@@ -114,15 +114,16 @@ SPL_NAMES = b"""<document xmlns="urn:hl7-org:v3">
  <author><assignedEntity><representedOrganization><name>Viatris</name>
  </representedOrganization></assignedEntity></author>
  <component><structuredBody><component><section><subject><manufacturedProduct>
-  <manufacturedProduct><name>Lipitor</name><asEntityWithGeneric><genericMedicine>
+  <manufacturedProduct><name>Lipitor</name>
+   <formCode code="C42927" displayName="TABLET, FILM COATED"/><asEntityWithGeneric><genericMedicine>
    <name>atorvastatin calcium</name></genericMedicine></asEntityWithGeneric>
   </manufacturedProduct></manufacturedProduct></subject></section></component>
  </structuredBody></component></document>"""
 
 
-def test_the_parser_reads_product_and_manufacturer_names() -> None:
+def test_the_parser_reads_product_and_manufacturer_names_and_the_dosage_form() -> None:
     assert SplXmlParser().metadata(SPL_NAMES) == LabelMetadata(
-        "Lipitor", "atorvastatin calcium", "Viatris"
+        "Lipitor", "atorvastatin calcium", "Viatris", "TABLET, FILM COATED"
     )
 
 

@@ -33,7 +33,11 @@ class SplXmlParser:
             brand_name=_inline(root.find(f"{product}/{_V}name")),
             generic_name=_inline(root.find(generic)),
             manufacturer=_inline(root.find(organization)),
+            dosage_form=_attribute(root.find(f"{product}/{_V}formCode"), "displayName"),
         )
+
+    def dosage_form(self, data: bytes) -> str:
+        return self.metadata(data).dosage_form
 
 
 def _node(section: ElementTree.Element) -> LabelNode:
@@ -44,6 +48,10 @@ def _node(section: ElementTree.Element) -> LabelNode:
         text=_text(section.find(f"{_V}text")),
         children=tuple(_node(s) for s in section.findall(f"{_V}component/{_V}section")),
     )
+
+
+def _attribute(element: ElementTree.Element | None, name: str) -> str:
+    return (element.get(name) or "").strip() if element is not None else ""
 
 
 def _inline(element: ElementTree.Element | None) -> str:

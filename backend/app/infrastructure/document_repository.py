@@ -24,6 +24,7 @@ _FIELDS = (
     "ingested_at",
     "status",
     "failure_reason",
+    "dosage_form",
 )
 _COLUMNS = sql.SQL(", ").join(map(sql.Identifier, _FIELDS))
 
@@ -77,6 +78,7 @@ class PostgresDocumentRepository:
                     document.ingested_at,
                     document.status.value,
                     document.failure_reason,
+                    document.dosage_form,
                 ),
             )
 
@@ -160,18 +162,20 @@ class PostgresDocumentRepository:
                 (storage_key, sha256, size_bytes, document_id),
             )
 
-    async def update_ingestion(
+    async def update_ingestion(  # noqa: PLR0913  # status fields of one row
         self,
         document_id: UUID,
         status: DocumentStatus,
         page_count: int | None = None,
         ingested_at: datetime | None = None,
+        *,
         failure_reason: str | None = None,
+        dosage_form: str | None = None,
     ) -> None:
         async with self._connections.connection() as conn:
             await conn.execute(
                 "UPDATE documents SET status = %s, failure_reason = %s, "
-                "page_count = COALESCE(%s, page_count), ingested_at = COALESCE(%s, ingested_at) "
-                "WHERE id = %s",
-                (status.value, failure_reason, page_count, ingested_at, document_id),
+                "page_count = COALESCE(%s, page_count), ingested_at = COALESCE(%s, ingested_at), "
+                "dosage_form = COALESCE(%s, dosage_form) WHERE id = %s",
+                (status.value, failure_reason, page_count, ingested_at, dosage_form, document_id),
             )

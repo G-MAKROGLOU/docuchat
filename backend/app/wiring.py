@@ -1,6 +1,7 @@
 """Composition root: the API and the commands build their services here."""
 
 from collections.abc import Iterable
+from datetime import UTC, datetime
 
 from app.application.chat import ChatService, Retriever
 from app.application.drug_detection import DetectorCache, DrugDetector, DrugEntry
@@ -27,17 +28,29 @@ from app.infrastructure.text_splitting import SentenceTokenSplitter, TiktokenCou
 
 
 def drug_detector(documents: Iterable[Document]) -> DrugDetector:
-    """The catalog: one entry per ingested label, named by brand, else by generic name."""
+    """The catalog: one entry per ingested label, named by brand, else by generic name. Brand
+    labels come first, then the newest: the first label of a product answers for it."""
+    ingested = [d for d in documents if d.status is DocumentStatus.INGESTED]
+    ingested.sort(key=lambda d: d.ingested_at or datetime.min.replace(tzinfo=UTC), reverse=True)
+    ingested.sort(key=lambda d: not _is_brand(d))  # stable: newest first within each group
     return DrugDetector(
         [
             DrugEntry(
-                name=d.brand_name or d.generic_name, brand=d.brand_name, generic=d.generic_name
+                name=d.brand_name or d.generic_name,
+                brand=d.brand_name,
+                generic=d.generic_name,
+                label=d.id,
+                form=d.dosage_form,
             )
-            for d in documents
-            if d.status is DocumentStatus.INGESTED
+            for d in ingested
         ],
         RapidFuzzSimilarity(),
     )
+
+
+def _is_brand(document: Document) -> bool:
+    brand = document.brand_name.strip().casefold()
+    return bool(brand) and brand != document.generic_name.strip().casefold()
 
 
 def default_runtime_settings(settings: Settings) -> RuntimeSettings:

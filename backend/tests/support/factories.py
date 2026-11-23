@@ -24,6 +24,11 @@ RUNTIME_DEFAULTS = RuntimeSettings(
 )
 
 
+def label_of(drug: str) -> uuid.UUID:
+    """The test label (document ID) of a drug name: the same name gives the same label."""
+    return uuid.uuid5(uuid.NAMESPACE_URL, f"label:{drug}")
+
+
 def make_chunk(
     content: str,
     *,
@@ -41,7 +46,7 @@ def make_chunk(
 ) -> Chunk:
     return Chunk(
         id=chunk_id or uuid.uuid4(),
-        document_id=document_id or uuid.uuid4(),
+        document_id=document_id or label_of(drug),
         drug_name=drug,
         section_number=section,
         section_title=title,
