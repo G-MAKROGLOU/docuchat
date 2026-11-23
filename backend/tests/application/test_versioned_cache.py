@@ -1,6 +1,6 @@
 import asyncio
 
-from app.application.drug_detection import DetectorCache
+from app.application.versioned_cache import VersionedCache
 from tests.support.tuning import SETTINGS
 
 
@@ -20,7 +20,7 @@ class Library:
 
 def test_the_detector_is_built_once_while_the_library_is_unchanged() -> None:
     library = Library()
-    cache = DetectorCache(
+    cache = VersionedCache(
         library.current_version, library.load, min_interval=SETTINGS.detector_rebuild_seconds
     )
 
@@ -33,7 +33,7 @@ def test_the_detector_is_built_once_while_the_library_is_unchanged() -> None:
 
 def test_a_library_change_rebuilds_the_detector() -> None:
     library = Library()
-    cache = DetectorCache(library.current_version, library.load, min_interval=0)
+    cache = VersionedCache(library.current_version, library.load, min_interval=0)
 
     async def calls() -> tuple[str, str]:
         first = await cache()
@@ -45,7 +45,7 @@ def test_a_library_change_rebuilds_the_detector() -> None:
 
 def test_concurrent_first_calls_build_the_detector_once() -> None:
     library = Library()
-    cache = DetectorCache(
+    cache = VersionedCache(
         library.current_version, library.load, min_interval=SETTINGS.detector_rebuild_seconds
     )
 

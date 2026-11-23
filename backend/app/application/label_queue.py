@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
-from app.application.corpus import SPL_NAMESPACE, CorpusEntry, download_corpus
+from app.application.corpus import SNIFF_BYTES, SPL_NAMESPACE, CorpusEntry, download_corpus
 from app.application.ingestion import public_reason
 from app.domain.documents import DocumentRepository, LabelSource
 from app.domain.label_queue import (
@@ -130,7 +130,7 @@ async def _take(entry: QueueEntry, context: QueueContext, delay_seconds: float) 
     try:
         label = await asyncio.to_thread(context.source.fetch_label, entry.set_id)
         await asyncio.sleep(delay_seconds)  # polite pacing for the public source
-        if SPL_NAMESPACE not in label[:4096]:
+        if SPL_NAMESPACE not in label[:SNIFF_BYTES]:
             return "The response is not an SPL document."
         names = context.reader.metadata(label)
         if not (names.brand_name or names.generic_name):

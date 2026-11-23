@@ -2,7 +2,6 @@
 
 from collections.abc import Awaitable, Callable
 
-from app.application.drug_detection import DetectorCache
 from app.domain.corpus_stats import CorpusStats, CorpusStatsRepository
 from app.infrastructure.database import Connections
 
@@ -31,19 +30,14 @@ class PostgresCorpusStatsRepository:
 
 
 class CachedCorpusStats:
-    """The chunk totals scan the whole chunks table, so they are read again only after the
-    library changed, and during a pass at most once per interval. Document counts are cheap
-    and always current."""
+    """The chunk totals scan the whole chunks table, so they come from a cache that reads them
+    again only after the library changed. Document counts are cheap and always current."""
 
     def __init__(
-        self,
-        inner: CorpusStatsRepository,
-        version: Callable[[], Awaitable[object]],
-        *,
-        min_interval: float,
+        self, inner: CorpusStatsRepository, stats: Callable[[], Awaitable[CorpusStats]]
     ) -> None:
         self._inner = inner
-        self._stats = DetectorCache(version, inner.stats, min_interval=min_interval)
+        self._stats = stats
 
     async def stats(self) -> CorpusStats:
         return await self._stats()

@@ -4,7 +4,7 @@ writes its values to files in that folder and the /metrics endpoint adds them up
 import asyncio
 import os
 import time
-from typing import Any, Protocol
+from typing import Any, Protocol, get_args
 from uuid import UUID
 
 from langchain_core.callbacks import AsyncCallbackHandler
@@ -20,6 +20,8 @@ from prometheus_client import (
     multiprocess,
     start_http_server,
 )
+
+from app.domain.ingestion_state import IngestionPhase
 
 _FAST = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0)
 _SLOW = (0.5, 1.0, 2.0, 4.0, 8.0, 12.0, 16.0, 24.0, 32.0, 48.0, 64.0, 120.0)
@@ -96,7 +98,7 @@ def process_stopped() -> None:
         multiprocess.mark_process_dead(os.getpid())  # type: ignore[no-untyped-call]
 
 
-_PHASES = ("idle", "checking", "downloading", "ingesting")
+_PHASES: tuple[str, ...] = get_args(IngestionPhase)
 
 
 def serve(port: int) -> None:

@@ -3,7 +3,7 @@
 import asyncio
 import time
 
-from app.api.routers.documents import thumbnail_png
+from app.application.thumbnails import thumbnail_png
 from app.config import load_settings
 from app.infrastructure.database import build_pool
 from tests.support.fakes_ports import FakeCache

@@ -8,12 +8,13 @@ from typing import Any
 
 from langchain_core.callbacks import AsyncCallbackHandler
 
-from app.application.chat import ChatService, GraderMode
+from app.application.chat import ChatService
 from app.application.drug_detection import DrugDetection
 from app.application.fusion import FusedChunk
 from app.application.retrieval import RetrievalResult, SearchMode
 from app.domain.conversations import Turn
 from app.domain.entities import Chunk, MessageRole
+from app.domain.runtime_settings import GraderMode
 from tests.support.factories import label_of
 from tests.support.fakes_models import FakeModels
 from tests.support.tuning import CHAT

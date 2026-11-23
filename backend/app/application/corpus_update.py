@@ -7,7 +7,7 @@ import logging
 from dataclasses import dataclass
 from uuid import UUID
 
-from app.application.corpus import PDF_MAGIC, SPL_NAMESPACE
+from app.application.corpus import PDF_MAGIC, SNIFF_BYTES, SPL_NAMESPACE
 from app.domain.documents import Document, DocumentRepository, LabelSource
 from app.domain.storage import DocumentStore, ObjectNotFoundError, document_key, label_key
 
@@ -65,7 +65,7 @@ async def _check_one(
     """True when the label changed and was stored again."""
     label = await asyncio.to_thread(source.fetch_label, document.source_id)
     await asyncio.sleep(delay_seconds)  # polite pacing for the public source
-    if SPL_NAMESPACE not in label[:4096]:
+    if SPL_NAMESPACE not in label[:SNIFF_BYTES]:
         raise ValueError(f"{document.source_id}: response is not an SPL document")
     if label == await asyncio.to_thread(_stored_label, store, document.id):
         return False

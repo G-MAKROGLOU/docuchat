@@ -1,6 +1,5 @@
 import asyncio
 import itertools
-from collections.abc import Callable
 from typing import Annotated, Any
 from urllib.parse import quote
 from uuid import UUID
@@ -17,6 +16,7 @@ from app.api.dependencies import (
 )
 from app.api.http_range import RangeNotSatisfiableError, parse_range
 from app.api.schemas.documents import DocumentListResponse, DocumentSummary
+from app.application.thumbnails import thumbnail_png
 from app.config import Settings
 from app.domain.documents import Document, DocumentRepository, PageRenderer
 from app.domain.ports import Cache
@@ -65,25 +65,6 @@ def _etag_matches(if_none_match: str | None, etag: str) -> bool:
         return False
     tags = {t.strip().removeprefix("W/") for t in if_none_match.split(",")}
     return "*" in tags or etag in tags
-
-
-async def thumbnail_png(
-    cache: Cache,
-    key: str,
-    render: Callable[[], bytes],
-    *,
-    slots: asyncio.Semaphore,
-    ttl_seconds: int,
-) -> bytes:
-    """The PNG for the key (file and ETag, so a new PDF gets a new image), rendered once.
-    A cold thumbnail reads the whole PDF and renders it: slots limits the renders of this
-    process. The key holds the file hash and the width, so a stored PNG never goes stale."""
-    if (cached := await cache.get(f"thumbnail:{key}")) is not None:
-        return cached
-    async with slots:
-        png = await asyncio.to_thread(render)
-    await cache.set(f"thumbnail:{key}", png, ttl_seconds)
-    return png
 
 
 @router.get(

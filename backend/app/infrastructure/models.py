@@ -14,7 +14,7 @@ from app.domain.entities import Message, ModelRole
 from app.domain.ports import ChatModel, ChatModelProvider, Embedder
 from app.infrastructure.cache import CachedChatModel, CachedEmbedder, shared_cache
 from app.infrastructure.metrics import LLM_METRICS, SEARCH_SECONDS
-from app.infrastructure.stream_chat import OpenRouterStreamChat
+from app.infrastructure.stream_chat import TEMPERATURE, OpenRouterStreamChat
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +145,7 @@ class ModelFactory:
                     model=name,
                     base_url=s.openrouter_base_url,
                     api_key=SecretStr(s.openrouter_api_key.get_secret_value()),
-                    temperature=0,
+                    temperature=TEMPERATURE,
                     max_tokens=max_tokens,
                     # Then the turn fails with an error event.
                     max_retries=s.chat_model_max_retries,

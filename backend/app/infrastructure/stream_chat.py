@@ -15,9 +15,11 @@ from langchain_core.messages.ai import UsageMetadata
 from langchain_core.outputs import ChatGenerationChunk, ChatResult
 from pydantic import Field, PrivateAttr, SecretStr
 
+from app.infrastructure.http_retry import RETRY_STATUSES
+
 _ROLES = {"human": "user", "ai": "assistant", "system": "system"}
-# Worth one more try before any text arrived; other errors are final.
-_RETRY_STATUSES = {408, 429, 500, 502, 503, 504}
+# Same input, same reply: the reply cache depends on it.
+TEMPERATURE = 0
 
 
 class ModelStreamError(RuntimeError):
@@ -81,7 +83,7 @@ class OpenRouterStreamChat(BaseChatModel):
         # Same parameter names as the ChatOpenAI generations in the traces.
         return {
             "model_name": self.model,
-            "temperature": 0,
+            "temperature": TEMPERATURE,
             "max_completion_tokens": self.max_tokens,
         }
 
@@ -90,7 +92,7 @@ class OpenRouterStreamChat(BaseChatModel):
             ls_provider="openrouter",
             ls_model_name=self.model,
             ls_model_type="chat",
-            ls_temperature=0,
+            ls_temperature=TEMPERATURE,
             ls_max_tokens=self.max_tokens,
         )
 
@@ -113,7 +115,7 @@ class OpenRouterStreamChat(BaseChatModel):
             "messages": [{"role": _ROLES[m.type], "content": m.text} for m in messages],
             "stream": True,
             "stream_options": {"include_usage": True},
-            "temperature": 0,
+            "temperature": TEMPERATURE,
             "max_tokens": self.max_tokens,
             "reasoning": {"effort": self.reasoning_effort},
         }
@@ -136,7 +138,8 @@ class OpenRouterStreamChat(BaseChatModel):
                 ) as response:
                     if response.status_code != httpx.codes.OK:
                         text = (await response.aread()).decode(errors="replace")[:300]
-                        if response.status_code in _RETRY_STATUSES and not last:
+                        # Worth one more try before any text arrived; other errors are final.
+                        if response.status_code in RETRY_STATUSES and not last:
                             await self.sleep(
                                 _retry_after(
                                     response, self.first_backoff_seconds, self.max_backoff_seconds

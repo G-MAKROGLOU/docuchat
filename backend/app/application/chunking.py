@@ -60,7 +60,7 @@ def build_chunks(  # noqa: PLR0913  # the document, its parts, two ports and the
     anchor_words: int,
 ) -> list[Chunk]:
     """pages_of gives the first and last PDF page of each chunk text, in reading order."""
-    drug_name = document.brand_name or document.generic_name
+    drug_name = document.display_name
     drafts = [
         (section, span.text.strip(), table_context(section.text, span.start))
         for section in sections

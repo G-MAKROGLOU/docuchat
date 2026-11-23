@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.application.corpus_update import check_for_updates
-from app.application.drug_detection import DetectorCache
+from app.application.versioned_cache import VersionedCache
 from app.infrastructure.corpus_stats_repository import CachedCorpusStats
 from app.infrastructure.dailymed import DailyMedClient
 
@@ -145,7 +145,7 @@ def test_a_new_library_version_rebuilds_only_after_the_minimum_interval() -> Non
         builds[0] += 1
         return builds[0]
 
-    cache = DetectorCache(current, build, min_interval=30.0, clock=clock)
+    cache = VersionedCache(current, build, min_interval=30.0, clock=clock)
 
     async def scenario() -> list[int]:
         first = await cache()
@@ -177,7 +177,9 @@ def test_corpus_totals_are_scanned_once_per_library_version() -> None:
     async def current() -> object:
         return version[0]
 
-    cached = CachedCorpusStats(cast(Any, inner), current, min_interval=0)
+    cached = CachedCorpusStats(
+        cast(Any, inner), cast(Any, VersionedCache(current, inner.stats, min_interval=0))
+    )
 
     async def scenario() -> list[object]:
         first, again = await cached.stats(), await cached.stats()

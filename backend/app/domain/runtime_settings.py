@@ -21,6 +21,14 @@ class RuntimeSettings:
     grader_mode: GraderMode
 
 
+class InvalidSettingsError(ValueError):
+    """A value that the settings cannot take, such as a model that is not offered."""
+
+
+class SettingsConflictError(RuntimeError):
+    """The save needs a confirmation, or the state of the library does not allow it now."""
+
+
 class RuntimeSettingsRepository(Protocol):
     async def load(self) -> dict[str, object]:
         """The saved values by field name. Empty when nothing is saved."""

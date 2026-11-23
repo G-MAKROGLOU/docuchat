@@ -6,6 +6,8 @@ from typing import Literal, Self
 from pydantic import SecretStr, ValidationError, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.domain.runtime_settings import GraderMode
+
 
 class MissingSettingsError(RuntimeError):
     pass
@@ -29,7 +31,7 @@ class Settings(BaseSettings):
     # Switch for the ablation: the drug and section prefix on each embedded chunk.
     embedding_prefix: bool = True
     # Switch for the ablation: no grading, the plain rule check only, or the rule then the model.
-    grader_mode: Literal["off", "rule", "llm"] = "llm"
+    grader_mode: GraderMode = "llm"
     database_url: SecretStr
     # The shared cache (Redis), for all API processes and the worker.
     cache_url: SecretStr

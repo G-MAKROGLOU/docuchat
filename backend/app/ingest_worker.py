@@ -12,23 +12,20 @@ from app.application.ingestion import IngestionService
 from app.application.ingestion_control import IngestWorker
 from app.application.ingestion_runner import IngestionRunner
 from app.application.label_queue import QueueContext, QueueReport, process_queue
+from app.bootstrap import load_runtime_config, open_database
 from app.config import Settings, get_settings
 from app.domain.ingestion_state import IngestionPhase, IngestionState, IngestionStateRepository
 from app.domain.runtime_settings import RuntimeSettings
 from app.infrastructure.dailymed import DEFAULT_LABEL_TEMPLATE, DEFAULT_PDF_TEMPLATE, DailyMedClient
-from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.ingestion_state_repository import PostgresIngestionStateRepository
 from app.infrastructure.label_queue_repository import PostgresLabelQueueRepository
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.metrics import observe_ingest, observe_phase, serve
-from app.infrastructure.migrations import apply_migrations, check_vector_size
 from app.infrastructure.models import close_model_clients
-from app.infrastructure.runtime_settings_repository import PostgresRuntimeSettingsRepository
 from app.infrastructure.spl_parser import SplXmlParser
 from app.infrastructure.storage import build_document_store
-from app.runtime_config import RuntimeConfig
-from app.wiring import default_runtime_settings, ingestion_service
+from app.wiring import ingestion_service
 
 logger = logging.getLogger(__name__)
 # Prometheus reads the worker here; the API serves its metrics on its own port.
@@ -56,11 +53,7 @@ class MeteredState:
 
 
 async def run(settings: Settings) -> None:
-    await asyncio.to_thread(apply_migrations, settings.database_url.get_secret_value())
-    await asyncio.to_thread(
-        check_vector_size, settings.database_url.get_secret_value(), settings.embedding_dimensions
-    )
-    async with build_pool(settings) as pool:
+    async with open_database(settings) as pool:
         documents = PostgresDocumentRepository(pool)
         store = await asyncio.to_thread(build_document_store, settings)
         queue = PostgresLabelQueueRepository(pool)
@@ -106,13 +99,7 @@ async def run(settings: Settings) -> None:
 
             return commit
 
-        config = RuntimeConfig(
-            PostgresRuntimeSettingsRepository(pool),
-            default_runtime_settings(settings),
-            rebuild,
-            refresh_seconds=settings.runtime_refresh_seconds,
-        )
-        await config.load()
+        config = await load_runtime_config(settings, pool, rebuild)
         runner = IngestionRunner(
             services[-1],
             documents,

@@ -12,6 +12,7 @@ from app.application import chat
 from app.application.chat import (
     ChatState,
     SourceRef,
+    graph,
     route_after_grade,
     route_after_guard,
     route_after_intake,
@@ -32,7 +33,7 @@ Events = list[dict[str, Any]]
 @pytest.fixture
 def events(monkeypatch: pytest.MonkeyPatch) -> Events:
     emitted: Events = []
-    monkeypatch.setattr(chat, "get_stream_writer", lambda: emitted.append)
+    monkeypatch.setattr(graph, "get_stream_writer", lambda: emitted.append)
     return emitted
 
 

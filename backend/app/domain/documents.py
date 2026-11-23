@@ -31,6 +31,11 @@ class Document:
     failure_reason: str | None = None
     dosage_form: str = ""  # from the SPL XML at ingestion; it separates the products
 
+    @property
+    def display_name(self) -> str:
+        """The brand name, else the generic name. Chunks store it and the chat filters by it."""
+        return self.brand_name or self.generic_name
+
 
 @dataclass(frozen=True, slots=True)
 class DocumentPage:

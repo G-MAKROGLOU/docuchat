@@ -65,9 +65,3 @@ class Chunk:
     embedding_model: str | None = None
     # Caption and header row of the table that the chunk continues; empty outside a table.
     table_header: str = ""
-
-
-@dataclass(frozen=True, slots=True)
-class ScoredChunk:
-    chunk: Chunk
-    score: float
