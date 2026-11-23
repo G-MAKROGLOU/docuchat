@@ -29,10 +29,17 @@ _FIELDS = (
 _COLUMNS = sql.SQL(", ").join(map(sql.Identifier, _FIELDS))
 # A title match counts half a content match. ASSUMED value, to tune on the golden set.
 TITLE_BOOST = 0.5
+# HNSW candidate list. At 1M chunks, recall@20 was 0.72 with the default 40 and 0.80 with 120,
+# about 2 ms slower (docs/agent-log.md, 2026-11-23).
+HNSW_EF_SEARCH = 120
 
 Query = tuple[sql.Composed, tuple[Any, ...]]
 # Builds one search: (select list, labels, limit) -> statement and parameters.
 Build = Callable[[sql.Composable, Sequence[UUID], int], Query]
+
+
+def ef_search(limit: int) -> int:
+    return max(HNSW_EF_SEARCH, 2 * limit)
 
 
 def _filter(labels: Sequence[UUID]) -> tuple[sql.Composable, tuple[Any, ...]]:
@@ -73,8 +80,10 @@ class PostgresChunkSearch:
             if self._model is not None:
                 where = sql.SQL("{} AND embedding_model = %s").format(where)
                 params = (*params, self._model)
+            # The same expression as the HNSW index (0014): half precision, half the index size.
             statement = sql.SQL(
-                "SELECT {} FROM chunks WHERE TRUE{} ORDER BY embedding <=> %s::vector LIMIT %s"
+                "SELECT {} FROM chunks WHERE TRUE{} "
+                "ORDER BY embedding::halfvec(1536) <=> %s::halfvec(1536) LIMIT %s"
             ).format(select, where)
             return statement, (*params, vector, limit)
 
@@ -96,13 +105,16 @@ class PostgresChunkSearch:
 
         return build
 
-    async def _vector_rows(self, statement: Query) -> list[dict[str, Any]]:
+    async def _vector_rows(self, statement: Query, limit: int) -> list[dict[str, Any]]:
         async with (
             self._connections.connection() as conn,
             conn.transaction(),
         ):
             # With a label filter, keep scanning the HNSW graph until enough rows match.
             await conn.execute("SET LOCAL hnsw.iterative_scan = strict_order")
+            await conn.execute(
+                sql.SQL("SET LOCAL hnsw.ef_search = {}").format(sql.Literal(ef_search(limit)))
+            )
             cursor = conn.cursor(row_factory=dict_row)
             with SEARCH_SECONDS.labels("vector").time():
                 await cursor.execute(*statement)
@@ -119,7 +131,9 @@ class PostgresChunkSearch:
         self, embedding: Sequence[float], labels: Sequence[UUID], limit: int
     ) -> list[Chunk]:
         build = self._vector_query(vector_literal(embedding))
-        return [Chunk(**row) for row in await self._vector_rows(build(_COLUMNS, labels, limit))]
+        return [
+            Chunk(**row) for row in await self._vector_rows(build(_COLUMNS, labels, limit), limit)
+        ]
 
     async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
         build = self._text_query(query)
@@ -131,7 +145,7 @@ class PostgresChunkSearch:
         if not labels:
             return []
         build = self._vector_query(vector_literal(embedding))
-        return _split(await self._vector_rows(_per_label(build, labels, limit)), len(labels))
+        return _split(await self._vector_rows(_per_label(build, labels, limit), limit), len(labels))
 
     async def text_search_each(
         self, query: str, labels: Sequence[UUID], limit: int
