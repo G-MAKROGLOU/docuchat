@@ -35,4 +35,5 @@ One private monorepo. `backend/` and `frontend/` are independent deployable unit
 - Backend (from the repository root): `docker compose -f infra/docker-compose.yml exec backend sh -c "ruff check . && ruff format --check . && mypy && pytest && bandit -c pyproject.toml -r app && python -m app.api.contract --check"`
 - Frontend (in `frontend/`): `npm run lint && npm run format:check && npm run typecheck && npm test && npm run contract:check`
 
-See `.claude/rules/` for more rules.
+## Versions
+- Pin exact versions: `==` in `backend/pyproject.toml`, no `^` or `~` in `frontend/package.json`, exact tags for Docker images and GitHub Actions.
