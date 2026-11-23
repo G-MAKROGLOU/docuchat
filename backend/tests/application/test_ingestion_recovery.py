@@ -125,3 +125,38 @@ def test_a_failed_document_leaves_the_stale_marker(tmp_path: Path) -> None:
     asyncio.run(ingest_documents(cast(Any, DOCS), cast(Any, service), tracker, force=False))
 
     assert tracker.marked == 0
+
+
+class SlowService:
+    """Finishes the documents in reverse order; raises for one source ID."""
+
+    def __init__(self, raises: str) -> None:
+        self.active = 0
+        self.most = 0
+        self._raises = raises
+
+    async def ingest(self, document: Any, *, force: bool = False) -> IngestResult:
+        self.active += 1
+        self.most = max(self.most, self.active)
+        try:
+            await asyncio.sleep(0.05 - 0.01 * int(document.source_id))
+            if document.source_id == self._raises:
+                raise ConnectionError("connect to http://storage:8333 failed")
+            return IngestResult(document.id, chunks=2, tokens=10)
+        finally:
+            self.active -= 1
+
+
+def test_the_cli_pass_runs_documents_at_once_and_reports_each_in_order() -> None:
+    docs = [SimpleNamespace(id=uuid.uuid4(), source_id=str(i)) for i in range(5)]
+    service, tracker = SlowService(raises="1"), FakeTracker(stale=False)
+
+    results = asyncio.run(
+        ingest_documents(cast(Any, docs), cast(Any, service), tracker, force=True, concurrency=3)
+    )
+
+    assert service.most == 3
+    assert [d.source_id for d, _ in results] == ["0", "1", "2", "3", "4"]
+    assert [r.error for _, r in results] == [None, "ConnectionError", None, None, None]
+    assert sum(r.chunks for _, r in results) == 8
+    assert tracker.marked == 0
