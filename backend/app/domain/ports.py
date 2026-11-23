@@ -1,7 +1,6 @@
 """Interfaces (ports) that infrastructure adapters implement. No framework imports."""
 
 from collections.abc import AsyncIterator, Mapping, Sequence
-from contextlib import AbstractContextManager
 from typing import Protocol
 from uuid import UUID
 
@@ -88,16 +87,6 @@ class NameSimilarity(Protocol):
 
 class TokenCounter(Protocol):
     def count(self, text: str) -> int: ...
-
-
-class Span(Protocol):
-    def set_attributes(self, attributes: Mapping[str, object]) -> None: ...
-
-
-class Tracer(Protocol):
-    def span(
-        self, name: str, attributes: Mapping[str, object] | None = None
-    ) -> AbstractContextManager[Span]: ...
 
 
 class TurnTrace(Protocol):

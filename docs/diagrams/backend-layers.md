@@ -135,5 +135,3 @@ flowchart LR
     Retriever["Retriever (application)"] --> RetrievalService
     DetectorSource["DetectorSource (application)"] --> VersionedCache
 ```
-
-`Tracer` and `Span` (`ports.py`) are also implemented by `LangfuseTracer` and `NoopTracer`. No application module calls them now; only `TurnTracer` is in use.

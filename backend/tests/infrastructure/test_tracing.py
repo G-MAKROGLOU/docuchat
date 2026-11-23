@@ -1,6 +1,4 @@
 import uuid
-from collections.abc import Iterator
-from contextlib import contextmanager
 from typing import Any, cast
 
 import pytest
@@ -17,18 +15,6 @@ LANGFUSE_ENV = {
     "LANGFUSE_SECRET_KEY": "sk-test",
     "LANGFUSE_HOST": "http://langfuse.test",
 }
-
-
-class FakeObservation:
-    def __init__(self, fail_on_update: bool) -> None:
-        self.fail_on_update = fail_on_update
-        self.updates: list[dict[str, Any]] = []
-
-    def update(self, **kwargs: Any) -> "FakeObservation":
-        if self.fail_on_update:
-            raise RuntimeError("sdk update failed")
-        self.updates.append(kwargs)
-        return self
 
 
 class FakeRoot:
@@ -52,42 +38,18 @@ class FakeHandler:
 
 
 class FakeLangfuse:
-    def __init__(
-        self,
-        fail_on_start: bool = False,
-        fail_on_exit: bool = False,
-        fail_on_update: bool = False,
-        fail_on_shutdown: bool = False,
-    ) -> None:
+    def __init__(self, fail_on_start: bool = False, fail_on_shutdown: bool = False) -> None:
         self.fail_on_start = fail_on_start
-        self.fail_on_exit = fail_on_exit
         self.fail_on_shutdown = fail_on_shutdown
-        self.observation = FakeObservation(fail_on_update)
         self.root = FakeRoot()
         self.started: list[dict[str, Any]] = []
-        self.exits = 0
         self.shutdowns = 0
-
-    @contextmanager
-    def _observation(self) -> Iterator[FakeObservation]:
-        try:
-            yield self.observation
-        finally:
-            self.exits += 1
-            if self.fail_on_exit:
-                raise RuntimeError("sdk exit failed")
 
     def start_observation(self, **kwargs: Any) -> "FakeRoot":
         if self.fail_on_start:
             raise RuntimeError("sdk start failed")
         self.started.append(kwargs)
         return self.root
-
-    def start_as_current_observation(self, **kwargs: Any) -> Any:
-        if self.fail_on_start:
-            raise RuntimeError("sdk start failed")
-        self.started.append(kwargs)
-        return self._observation()
 
     def shutdown(self) -> None:
         self.shutdowns += 1
@@ -137,50 +99,6 @@ def test_client_construction_error_gives_noop_tracer(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(tracing, "Langfuse", failing_client)
 
     assert isinstance(build_tracer(load_settings()), NoopTracer)
-
-
-def test_attributes_reach_the_sdk() -> None:
-    fake = FakeLangfuse()
-
-    with tracer_with(fake).span("retrieve-context", {"top_k": 5}) as span:
-        span.set_attributes({"hits": 3})
-
-    assert fake.started == [
-        {"as_type": "span", "name": "retrieve-context", "metadata": {"top_k": 5}}
-    ]
-    assert fake.observation.updates == [{"metadata": {"hits": 3}}]
-    assert fake.exits == 1
-
-
-def test_sdk_error_on_start_does_not_raise() -> None:
-    ran = False
-
-    with tracer_with(FakeLangfuse(fail_on_start=True)).span("retrieve-context") as span:
-        span.set_attributes({"hits": 3})
-        ran = True
-
-    assert ran
-
-
-def test_sdk_errors_on_update_and_exit_do_not_raise() -> None:
-    fake = FakeLangfuse(fail_on_exit=True, fail_on_update=True)
-
-    with tracer_with(fake).span("retrieve-context") as span:
-        span.set_attributes({"hits": 3})
-
-    assert fake.exits == 1
-
-
-def test_application_error_propagates_and_closes_the_span() -> None:
-    fake = FakeLangfuse()
-
-    with (
-        pytest.raises(ValueError, match="app failed"),
-        tracer_with(fake).span("retrieve-context"),
-    ):
-        raise ValueError("app failed")
-
-    assert fake.exits == 1
 
 
 class NoSavedSettings:

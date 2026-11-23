@@ -1,9 +1,7 @@
 """Tracer adapters."""
 
 import logging
-from collections.abc import Iterator, Mapping
-from contextlib import AbstractContextManager, contextmanager
-from types import TracebackType
+from collections.abc import Mapping
 from typing import Any
 from uuid import UUID
 
@@ -11,16 +9,11 @@ from langfuse import Langfuse, propagate_attributes
 from langfuse.langchain import CallbackHandler
 
 from app.config import Settings
-from app.domain.ports import Span, TurnTrace
+from app.domain.ports import TurnTrace
 
 TURN_NAME = "chat-turn"
 
 logger = logging.getLogger(__name__)
-
-
-class NoopSpan:
-    def set_attributes(self, attributes: Mapping[str, object]) -> None:
-        return None
 
 
 class NoopTurn:
@@ -36,68 +29,12 @@ class NoopTracer:
     def start_turn(self, conversation_id: UUID, question: str) -> TurnTrace:
         return NoopTurn()
 
-    def span(
-        self, name: str, attributes: Mapping[str, object] | None = None
-    ) -> AbstractContextManager[Span]:
-        return _noop_span()
-
     def shutdown(self) -> None:
         return None
 
 
-@contextmanager
-def _noop_span() -> Iterator[Span]:
-    yield NoopSpan()
-
-
 def _log_sdk_error(operation: str, exc: Exception) -> None:
     logger.warning("tracing failed", extra={"operation": operation, "error": type(exc).__name__})
-
-
-class _LangfuseSpan:
-    def __init__(self, observation: Any) -> None:
-        self._observation = observation
-
-    def set_attributes(self, attributes: Mapping[str, object]) -> None:
-        try:
-            self._observation.update(metadata=dict(attributes))
-        except Exception as exc:
-            _log_sdk_error("update", exc)
-
-
-class _GuardedObservation(AbstractContextManager[Span]):
-    """Opens a Langfuse observation. SDK errors are logged; application errors propagate."""
-
-    def __init__(self, client: Langfuse, name: str, attributes: Mapping[str, object]) -> None:
-        self._client = client
-        self._name = name
-        self._attributes = attributes
-        self._context: AbstractContextManager[Any] | None = None
-
-    def __enter__(self) -> Span:
-        try:
-            context = self._client.start_as_current_observation(
-                as_type="span", name=self._name, metadata=dict(self._attributes)
-            )
-            observation = context.__enter__()
-        except Exception as exc:
-            _log_sdk_error("start", exc)
-            return NoopSpan()
-        self._context = context
-        return _LangfuseSpan(observation)
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
-    ) -> None:
-        if self._context is None:
-            return
-        try:
-            self._context.__exit__(exc_type, exc, tb)
-        except Exception as sdk_exc:
-            _log_sdk_error("end", sdk_exc)
 
 
 class _LangfuseTurn:
@@ -140,11 +77,6 @@ class LangfuseTracer:
         except Exception as exc:
             _log_sdk_error("start", exc)
             return NoopTurn()
-
-    def span(
-        self, name: str, attributes: Mapping[str, object] | None = None
-    ) -> AbstractContextManager[Span]:
-        return _GuardedObservation(self._client, name, attributes or {})
 
     def shutdown(self) -> None:
         try:
