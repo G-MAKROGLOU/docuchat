@@ -1,0 +1,557 @@
+{
+  "label": "grader-off",
+  "config": {
+    "search_mode": "hybrid",
+    "grader_mode": "off",
+    "embedding_prefix": true,
+    "judge_model": "anthropic/claude-opus-5.5",
+    "questions": "questions.json"
+  },
+  "models": {
+    "rewrite": "anthropic/claude-haiku-5.5",
+    "grade": "anthropic/claude-haiku-5.5",
+    "generate": "anthropic/claude-opus-5.5",
+    "chat": "anthropic/claude-haiku-5.5"
+  },
+  "summary": {
+    "questions": 20,
+    "passed": 19,
+    "outcome_accuracy": 0.95,
+    "retrieval_hit_rate": 1.0,
+    "citation_validity_rate": 0.933,
+    "numeric_grounding_rate": 1.0,
+    "judge_correct_rate": null,
+    "latency_p50_seconds": 9.25,
+    "latency_p95_seconds": 11.19,
+    "first_token_p50_seconds": 4.21,
+    "first_token_p95_seconds": 6.06,
+    "cost_usd": 0.5091,
+    "cost_per_question_usd": 0.0255
+  },
+  "results": [
+    {
+      "id": "lipitor-start-dose",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        6,
+        6
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 7.95,
+      "first_token_seconds": 3.36,
+      "cost_usd": 0.02259,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The label gives a different starting dose for each patient group.\n\n**Adults**\n- The recommended starting dosage is 10 mg to 20 mg once daily [S2].\n- The dosage range is 10 mg to 80 mg once daily [S2].\n- Patients who need LDL-C lowered by more than 45% may be started at 40 mg once daily [S2].\n\n**Children 10 years and older with HeFH (heterozygous familial hypercholesterolemia)**\n- The recommended starting dosage is 10 mg once daily [S1].\n- The dosage range is 10 mg to 20 mg once daily [S1].\n\n**Children 10 years and older with HoFH (homozygous familial hypercholesterolemia)**\n- The recommended starting dosage is 10 mg to 20 mg once daily [S3].\n- The dosage range is 10 mg to 80 mg once daily [S3].\n\n**Other dosing points**\n- Take Lipitor by mouth once daily, at any time of day, with or without food [S4].\n- LDL-C can be checked as early as 4 weeks after starting, and the dose adjusted if needed [S4].\n- Some medicines limit the dose:\n  - With clarithromycin or itraconazole, do not exceed 20 mg once daily [S5].\n  - With certain antivirals, such as saquinavir plus ritonavir or letermovir, do not exceed 20 mg once daily [S5].\n  - With nelfinavir, do not exceed 40 mg once daily [S5].\n\nThe right dose for a specific person should be decided by a doctor or pharmacist.",
+      "citations": [
+        "S2",
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "reason": null
+    },
+    {
+      "id": "eliquis-af-dose",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        5,
+        5
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 7.87,
+      "first_token_seconds": 3.59,
+      "cost_usd": 0.03257,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "According to the Eliquis label, the recommended dose for most patients with nonvalvular atrial fibrillation is 5 mg taken orally twice daily [S1]. This use is to reduce the risk of stroke and systemic embolism in adults with nonvalvular atrial fibrillation [S2].\n\nReduced dose:\nThe recommended dose is 2.5 mg twice daily in patients who have at least two of the following characteristics [S1]:\n- age greater than or equal to 80 years [S1]\n- body weight less than or equal to 60 kg [S1]\n- serum creatinine greater than or equal to 1.5 mg/dL [S1]\n\nThe label states that no dose adjustment is recommended for nonvalvular atrial fibrillation patients unless at least 2 of these characteristics are present [S7].\n\nPatients with end-stage renal disease (ESRD) on dialysis:\nClinical efficacy and safety studies did not enroll patients with ESRD on dialysis [S3]. In patients with ESRD on intermittent hemodialysis, the usually recommended dose gives apixaban concentrations and activity similar to those seen in the ARISTOTLE study [S3]. It is not known whether this leads to similar stroke reduction and bleeding risk in these patients [S3].\n\nFor decisions about the right dose for a specific patient, please ask a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S2",
+        "S7",
+        "S3"
+      ],
+      "reason": null
+    },
+    {
+      "id": "eliquis-dose-reduction",
+      "passed": false,
+      "missing": [
+        "outcome refusal"
+      ],
+      "outcome_ok": false,
+      "retrieval_hit": true,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 10.35,
+      "first_token_seconds": 6.15,
+      "cost_usd": 0.03011,
+      "searches": 1,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "no_valid_citation"
+    },
+    {
+      "id": "xarelto-af-dose",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        5,
+        5
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 11.14,
+      "first_token_seconds": 4.61,
+      "cost_usd": 0.03889,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The drug labels do not describe Xarelto as a \"treatment\" of atrial fibrillation itself. The indication is to reduce the risk of stroke and systemic embolism in adult patients with nonvalvular atrial fibrillation [S8]. The label also notes limited data on how well Xarelto works compared with warfarin when warfarin therapy is well-controlled [S8].\n\n**Recommended dosage in adults with nonvalvular atrial fibrillation**\nDosing depends on kidney function. CrCl is calculated based on actual weight [S2].\n- CrCl >50 mL/min: 20 mg once daily, taken with the evening meal [S2].\n- CrCl \u226450 mL/min: 15 mg once daily, taken with the evening meal [S2].\n  - Patients with CrCl <30 mL/min were not studied. Their rivaroxaban serum levels are expected to be similar to those in patients with moderate renal impairment (CrCl 30 to <50 mL/min) [S8 is not the source; see S2] [S2].\n\nPatients with atrial fibrillation should be advised to take Xarelto once daily with the evening meal [S6].\n\n**Missed dose**\nFor patients taking 20 mg or 15 mg once daily, the missed dose should be taken right away [S3]. The dose should not be doubled within the same day to make up for it [S3].\n\n**Options for patients who cannot swallow tablets**\n- Crushed with applesauce: tablets may be crushed and mixed with applesauce just before use and taken by mouth [S1]. A crushed 15 mg or 20 mg tablet should be followed right away by food [S1].\n- Through a feeding tube: after gastric placement of the tube is confirmed, tablets may be crushed, suspended in 50 mL of water, and given through an NG tube or gastric feeding tube [S1]. A crushed 15 mg or 20 mg tablet should then be followed right away by enteral feeding [S1].\n  - Do not give Xarelto beyond the stomach (distal to the stomach). This can reduce absorption and drug exposure [S1].\n- Crushed tablets are stable in water and in applesauce for up to 4 hours [S1].\n\n**General instructions**\nPatients should take Xarelto only as directed [S6]. They should not stop it without first talking to their healthcare professional [S6].\n\nFor decisions about a specific patient, please ask a doctor or pharmacist.",
+      "citations": [
+        "S8",
+        "S2",
+        "S6",
+        "S3",
+        "S1"
+      ],
+      "reason": null
+    },
+    {
+      "id": "tamiflu-adult-treatment",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        9,
+        9
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 8.86,
+      "first_token_seconds": 4.2,
+      "cost_usd": 0.03445,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "For adults and adolescents 13 years and older, the recommended oral dosage of Tamiflu for treating influenza is 75 mg twice daily for 5 days [S1]. This can be given as one 75 mg capsule or 12.5 mL of oral suspension twice daily [S1].\n\n**Timing and administration**\n- Start treatment within 48 hours of the first flu symptoms [S1].\n- The capsules and oral suspension can be taken with or without food, but the label says Tamiflu may be better tolerated with food [S4].\n\n**Adults with kidney impairment (treatment doses)**\nThe label recommends changing the dose when estimated creatinine clearance is less than or equal to 60 mL per minute [S3]:\n- Mild (>60-90 mL/minute): 75 mg twice daily for 5 days [S3]\n- Moderate (>30-60 mL/minute): 30 mg twice daily for 5 days [S3]\n- Severe (>10-30 mL/minute): 30 mg once daily for 5 days [S3]\n- ESRD patients on hemodialysis (\u2264 10 mL/minute): 30 mg immediately and then 30 mg after every hemodialysis cycle, with treatment not to exceed 5 days [S3]\n- ESRD patients on continuous ambulatory peritoneal dialysis (\u226410 mL/minute): a single 30 mg dose given immediately [S3]\n- ESRD patients not on dialysis: Tamiflu is not recommended [S3]\n\nFor a dosing decision for a specific patient, ask a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S4",
+        "S3"
+      ],
+      "reason": null
+    },
+    {
+      "id": "januvia-dose",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        8,
+        8
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 7.69,
+      "first_token_seconds": 4.35,
+      "cost_usd": 0.02725,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The label gives this dosing for Januvia:\n\n**Usual dose**\n- The recommended dose of JANUVIA is 100 mg once daily [S1].\n- It can be taken with or without food [S1].\n\n**Dose changes for kidney function**\nThe label says to check kidney function before starting JANUVIA and periodically after that [S2].\n- eGFR greater than or equal to 45 mL/min/1.73 m2 to less than 90 mL/min/1.73 m2: no dosage adjustment is required [S2].\n- Moderate renal impairment (eGFR greater than or equal to 30 mL/min/1.73 m2 to less than 45 mL/min/1.73 m2): 50 mg once daily [S2].\n- Severe renal impairment (eGFR less than 30 mL/min/1.73 m2), or end-stage renal disease requiring hemodialysis or peritoneal dialysis: 25 mg once daily [S2]. It may be given without regard to the timing of dialysis [S2].\n\n**Higher dose**\nIn clinical studies, the 200 mg daily dose did not provide greater blood sugar control than the 100 mg daily dose [S3].\n\nAsk a doctor or pharmacist which dose is right for a specific person.",
+      "citations": [
+        "S1",
+        "S2",
+        "S3"
+      ],
+      "reason": null
+    },
+    {
+      "id": "plavix-ppi",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": false,
+      "numbers": [
+        3,
+        3
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 10.98,
+      "first_token_seconds": 5.36,
+      "cost_usd": 0.02635,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "No. The Plavix label says to avoid taking Plavix together with omeprazole.\n\n**Why the label advises against it**\n- Clopidogrel is a prodrug. It works through an active metabolite, and CYP2C19 helps make that metabolite [S1][S7].\n- Omeprazole inhibits CYP2C19. This can impair the conversion of clopidogrel to its active form [S1].\n- The label states: \"Avoid concomitant use of Plavix with omeprazole or esomeprazole because both significantly reduce the antiplatelet activity of Plavix\" [S1].\n\n**Spacing the doses apart does not help**\n- In clinical studies, omeprazole significantly reduced the antiplatelet activity of Plavix whether it was given at the same time or 12 hours apart [S7].\n\n**Related information**\n- Esomeprazole had a similar effect when given with Plavix [S7].\n- In a study with esomeprazole 40 mg once daily, exposure to clopidogrel's active metabolite was reduced by 35% to 40% [S8].\n- The Nexium (esomeprazole) label also says to avoid use with clopidogrel and to consider other antiplatelet therapy [S2].\n- Dexlansoprazole, lansoprazole and pantoprazole had less effect on Plavix's antiplatelet activity than omeprazole or esomeprazole [S7].\n\n**What to do**\nWhether to switch the acid-reducing medicine or change any treatment is a decision for your doctor or pharmacist. The Plavix label also notes that stopping Plavix increases the risk of cardiovascular events [S6]. So do not stop or change your medicines without first talking to your doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S7",
+        "S8",
+        "S2",
+        "S6"
+      ],
+      "reason": null
+    },
+    {
+      "id": "jantoven-pregnancy",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        6,
+        6
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 9.66,
+      "first_token_seconds": 4.21,
+      "cost_usd": 0.03098,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "Generally no. The label says Jantoven is contraindicated in pregnancy, with one exception: pregnant women with mechanical heart valves who are at high risk of thromboembolism, where the benefits may outweigh the risks [S4] [S1].\n\n**The exception for mechanical heart valves**\n- In these cases, the decision to start or continue Jantoven should be reviewed with the patient [S2].\n- That review should weigh the patient's own risks and benefits and the most current medical guidelines [S2].\n- If Jantoven is used during pregnancy, or the patient becomes pregnant while taking it, she should be told about the potential hazard to the fetus [S2] [S4].\n\n**Risks to the fetus**\n- Jantoven can cause fetal harm [S1].\n- Warfarin crosses the placenta, and fetal plasma levels approach the mother's levels [S1].\n- Exposure in the first trimester caused a pattern of congenital malformations in about 5% of exposed offspring [S1]. This is called warfarin embryopathy, which includes nasal hypoplasia and growth retardation [S1].\n- Exposure during pregnancy also causes fatal fetal hemorrhage and a higher risk of miscarriage (spontaneous abortion) and fetal death [S4].\n- Exposure in the second and third trimesters has been linked to mental retardation, blindness, microcephaly, hydrocephalus and other adverse outcomes [S1].\n- For comparison, the background risk in the U.S. general population is 2% to 4% for major birth defects and 15% to 20% for miscarriage [S1].\n\n**Before and during treatment for women who could become pregnant**\n- Pregnancy status should be checked before starting Jantoven [S3].\n- Effective contraception should be used during treatment and for at least 1 month after the final dose [S3].\n- Patients should tell their physician if they are pregnant, planning a pregnancy, or considering breastfeeding [S5].\n\nDecisions for a specific patient should be made with her doctor.",
+      "citations": [
+        "S4",
+        "S1",
+        "S2",
+        "S3",
+        "S5"
+      ],
+      "reason": null
+    },
+    {
+      "id": "zoloft-side-effects",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        24,
+        24
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 12.06,
+      "first_token_seconds": 6.05,
+      "cost_usd": 0.04395,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The Zoloft label defines the most common adverse reactions as those occurring at \u22655% and twice the placebo rate in pooled placebo-controlled trials in adults with MDD, OCD, PD, PTSD, SAD and PMDD [S2]. These trials included 3066 Zoloft-treated adults, mostly at 50 mg to 200 mg per day, for 8 to12 weeks [S2].\n\n**Most common adverse reactions, all indications pooled**\nValues are Zoloft (N=3066) / placebo (N=2293) [S2]:\n- Nausea: 26% / 12% [S1]\n- Diarrhea/loose stools: 20% / 10% [S1]\n- Tremor: 9% / 2% [S1]\n- Dyspepsia: 8% / 4% [S1]\n- Decreased appetite: 7% / 2% [S1]\n- Hyperhidrosis: 7% / 3% [S1]\n- Ejaculation failure: 8% / 1%, counted in male patients only (n=1316 Zoloft; n=973 placebo) [S1]\n- Libido decreased: 6% / 2% [S1]\n\n**Additional most common reactions by indication** (\u22655% and twice placebo) [S2]:\n- MDD: somnolence [S2]\n- OCD: insomnia, agitation [S2]\n- PD: constipation, agitation [S2]\n- PTSD: fatigue [S2]\n- PMDD: somnolence, dry mouth, dizziness, fatigue, abdominal pain [S2]\n- SAD: insomnia, dizziness, fatigue, dry mouth, malaise [S2]\n\n**Sexual adverse reactions** (Table 4, Zoloft / placebo) [S3]:\n- Men (N=1316 / N=973): ejaculation failure 8% / 1%, libido decreased 7% / 2%, erectile dysfunction 4% / 1%, ejaculation disorder 3% / 0%, male sexual dysfunction 2% / 0% [S3]\n- Women (N=1750 / N=1320): libido decreased 4% / 2% [S3]\n\n**Discontinuation due to adverse reactions**\nIn these trials, 368 (12%) of Zoloft-treated patients stopped treatment because of an adverse reaction, compared with 93 (4%) on placebo [S1]. The most common reasons were nausea (3%), diarrhea (2%), agitation (2%), and insomnia (2%) [S1].\n\n**Pediatric patients**\nIn 281 pediatric patients, the overall profile was generally similar to adults [S3].\n\nFor questions about a specific patient, ask a doctor or pharmacist.",
+      "citations": [
+        "S2",
+        "S1",
+        "S3"
+      ],
+      "reason": null
+    },
+    {
+      "id": "synthroid-weight-loss",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 9.25,
+      "first_token_seconds": 3.89,
+      "cost_usd": 0.02734,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "No. The Synthroid label says it should not be used for weight loss.\n\n**Boxed warning**\n- Thyroid hormones, including Synthroid, alone or with other therapeutic agents, should not be used to treat obesity or for weight loss [S2].\n- In euthyroid patients (people whose thyroid works normally), doses within the range of daily hormonal requirements do not reduce weight [S2].\n- Larger doses may cause serious or even life-threatening toxicity [S2]. The risk is higher when Synthroid is given with sympathomimetic amines, such as those used to suppress appetite [S2].\n\n**Patient counseling**\n- Patients should be told that Synthroid should not be used as a primary or add-on therapy in a weight control program [S3].\n- Synthroid is meant to replace a hormone that the thyroid gland normally makes [S3].\n\n**What it is approved for**\n- Replacement therapy for hypothyroidism in adults and children, including neonates [S4].\n- An add-on to surgery and radioiodine therapy in managing thyrotropin-dependent well-differentiated thyroid cancer [S4].\n\n**Why weight loss is listed as an adverse reaction**\nWeight loss appears among the adverse reactions [S7]. These reactions are mainly signs of hyperthyroidism caused by too high a dose [S7]. Other effects of overdosage include:\n- palpitations, tachycardia and arrhythmias\n- heart failure, myocardial infarction and cardiac arrest\n- decreased bone mineral density [S7]\n\nFor questions about your own treatment or weight management, please talk to a doctor or pharmacist.",
+      "citations": [
+        "S2",
+        "S3",
+        "S4",
+        "S7"
+      ],
+      "reason": null
+    },
+    {
+      "id": "valtrex-zoster",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        12,
+        12
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 10.21,
+      "first_token_seconds": 5.41,
+      "cost_usd": 0.0321,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "**Adult dosage for herpes zoster (shingles)**\n\n- The recommended dosage of VALTREX is 1 gram 3 times daily for 7 days [S1].\n- Therapy should be started at the earliest sign or symptom of herpes zoster. It is most effective when started within 48 hours of the onset of rash [S1].\n- VALTREX is indicated for herpes zoster in immunocompetent adults [S7].\n- The efficacy of VALTREX started more than 72 hours after the onset of rash has not been established [S7].\n- The efficacy and safety for disseminated herpes zoster have not been established [S7].\n- VALTREX may be given without regard to meals [S5].\n\n**Adults with renal impairment (herpes zoster)**\n\nThe normal regimen applies at creatinine clearance \u226550 mL/min and is 1 gram every 8 hours [S2]. Lower clearance needs a different regimen [S2]:\n- Creatinine clearance 30-49 mL/min: 1 gram every 12 hours [S2]\n- Creatinine clearance 10-29 mL/min: 1 gram every 24 hours [S2]\n- Creatinine clearance <10 mL/min: 500 mg every 24 hours [S2]\n\nPatients on hemodialysis should receive the recommended dose after hemodialysis [S4]. Supplemental doses should not be required after CAPD or CAVHD [S4].\n\n**Children**\n\nValacyclovir is not recommended for the treatment of herpes zoster in children, because safety data up to 7 days' duration are not available [S6].\n\nFor decisions about a specific patient, please consult a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S7",
+        "S5",
+        "S2",
+        "S4",
+        "S6"
+      ],
+      "reason": null
+    },
+    {
+      "id": "singulair-warning",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 9.53,
+      "first_token_seconds": 4.15,
+      "cost_usd": 0.03243,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The Singulair (montelukast) boxed warning is titled \"WARNING: SERIOUS NEUROPSYCHIATRIC EVENTS\" [S1].\n\n**What has been reported**\n- Serious neuropsychiatric (NP) events have been reported with the use of SINGULAIR [S1].\n- The types of events were highly variable [S1]. They included, but were not limited to:\n  - agitation\n  - aggression\n  - depression\n  - sleep disturbances\n  - suicidal thoughts and behavior (including suicide) [S1]\n- The mechanisms behind these events are currently not well understood [S1].\n\n**Limits on use**\n- Because of the risk of NP events, the benefits of SINGULAIR may not outweigh the risks in some patients [S1]. This applies particularly when the symptoms of disease may be mild and adequately treated with alternative therapies [S1].\n- For allergic rhinitis, use of SINGULAIR should be reserved for patients who have an inadequate response or intolerance to alternative therapies [S1].\n- For asthma or exercise-induced bronchoconstriction, prescribers should consider the benefits and risks before prescribing SINGULAIR [S1].\n\n**What prescribers are told to do**\n- Discuss the benefits and risks with patients and caregivers when prescribing [S1].\n- Advise patients and/or caregivers to be alert for changes in behavior or new NP symptoms while taking SINGULAIR [S1].\n- If behavior changes, new NP symptoms, or suicidal thoughts and/or behavior occur, patients should be advised to stop SINGULAIR and contact a healthcare provider immediately [S1].\n\n**Additional detail from the Warnings and Precautions section**\n- NP events have been reported in adult, adolescent, and pediatric patients, both with and without a previous history of psychiatric disorder [S2].\n- Some events were reported after SINGULAIR was stopped [S2].\n- In some cases, symptoms persisted after stopping [S2].\n\nIf you have concerns about taking this medicine, please talk with a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S2"
+      ],
+      "reason": null
+    },
+    {
+      "id": "keppra-adult-start",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        15,
+        15
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 8.34,
+      "first_token_seconds": 3.64,
+      "cost_usd": 0.03008,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "For adults 16 years of age and older with partial-onset seizures, the Keppra label says to start with a daily dose of 1000 mg/day, given as twice-daily dosing (500 mg twice daily) [S1]. The dosing is the same for monotherapy and for adjunctive therapy [S1].\n\nAfter the start, the label describes these steps:\n- The dose may be increased by 1000 mg/day every 2 weeks [S1].\n- The maximum recommended daily dose is 3000 mg [S1].\n- There is no evidence that doses greater than 3000 mg/day give additional benefit [S1].\n\nFor adults with renal impairment, the label says dosing must be individualized according to the patient's renal function [S8]. It gives the following dosages:\n- Normal (creatinine clearance > 80 mL/min/1.73m 2): 500 to 1,500 mg every 12 hours [S8].\n- Mild (50 \u2013 80): 500 to 1,000 mg every 12 hours [S8].\n- Moderate (30 \u2013 50): 250 to 750 mg every 12 hours [S8].\n- Severe (< 30): 250 to 500 mg every 12 hours [S8].\n- ESRD patients using dialysis: 500 to 1,000 mg every 24 hours, with a 250 to 500 mg supplemental dose recommended following dialysis [S8].\n\nFor dosing decisions for a specific patient, ask a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S8"
+      ],
+      "reason": null
+    },
+    {
+      "id": "fosamax-how-to-take",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        9,
+        9
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 10.67,
+      "first_token_seconds": 4.49,
+      "cost_usd": 0.02731,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "How to take Fosamax:\n\n- Take it upon arising for the day, at least one-half hour before the first food, beverage, or medication of the day, with plain water only [S1].\n- Other beverages (including mineral water), food, and some medications are likely to reduce its absorption [S1]. Even orange juice or coffee has been shown to markedly reduce absorption [S4].\n- Swallow each tablet with a full glass of water (6-8 ounces) [S1]. This helps the tablet reach the stomach and lowers the chance of esophageal irritation [S1].\n- Do not chew or suck on the tablet, because it may cause ulcers in the mouth and throat [S4].\n- For the oral solution, drink at least 2 ounces (a quarter of a cup) of water afterward [S1].\n- Do not lie down for at least 30 minutes and until after the first food of the day [S1].\n- Do not take it at bedtime or before arising for the day [S1]. Not following these instructions may increase the risk of esophageal problems [S1].\n- If symptoms of esophageal disease develop, such as difficulty or pain when swallowing, chest pain behind the breastbone, or new or worsening heartburn, stop Fosamax and consult a physician [S4].\n\nMissed once-weekly dose:\n- Take one dose on the morning after you remember [S2].\n- Do not take two doses on the same day [S2].\n- Then return to one dose once a week on the originally chosen day [S2].\n\nRecommended dosages:\n- Treatment of osteoporosis in postmenopausal women: one 70 mg tablet once weekly, one bottle of 70 mg oral solution once weekly, or one 10 mg tablet once daily [S5].\n- Treatment to increase bone mass in men with osteoporosis: the same options as above [S8].\n- Prevention of osteoporosis in postmenopausal women: one 35 mg tablet once weekly or one 5 mg tablet once daily [S7].\n\nFosamax is no longer marketed in the 5 mg, 10 mg, 35 mg, and 40 mg strengths, and Fosamax oral solution is no longer marketed [S3]. The tablet listed as supplied is 70 mg [S6].\n\nOther points from the label:\n- Take supplemental calcium and vitamin D if daily dietary intake is inadequate [S4].\n- Read the Medication Guide before starting therapy and each time the prescription is renewed [S4].\n\nFor questions about your own dosing, ask your doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S4",
+        "S2",
+        "S5",
+        "S8",
+        "S7",
+        "S3",
+        "S6"
+      ],
+      "reason": null
+    },
+    {
+      "id": "crestor-dose-range",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        9,
+        9
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 9.26,
+      "first_token_seconds": 4.48,
+      "cost_usd": 0.02412,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "The adult dosage range for Crestor is 5 to 40 mg orally once daily [S1]. The right dose depends on why it is being used, the patient's LDL-C level, and their individual risk for cardiovascular events [S1].\n\nThe label gives different dosing for some groups:\n\n- **Children 8 years and older with HeFH:** 5 mg to 10 mg once daily for ages 8 to less than 10 years. For ages 10 years and older, it is 5 mg to 20 mg once daily [S6].\n- **Children 7 years and older with HoFH:** 20 mg once daily [S6].\n- **Asian patients:** Start at 5 mg once daily because rosuvastatin blood levels are higher in these patients [S5]. Weigh the risks and benefits if the patient is not well controlled at doses up to 20 mg once daily [S5].\n- **Severe kidney problems not on hemodialysis (CLcr less than 30 mL/min/1.73 m2):** Start at 5 mg once daily, and do not go above 10 mg once daily [S4]. The label gives no dose changes for mild or moderate kidney problems [S4].\n\nCrestor is taken by mouth as a single dose at any time of day, with or without food [S2]. LDL-C can be checked as early as 4 weeks after starting, and the dose adjusted if needed [S2].\n\nTo decide the right dose for a specific patient, ask a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S6",
+        "S5",
+        "S4",
+        "S2"
+      ],
+      "reason": null
+    },
+    {
+      "id": "lexapro-celexa-max",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": true,
+      "citation_valid": true,
+      "numbers": [
+        11,
+        11
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 10.83,
+      "first_token_seconds": 4.25,
+      "cost_usd": 0.02951,
+      "searches": 1,
+      "outcome": "final",
+      "answer": "Lexapro and Celexa have different maximum daily doses, and Celexa has a lower limit for some patient groups.\n\n**Lexapro (escitalopram)**\n- Major depressive disorder, adults: start at 10 mg once daily, up to a maximum of 20 mg once daily. Increases should be at least 1 week apart [S1].\n- Major depressive disorder, pediatric patients 12 years and older: start at 10 mg once daily, up to a maximum of 20 mg once daily. Increases should be at least 3 weeks apart [S1].\n- Generalized anxiety disorder, adults: start at 10 mg once daily, up to a maximum of 20 mg once daily. Increases should be at least 1 week apart [S5].\n- Generalized anxiety disorder, pediatric patients 7 years and older: start at 10 mg once daily, up to a maximum of 20 mg once daily. Increases should be at least 2 weeks apart [S5].\n- In a fixed-dose trial, both 10 mg and 20 mg worked, but 20 mg did not show a greater benefit than 10 mg [S1].\n\n**Celexa (citalopram)**\n- General: start at 20 mg once daily, up to a maximum of 40 mg once daily. Increases should be at least one week apart [S2].\n- Doses above 40 mg once daily are not recommended because of the risk of QT prolongation [S2][S7]. Celexa causes dose-dependent QTc prolongation [S7].\n- The maximum is 20 mg once daily for these groups:\n  - patients older than 60 years [S3]\n  - patients with hepatic impairment [S3]\n  - CYP2C19 poor metabolizers [S3]\n  - patients taking a CYP2C19 inhibitor, such as cimetidine [S4][S7]\n\n**Summary**\nThe usual maximum is 20 mg once daily for Lexapro and 40 mg once daily for Celexa [S1][S2]. For Celexa, the maximum drops to 20 mg once daily in the groups listed above [S3][S4].\n\n**What the excerpts do not cover**\nThey do not state Lexapro's maximum dose for elderly patients or patients with hepatic impairment. They only refer to a Lexapro section 2.5 that is not included [S8]. In elderly subjects, escitalopram AUC and half-life were about 50% higher [S8].\n\nFor decisions about a specific patient, please ask a doctor or pharmacist.",
+      "citations": [
+        "S1",
+        "S5",
+        "S2",
+        "S7",
+        "S3",
+        "S4",
+        "S8"
+      ],
+      "reason": null
+    },
+    {
+      "id": "not-in-library",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 4.14,
+      "first_token_seconds": 3.72,
+      "cost_usd": 0.01871,
+      "searches": 1,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "no_relevant_context"
+    },
+    {
+      "id": "off-topic",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 1.53,
+      "first_token_seconds": 0.85,
+      "cost_usd": 0.00016,
+      "searches": 0,
+      "outcome": "final",
+      "answer": "Sorry, I only answer questions about medicines using their official drug labels. Is there a medicine you'd like to ask about?",
+      "citations": [],
+      "reason": null
+    },
+    {
+      "id": "injection",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 0.02,
+      "first_token_seconds": null,
+      "cost_usd": 0.0,
+      "searches": 0,
+      "outcome": "refusal",
+      "answer": "",
+      "citations": [],
+      "reason": "out_of_scope"
+    },
+    {
+      "id": "greeting",
+      "passed": true,
+      "missing": [],
+      "outcome_ok": true,
+      "retrieval_hit": null,
+      "citation_valid": null,
+      "numbers": [
+        0,
+        0
+      ],
+      "judge": null,
+      "judge_reason": "",
+      "seconds": 1.78,
+      "first_token_seconds": 1.02,
+      "cost_usd": 0.00023,
+      "searches": 0,
+      "outcome": "final",
+      "answer": "Hello! I'm DocuChat. I answer questions about medicines using their official drug labels, such as dosage, side effects, warnings, and interactions. I currently have labels for medicines like Eliquis, Lipitor, Zoloft, Synthroid, Ozempic, and about 50 others. What would you like to know?",
+      "citations": [],
+      "reason": null
+    }
+  ]
+}

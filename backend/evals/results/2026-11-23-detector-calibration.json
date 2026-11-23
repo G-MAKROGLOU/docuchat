@@ -1,0 +1,661 @@
+{
+  "labels": 53,
+  "cases": {
+    "typo": 486,
+    "outside": 77,
+    "word": 91
+  },
+  "current": {
+    "thresholds": {
+      "fuzzy": 80.0,
+      "floor": 70.0,
+      "margin": 12.0
+    },
+    "wrong": 0,
+    "correct": 476,
+    "missed": 0,
+    "clarify": 16,
+    "counts": {
+      "typo": {
+        "correct": 476,
+        "clarify": 10
+      },
+      "outside": {
+        "clean": 71,
+        "clarify": 6
+      },
+      "word": {
+        "clean": 91
+      }
+    }
+  },
+  "best": {
+    "thresholds": {
+      "fuzzy": 80.0,
+      "floor": 70.0,
+      "margin": 10.0
+    },
+    "wrong": 0,
+    "correct": 476,
+    "missed": 0,
+    "clarify": 16,
+    "counts": {
+      "typo": {
+        "correct": 476,
+        "clarify": 10
+      },
+      "outside": {
+        "clean": 71,
+        "clarify": 6
+      },
+      "word": {
+        "clean": 91
+      }
+    }
+  },
+  "best_errors": [
+    {
+      "word": "citlopram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "citaloram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "citaolpram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "citalupram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "citaloopram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "escialopram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "escitaloram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "escitlaopram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "escitakopram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "escitallopram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "lansoprazole",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Protonix",
+        "Nexium"
+      ]
+    },
+    {
+      "word": "pravastatin",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Crestor",
+        "Lipitor"
+      ]
+    },
+    {
+      "word": "duloxetine",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Prozac",
+        "Paxil"
+      ]
+    },
+    {
+      "word": "olmesartan",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Cozaar",
+        "Diovan"
+      ]
+    },
+    {
+      "word": "canagliflozin",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Farxiga",
+        "Jardiance"
+      ]
+    },
+    {
+      "word": "saxagliptin",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Januvia",
+        "Tradjenta"
+      ]
+    }
+  ],
+  "current_errors": [
+    {
+      "word": "citlopram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "citaloram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "citaolpram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "citalupram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "citaloopram",
+      "expected": "Celexa",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Celexa",
+        "Lexapro"
+      ]
+    },
+    {
+      "word": "escialopram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "escitaloram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "escitlaopram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "escitakopram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "escitallopram",
+      "expected": "Lexapro",
+      "kind": "typo",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Lexapro",
+        "Celexa"
+      ]
+    },
+    {
+      "word": "lansoprazole",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Protonix",
+        "Nexium"
+      ]
+    },
+    {
+      "word": "pravastatin",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Crestor",
+        "Lipitor"
+      ]
+    },
+    {
+      "word": "duloxetine",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Prozac",
+        "Paxil"
+      ]
+    },
+    {
+      "word": "olmesartan",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Cozaar",
+        "Diovan"
+      ]
+    },
+    {
+      "word": "canagliflozin",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Farxiga",
+        "Jardiance"
+      ]
+    },
+    {
+      "word": "saxagliptin",
+      "expected": null,
+      "kind": "outside",
+      "result": "clarify",
+      "detected": [],
+      "ambiguous": [
+        "Januvia",
+        "Tradjenta"
+      ]
+    }
+  ],
+  "top": [
+    {
+      "thresholds": {
+        "fuzzy": 80.0,
+        "floor": 70.0,
+        "margin": 10.0
+      },
+      "wrong": 0,
+      "correct": 476,
+      "missed": 0,
+      "clarify": 16,
+      "counts": {
+        "typo": {
+          "correct": 476,
+          "clarify": 10
+        },
+        "outside": {
+          "clean": 71,
+          "clarify": 6
+        },
+        "word": {
+          "clean": 91
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 80.0,
+        "floor": 70.0,
+        "margin": 12.0
+      },
+      "wrong": 0,
+      "correct": 476,
+      "missed": 0,
+      "clarify": 16,
+      "counts": {
+        "typo": {
+          "correct": 476,
+          "clarify": 10
+        },
+        "outside": {
+          "clean": 71,
+          "clarify": 6
+        },
+        "word": {
+          "clean": 91
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 80.0,
+        "floor": 70.0,
+        "margin": 14.0
+      },
+      "wrong": 0,
+      "correct": 475,
+      "missed": 0,
+      "clarify": 17,
+      "counts": {
+        "typo": {
+          "correct": 475,
+          "clarify": 11
+        },
+        "outside": {
+          "clean": 71,
+          "clarify": 6
+        },
+        "word": {
+          "clean": 91
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 77.5,
+        "floor": 65.0,
+        "margin": 10.0
+      },
+      "wrong": 0,
+      "correct": 476,
+      "missed": 0,
+      "clarify": 18,
+      "counts": {
+        "typo": {
+          "correct": 476,
+          "clarify": 10
+        },
+        "outside": {
+          "clean": 70,
+          "clarify": 7
+        },
+        "word": {
+          "clean": 90,
+          "clarify": 1
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 77.5,
+        "floor": 65.0,
+        "margin": 12.0
+      },
+      "wrong": 0,
+      "correct": 476,
+      "missed": 0,
+      "clarify": 18,
+      "counts": {
+        "typo": {
+          "correct": 476,
+          "clarify": 10
+        },
+        "outside": {
+          "clean": 70,
+          "clarify": 7
+        },
+        "word": {
+          "clean": 90,
+          "clarify": 1
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 80.0,
+        "floor": 65.0,
+        "margin": 10.0
+      },
+      "wrong": 0,
+      "correct": 476,
+      "missed": 0,
+      "clarify": 18,
+      "counts": {
+        "typo": {
+          "correct": 476,
+          "clarify": 10
+        },
+        "outside": {
+          "clean": 70,
+          "clarify": 7
+        },
+        "word": {
+          "clean": 90,
+          "clarify": 1
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 80.0,
+        "floor": 65.0,
+        "margin": 12.0
+      },
+      "wrong": 0,
+      "correct": 476,
+      "missed": 0,
+      "clarify": 18,
+      "counts": {
+        "typo": {
+          "correct": 476,
+          "clarify": 10
+        },
+        "outside": {
+          "clean": 70,
+          "clarify": 7
+        },
+        "word": {
+          "clean": 90,
+          "clarify": 1
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 77.5,
+        "floor": 65.0,
+        "margin": 14.0
+      },
+      "wrong": 0,
+      "correct": 473,
+      "missed": 0,
+      "clarify": 21,
+      "counts": {
+        "typo": {
+          "correct": 473,
+          "clarify": 13
+        },
+        "outside": {
+          "clean": 70,
+          "clarify": 7
+        },
+        "word": {
+          "clean": 90,
+          "clarify": 1
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 80.0,
+        "floor": 65.0,
+        "margin": 14.0
+      },
+      "wrong": 0,
+      "correct": 473,
+      "missed": 0,
+      "clarify": 21,
+      "counts": {
+        "typo": {
+          "correct": 473,
+          "clarify": 13
+        },
+        "outside": {
+          "clean": 70,
+          "clarify": 7
+        },
+        "word": {
+          "clean": 90,
+          "clarify": 1
+        }
+      }
+    },
+    {
+      "thresholds": {
+        "fuzzy": 82.5,
+        "floor": 75.0,
+        "margin": 10.0
+      },
+      "wrong": 0,
+      "correct": 470,
+      "missed": 6,
+      "clarify": 13,
+      "counts": {
+        "typo": {
+          "correct": 470,
+          "clarify": 10,
+          "missed": 6
+        },
+        "outside": {
+          "clean": 74,
+          "clarify": 3
+        },
+        "word": {
+          "clean": 91
+        }
+      }
+    }
+  ]
+}

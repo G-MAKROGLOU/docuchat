@@ -1,0 +1,5591 @@
+{
+  "checked": 2831,
+  "hitRate": 0.7859413634758036,
+  "counts": {
+    "passage": 2210,
+    "anchor": 15,
+    "miss": 606
+  },
+  "missesOnAnotherPage": 67,
+  "missesByDrug": {
+    "Rinvoq": 44,
+    "Xarelto": 33,
+    "Xeljanz": 33,
+    "Vfend": 31,
+    "Gleevec": 31,
+    "Farxiga": 27,
+    "Crestor": 22,
+    "Zyprexa": 21,
+    "Seroquel": 20,
+    "OZEMPIC": 20,
+    "Nexium": 20,
+    "Abilify": 20,
+    "Verzenio": 20,
+    "Cialis": 19,
+    "Januvia": 19,
+    "Topamax": 19,
+    "Mounjaro": 18,
+    "Lipitor": 18,
+    "Ozempic": 17,
+    "Eliquis": 15,
+    "Prozac": 14,
+    "Fosamax": 13,
+    "Jantoven": 13,
+    "Ibrance": 12,
+    "Pristiq": 12,
+    "Celexa": 10,
+    "Entresto": 9,
+    "Lexapro": 9,
+    "Tradjenta": 9,
+    "Cozaar": 9,
+    "Singulair": 7,
+    "Tamiflu": 7,
+    "Valium": 6,
+    "Bystolic": 5,
+    "Zestril": 3,
+    "terbinafine": 1
+  },
+  "failedDocuments": [
+    {
+      "document": "02e72b7e-5963-4bf0-a4c3-65850b0639fb",
+      "chunks": 79,
+      "error": "Error: PDF 02e72b7e-5963-4bf0-a4c3-65850b0639fb: HTTP 500"
+    },
+    {
+      "document": "09a7447d-fae7-4685-8e3d-2b7ce3db6c9b",
+      "chunks": 110,
+      "error": "Error: PDF 09a7447d-fae7-4685-8e3d-2b7ce3db6c9b: HTTP 500"
+    },
+    {
+      "document": "09d36d86-29ba-4e35-8119-b3008fddf0dc",
+      "chunks": 74,
+      "error": "Error: PDF 09d36d86-29ba-4e35-8119-b3008fddf0dc: HTTP 500"
+    },
+    {
+      "document": "1343dbe6-32f3-41ea-b560-01874718ac6a",
+      "chunks": 58,
+      "error": "Error: PDF 1343dbe6-32f3-41ea-b560-01874718ac6a: HTTP 500"
+    },
+    {
+      "document": "1643e95f-53cb-46d5-993c-f2ffdce27a61",
+      "chunks": 72,
+      "error": "Error: PDF 1643e95f-53cb-46d5-993c-f2ffdce27a61: HTTP 500"
+    },
+    {
+      "document": "168bfd8e-7bd8-4ab9-bb15-ffe7facad718",
+      "chunks": 51,
+      "error": "Error: PDF 168bfd8e-7bd8-4ab9-bb15-ffe7facad718: HTTP 500"
+    },
+    {
+      "document": "17f4b830-6cf1-4c36-9592-f76e61e8e3bb",
+      "chunks": 45,
+      "error": "Error: PDF 17f4b830-6cf1-4c36-9592-f76e61e8e3bb: HTTP 500"
+    },
+    {
+      "document": "21ac5d0a-a8c4-4d2f-b37a-2cea940a7bef",
+      "chunks": 52,
+      "error": "Error: PDF 21ac5d0a-a8c4-4d2f-b37a-2cea940a7bef: HTTP 500"
+    },
+    {
+      "document": "239a6b73-b688-485f-9ac8-630a50e9eb22",
+      "chunks": 69,
+      "error": "Error: PDF 239a6b73-b688-485f-9ac8-630a50e9eb22: HTTP 500"
+    },
+    {
+      "document": "246fb137-7cd7-4c98-9267-bb6904fd062a",
+      "chunks": 54,
+      "error": "Error: PDF 246fb137-7cd7-4c98-9267-bb6904fd062a: HTTP 500"
+    },
+    {
+      "document": "7847e47c-7097-4db5-ac79-3ff35839f803",
+      "chunks": 49,
+      "error": "Error: PDF 7847e47c-7097-4db5-ac79-3ff35839f803: HTTP 500"
+    },
+    {
+      "document": "7bb684de-4944-4e0e-9a31-7d0a0125ef6d",
+      "chunks": 65,
+      "error": "Error: PDF 7bb684de-4944-4e0e-9a31-7d0a0125ef6d: HTTP 500"
+    },
+    {
+      "document": "854b6684-0cd0-4142-b715-e7bc2f837cfe",
+      "chunks": 65,
+      "error": "Error: PDF 854b6684-0cd0-4142-b715-e7bc2f837cfe: HTTP 500"
+    },
+    {
+      "document": "88cf1ee9-0442-4a90-bc3d-bae5681d6dbe",
+      "chunks": 90,
+      "error": "Error: PDF 88cf1ee9-0442-4a90-bc3d-bae5681d6dbe: HTTP 500"
+    },
+    {
+      "document": "89d1df64-9be3-4c4b-bbbd-6927c390d75a",
+      "chunks": 59,
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "document": "8b53193c-a538-4415-af0c-f7e21c20e267",
+      "chunks": 52,
+      "error": "Error: PDF 8b53193c-a538-4415-af0c-f7e21c20e267: HTTP 500"
+    },
+    {
+      "document": "8c41a64a-187e-4b5d-8674-6b30ceb80f1c",
+      "chunks": 81,
+      "error": "Error: PDF 8c41a64a-187e-4b5d-8674-6b30ceb80f1c: HTTP 500"
+    }
+  ],
+  "misses": [
+    {
+      "chunk": "dbc8d915-ee1e-4c7a-9105-4eb3a324fa7b",
+      "drug": "Singulair",
+      "section": "1.1 Asthma",
+      "page": 3,
+      "pageEnd": 3,
+      "anchor": "SINGULAIR® is indicated for the prophylaxis and chronic",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f079edc4-f4b8-4d3d-9590-ee80c9ac4404",
+      "drug": "Singulair",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- Tablets: 10 mg, beige, rounded square-shaped, film-coated",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b81755fb-c411-45f3-91ec-09ba6aa038dd",
+      "drug": "Singulair",
+      "section": "12.1 Mechanism of Action",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "The cysteinyl leukotrienes (LTC4, LTD4, LTE4) are products",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "10d60276-f21a-43c6-8749-dc0a940971ac",
+      "drug": "Singulair",
+      "section": "14.1 Asthma",
+      "page": 17,
+      "pageEnd": 18,
+      "anchor": "PM PEFR (L/min) | 372 | 355.23 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9e7f1376-48b3-466b-b65a-02d0b0dba9ab",
+      "drug": "Singulair",
+      "section": "14.2 Exercise-Induced Bronchoconstriction (EIB)",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "8.5 hours | 12 | 17 | -5",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "77f950ba-50d4-49ea-9dbd-025841c343b8",
+      "drug": "Singulair",
+      "section": "14.3 Allergic Rhinitis (Seasonal and Perennial)",
+      "page": 21,
+      "pageEnd": 21,
+      "anchor": "Treatment Group (N) | Baseline Mean Score |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b5eab05b-9ddb-4db7-b7dd-0a7ecb77a5f4",
+      "drug": "Singulair",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 22,
+      "pageEnd": 22,
+      "anchor": "- Instruct patients with known aspirin sensitivity to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "fbd4dc18-6374-469b-88f1-a8c720ed76c7",
+      "drug": "Farxiga",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 3,
+      "pageEnd": 4,
+      "anchor": "FARXIGA (dapagliflozin) is indicated: - To reduce the",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "17959c54-0024-4b60-92ac-bdc7b15c8d40",
+      "drug": "Farxiga",
+      "section": "2.1 Testing Prior to Initiation of FARXIGA",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- Assess renal function prior to initiation of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8d737b71-0b49-4dab-be68-eb14700c586a",
+      "drug": "Farxiga",
+      "section": "2.4 Temporary Interruption for Surgery",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- Withhold FARXIGA for at least 3 days,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d5a89d3c-a35d-4034-af46-968cd60191f2",
+      "drug": "Farxiga",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "Tablets: - 5 mg, yellow, biconvex, round, film-coated",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f988de32-fc35-488e-90b4-26c9bc378a9e",
+      "drug": "Farxiga",
+      "section": "2.5 Recommendations Regarding Missed Dose",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- If a dose is missed, instruct patients",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f94c4c65-caeb-4a6b-8442-cf69e264bcff",
+      "drug": "Farxiga",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "Nasopharyngitis | 6.2 | 6.6 | 6.3 Urinary",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1f659a0f-a9f8-42bc-ba00-c91c9e5e47e3",
+      "drug": "Farxiga",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 9,
+      "pageEnd": 10,
+      "anchor": "| Pool of 12 Placebo-Controlled Trials | Pool",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3a4d55cb-5fb4-49ae-9484-d6c373c80f5b",
+      "drug": "Farxiga",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 9,
+      "pageEnd": 9,
+      "anchor": "Pain in extremity | 1.4 | 2.0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5a02f0df-6edf-480c-8e6e-af67d1923f08",
+      "drug": "Farxiga",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 10,
+      "pageEnd": 11,
+      "anchor": "Severe [n (%)] | 0 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "fc5048f9-afa5-4e61-a11c-007ced29c0a7",
+      "drug": "Farxiga",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 10,
+      "pageEnd": 10,
+      "anchor": "Table 3: Incidence of Severe HypoglycemiaSevere episodes of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a08464f2-c795-4e2e-a9be-93990d652753",
+      "drug": "Farxiga",
+      "section": "8.2 Lactation",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "Risk Summary There is no information regarding the",
+      "foundOnPage": 15
+    },
+    {
+      "chunk": "d0638ba8-2283-42a6-8a4f-fe6c7ea7a7d0",
+      "drug": "Farxiga",
+      "section": "12.3 Pharmacokinetics",
+      "page": 20,
+      "pageEnd": 21,
+      "anchor": "Coadministered Drug (Dose Regimen) Single dose unless otherwise",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9085515b-9837-4dbd-be13-d38244bd0bf1",
+      "drug": "Farxiga",
+      "section": "12.3 Pharmacokinetics",
+      "page": 22,
+      "pageEnd": 22,
+      "anchor": "Warfarin (25 mg) | 20 mg loading dosethen",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7c32cfe6-d489-435a-b742-4af6f97b065c",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 23,
+      "pageEnd": 24,
+      "anchor": "Efficacy Parameter | FARXIGA 10 mg N=70 All",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "56a3e7b4-897b-4662-b3e7-f21b418ce9d8",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 24,
+      "pageEnd": 27,
+      "anchor": "Table 9: Results at Week 24 (LOCFLOCF: last",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "683e9257-7db1-4afc-993f-0cf425f82d27",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 27,
+      "pageEnd": 28,
+      "anchor": "Baseline (mean) | 7.9 | 8.2 | 8.1",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b471abf8-e3bd-4200-86e1-76a4c16945f9",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 27,
+      "pageEnd": 27,
+      "anchor": "Difference from metformin XR (adjusted mean) (95% CI)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8e99cc3b-bb72-4673-9b3d-ef1498bffdf8",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 29,
+      "pageEnd": 29,
+      "anchor": "Efficacy Parameter | FARXIGA + Metformin N=400 Randomized",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "14274571-b58f-4e78-a47b-dd0839d549b0",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 32,
+      "pageEnd": 33,
+      "anchor": "Change from baseline (adjusted mean) | -2.65 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "738c4e81-7345-4d63-80d1-4b56957714d1",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 32,
+      "pageEnd": 34,
+      "anchor": "2-hour PPG (mg/dL) Baseline (mean) | 329.6 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "33097c46-096d-4095-aba8-64cff6160e2c",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 33,
+      "pageEnd": 33,
+      "anchor": "Body Weight (kg) Baseline (mean) | 84.8 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f6725100-f5fa-48bf-872f-1a6cb5827392",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 33,
+      "pageEnd": 35,
+      "anchor": "HbA1c (%) Baseline (mean) | 8.6 | 8.6",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4bfa1089-deaa-4255-92ec-578e496a174e",
+      "drug": "Farxiga",
+      "section": "14.1 Glycemic Control in Adults with Type 2 Diabetes Mellitus",
+      "page": 35,
+      "pageEnd": 35,
+      "anchor": "Difference from placebo (adjusted mean) (95% CI) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a3d8e26c-cc64-4dd6-86c8-857f235f6961",
+      "drug": "Farxiga",
+      "section": "14.2 Glycemic Control in Pediatric Patients Aged 10 Years and Older with Type 2 Diabetes Mellitus",
+      "page": 36,
+      "pageEnd": 36,
+      "anchor": "Efficacy Parameter | FARXIGA 5 mg and 10",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "450ab335-e99c-4adf-80e7-bcc452ba883f",
+      "drug": "Farxiga",
+      "section": "14.3 Cardiovascular Outcomes in Adults with Type 2 Diabetes Mellitus",
+      "page": 37,
+      "pageEnd": 38,
+      "anchor": "Table 15: Treatment Effects for the Primary EndpointsFull",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8f3a2e79-30db-4c7d-be15-e32123c40739",
+      "drug": "Farxiga",
+      "section": "14.4 Chronic Kidney Disease in Adults",
+      "page": 41,
+      "pageEnd": 41,
+      "anchor": "All-Cause Mortality | 101 (2.2) | 146 (3.1)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7baf3915-2e66-4f08-82e3-c94b0cf1ef35",
+      "drug": "Farxiga",
+      "section": "14.5 Heart Failure in Adults",
+      "page": 43,
+      "pageEnd": 45,
+      "anchor": "Hospitalization for Heart Failure | 231(6.9) | 318(9.8)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c8f08cb0-17b3-4712-8f14-8c8deb5045bf",
+      "drug": "Mounjaro",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "MOUNJARO® is indicated: - as an adjunct to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d565ce66-5c35-4ec5-b444-c494a4f1c1c1",
+      "drug": "Mounjaro",
+      "section": "BW WARNING: RISK OF THYROID C-CELL TUMORS",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- In both male and female rats, tirzepatide",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "282a189a-eaa4-496b-86a6-e0533de83244",
+      "drug": "Mounjaro",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "Injection: Clear, colorless to slightly yellow solution in",
+      "foundOnPage": 6
+    },
+    {
+      "chunk": "3d6789a8-91c3-46e7-81de-6f92188e327c",
+      "drug": "Mounjaro",
+      "section": "2.2 Important Administration Instructions",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- Inform patients and their caregiver(s) which MOUNJARO",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "21e5f8b3-81eb-4eaf-882f-cf97b8ef46e8",
+      "drug": "Mounjaro",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "MOUNJARO is contraindicated in patients with: - A",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d415753b-b7f8-4ea3-91ab-c03028871d9c",
+      "drug": "Mounjaro",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 9,
+      "pageEnd": 10,
+      "anchor": "Pool of Seven Controlled Clinical Trials Adverse reactions",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ade16838-a357-4b8a-bf8d-a6f5e69fa43c",
+      "drug": "Mounjaro",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "Laboratory Abnormalities Amylase and Lipase Increase In the",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "20c5d898-a094-4d2a-92a5-48cb3bf4bd22",
+      "drug": "Mounjaro",
+      "section": "14.2 Monotherapy Use of MOUNJARO in Adult Patients with Type 2 Diabetes Mellitus",
+      "page": 22,
+      "pageEnd": 23,
+      "anchor": "SURPASS-1 (NCT03954834) was a 40-week double-blind trial that",
+      "foundOnPage": 23
+    },
+    {
+      "chunk": "d8f4f262-f65c-4db3-a708-2eddcd2286cc",
+      "drug": "Mounjaro",
+      "section": "14.2 Monotherapy Use of MOUNJARO in Adult Patients with Type 2 Diabetes Mellitus",
+      "page": 24,
+      "pageEnd": 26,
+      "anchor": "c p<0.001 (two-sided) for superiority versus placebo, adjusted",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7e98f83c-7838-4bc1-8457-ff4ad5ce0cdb",
+      "drug": "Mounjaro",
+      "section": "14.3 MOUNJARO Use in Combination with Metformin, Sulfonylureas, and/or SGLT2 Inhibitors in Adult Patients with Type 2 Diabetes Mellitus",
+      "page": 25,
+      "pageEnd": 27,
+      "anchor": "b Least-squares mean from ANCOVA adjusted for baseline",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "05a6e0e0-0928-4dcd-af75-719e84473b09",
+      "drug": "Mounjaro",
+      "section": "14.3 MOUNJARO Use in Combination with Metformin, Sulfonylureas, and/or SGLT2 Inhibitors in Adult Patients with Type 2 Diabetes Mellitus",
+      "page": 27,
+      "pageEnd": 29,
+      "anchor": "a The modified intent-to-treat population consists of all",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ade9557c-bd0c-4b22-a8a4-a2ac660da540",
+      "drug": "Mounjaro",
+      "section": "14.3 MOUNJARO Use in Combination with Metformin, Sulfonylureas, and/or SGLT2 Inhibitors in Adult Patients with Type 2 Diabetes Mellitus",
+      "page": 27,
+      "pageEnd": 27,
+      "anchor": "Change at Week 52b | -1.3 | -1.9",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c0244ac3-6699-4d78-964a-a059fd985a38",
+      "drug": "Mounjaro",
+      "section": "14.3 MOUNJARO Use in Combination with Metformin, Sulfonylureas, and/or SGLT2 Inhibitors in Adult Patients with Type 2 Diabetes Mellitus",
+      "page": 27,
+      "pageEnd": 29,
+      "anchor": "Fasting Serum Glucose (mg/dL) | | | |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d65131f8-dbd5-4bd5-9a4f-8069a1c3bde3",
+      "drug": "Mounjaro",
+      "section": "14.4 MOUNJARO Use in Combination with Basal Insulin with or without Metformin in Adult Patients with Type 2 Diabetes Mellitus",
+      "page": 28,
+      "pageEnd": 30,
+      "anchor": "Fasting Serum Glucose (mg/dL) | | | |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "05bc8aa7-966a-4bfe-b343-ac6fbdf2efab",
+      "drug": "Mounjaro",
+      "section": "14.5 MOUNJARO Use in Combination with Metformin or Basal Insulin, or Both in Pediatric Patients 10 Years of Age and Older with Type 2 Diabetes Mellitus",
+      "page": 30,
+      "pageEnd": 30,
+      "anchor": "Percent Change at Week 30b | -0.5 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e1af36ec-a1c8-4a75-a525-66967fec1ff9",
+      "drug": "Mounjaro",
+      "section": "14.5 MOUNJARO Use in Combination with Metformin or Basal Insulin, or Both in Pediatric Patients 10 Years of Age and Older with Type 2 Diabetes Mellitus",
+      "page": 30,
+      "pageEnd": 30,
+      "anchor": "b Least-squares mean from ANCOVA adjusted for baseline",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "267e5d2e-5b0a-487a-b0f5-c224f5c56f1d",
+      "drug": "Mounjaro",
+      "section": "16.1 How Supplied",
+      "page": 32,
+      "pageEnd": 33,
+      "anchor": "4 doses of 12.5 mg/0.6 mL | 50",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c776713c-91c1-42df-9ae6-c843c8aa14d3",
+      "drug": "Mounjaro",
+      "section": "16.2 Storage and Handling",
+      "page": 33,
+      "pageEnd": 33,
+      "anchor": "- Do not freeze MOUNJARO. Do not use",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1ec6d7f6-51f1-41e2-a737-0e5963e2e26a",
+      "drug": "Cialis",
+      "section": "2.1 CIALIS for Use as Needed for Erectile Dysfunction",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- The recommended starting dose of CIALIS for",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "20a444da-f483-4076-952a-54ea656bd894",
+      "drug": "Cialis",
+      "section": "2.2 CIALIS for Once Daily Use for Erectile Dysfunction",
+      "page": 4,
+      "pageEnd": 5,
+      "anchor": "- The recommended starting dose of CIALIS for",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "448f1b6d-8613-47d5-b435-184b3880d38d",
+      "drug": "Cialis",
+      "section": "1.1 Erectile Dysfunction",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "CIALIS® is indicated for the treatment of erectile",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "517d0771-74f3-4017-924a-0e69169ad37c",
+      "drug": "Cialis",
+      "section": "2.6 Use in Specific Populations",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "Renal Impairment CIALIS for Use as Needed -",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c9231729-2afb-4237-a364-67c408220ad8",
+      "drug": "Cialis",
+      "section": "2.3 CIALIS for Once Daily Use for Benign Prostatic Hyperplasia",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- The recommended dose of CIALIS for once",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d1fb0091-cf2a-45c9-841d-6ec531943a09",
+      "drug": "Cialis",
+      "section": "5.1 Cardiovascular",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "- uncontrolled arrhythmias, hypotension (<90/50 mm Hg), or",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1072e95a-de95-4e4f-9f7c-49563f26ec0b",
+      "drug": "Cialis",
+      "section": "5.6 Alpha-blockers and Antihypertensives",
+      "page": 10,
+      "pageEnd": 10,
+      "anchor": "- Patients on alpha-blocker therapy for BPH should",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3345be59-6404-4afd-84bf-41f685accf01",
+      "drug": "Cialis",
+      "section": "5.9 Alcohol",
+      "page": 10,
+      "pageEnd": 11,
+      "anchor": "Patients should be made aware that both alcohol",
+      "foundOnPage": 11
+    },
+    {
+      "chunk": "0fbd1dab-6e4d-4995-afa9-1e0c262a4e7e",
+      "drug": "Cialis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "Because clinical trials are conducted under widely varying",
+      "foundOnPage": 12
+    },
+    {
+      "chunk": "1d2eab9d-24f8-4ced-ab2b-8d8e164683f8",
+      "drug": "Cialis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 12,
+      "pageEnd": 14,
+      "anchor": "Nasal congestion | 1% | 2% | 3%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "db349fc0-0e3a-4bae-9041-cca49f5691ad",
+      "drug": "Cialis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "Gastroesophageal reflux disease | 0% | 2% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "39e520d2-4189-46c7-86b4-0ead651af27d",
+      "drug": "Cialis",
+      "section": "8.2 Lactation",
+      "page": 18,
+      "pageEnd": 19,
+      "anchor": "Risk Summary CIALIS is not indicated for use",
+      "foundOnPage": 19
+    },
+    {
+      "chunk": "999b6b6c-b087-41be-93c5-15fb3a9e4520",
+      "drug": "Cialis",
+      "section": "12.2 Pharmacodynamics",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "Day 7 of 4 mg Doxazosin | Supine",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "098a6dde-da9f-4ef1-9157-bbddeced90c3",
+      "drug": "Cialis",
+      "section": "12.2 Pharmacodynamics",
+      "page": 28,
+      "pageEnd": 28,
+      "anchor": "Supine | 2.2 (-0.9,-5.2) Standing | 4.4 (-0.2,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ec745c9e-bd2a-45c4-a33c-98cd27149fb5",
+      "drug": "Cialis",
+      "section": "14.1 CIALIS for Use as Needed for ED",
+      "page": 34,
+      "pageEnd": 36,
+      "anchor": "Endpoint | 25% | 50% | | 23%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "29bd00e6-5a79-4d2a-8d0d-8ca2f39e2f89",
+      "drug": "Cialis",
+      "section": "14.1 CIALIS for Use as Needed for ED",
+      "page": 35,
+      "pageEnd": 35,
+      "anchor": "| | | p<.001 | p<.001 Study Fa",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8d66b123-1d35-4f66-a46c-575899e6071a",
+      "drug": "Cialis",
+      "section": "14.1 CIALIS for Use as Needed for ED",
+      "page": 36,
+      "pageEnd": 36,
+      "anchor": "a Treatment duration in Study F was 6",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "eeea1289-8627-4457-8673-a8d6bf9d5fe4",
+      "drug": "Cialis",
+      "section": "14.2 CIALIS for Once Daily Use for ED",
+      "page": 39,
+      "pageEnd": 40,
+      "anchor": "Change from baseline | 10% | 31%c |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a749dc69-e332-4dba-9e2c-35a7eafc0e3e",
+      "drug": "Cialis",
+      "section": "14.4 CIALIS 5 mg for Once Daily Use for ED and BPH",
+      "page": 44,
+      "pageEnd": 45,
+      "anchor": "EF Domain Score (IIEF EF) | (N=188) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2d1c5877-f301-4188-b060-391b4f3504ce",
+      "drug": "Prozac",
+      "section": "BW WARNING: SUICIDAL THOUGHTS AND BEHAVIORS",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- Antidepressants increased the risk of suicidal thoughts",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d906099f-92e7-48ed-a366-80e46ec71054",
+      "drug": "Prozac",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "PROZAC® is indicated for the treatment of: -",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d718f45e-c812-464e-b189-c1f295f66964",
+      "drug": "Prozac",
+      "section": "2.5 PROZAC and Olanzapine in Combination: Depressive Episodes Associated with Bipolar I Disorder",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "1 Symbyax (olanzapine/fluoxetine HCL) is a fixed-dose combination",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f72d41d0-cbeb-4bd3-9582-6219d26ba3dc",
+      "drug": "Prozac",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 10,
+      "pageEnd": 10,
+      "anchor": "- 10 mg Pulvule is an opaque green",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a6fcaf5a-218f-4109-86d3-3bd5dd663842",
+      "drug": "Prozac",
+      "section": "5.1 Suicidal Thoughts and Behaviors in Children, Adolescents, and Young Adults",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "Age Range | Drug-Placebo Difference in Number of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2d91b0dd-bad3-46e8-9474-ba35a2cebd14",
+      "drug": "Prozac",
+      "section": "5.10 Anxiety and Insomnia",
+      "page": 15,
+      "pageEnd": 16,
+      "anchor": "In US placebo-controlled clinical trials for Major Depressive",
+      "foundOnPage": 14
+    },
+    {
+      "chunk": "1ba2b964-4b20-49e9-a151-d6c50ac6429a",
+      "drug": "Prozac",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "Somnolence | 13 | 6 | 17 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5ad15d8a-8f8a-4654-a89f-f02bf3c3953f",
+      "drug": "Prozac",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 20,
+      "pageEnd": 21,
+      "anchor": "Body as a Whole | | Headache |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "601c502a-bd28-487b-86d5-17dd3716b5e6",
+      "drug": "Prozac",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "Percentage of Patients Reporting Event | Major DepressiveDisorder",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c3e35978-dc16-4f41-baf9-9d795ccceeef",
+      "drug": "Prozac",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 21,
+      "pageEnd": 22,
+      "anchor": "1 Includes US Major Depressive Disorder, OCD, Bulimia,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "511b7ff4-092d-40a9-838e-7e1de407894f",
+      "drug": "Prozac",
+      "section": "8.2 Lactation",
+      "page": 28,
+      "pageEnd": 29,
+      "anchor": "Risk Summary Data from published literature report the",
+      "foundOnPage": 29
+    },
+    {
+      "chunk": "51181a65-a0f8-4de6-a62f-db2c527aeda0",
+      "drug": "Prozac",
+      "section": "11 DESCRIPTION",
+      "page": 32,
+      "pageEnd": 32,
+      "anchor": "PROZAC® (fluoxetine capsules, USP) is a selective serotonin",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "20b8dcb8-ecb9-4e6c-8eea-f66eb1e96af7",
+      "drug": "Prozac",
+      "section": "14 CLINICAL STUDIES",
+      "page": 35,
+      "pageEnd": 36,
+      "anchor": "Efficacy for PROZAC was established for the: -",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "665067b9-d477-4c35-9305-ba455384a449",
+      "drug": "Prozac",
+      "section": "14.2 Obsessive Compulsive Disorder",
+      "page": 37,
+      "pageEnd": 37,
+      "anchor": "Very much improved | 3% | 8% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d443c5cd-17af-4b2e-a4a8-7b9670e07dad",
+      "drug": "Lipitor",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 3,
+      "pageEnd": 4,
+      "anchor": "LIPITOR is indicated: - To reduce the risk",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "af56ae82-66a4-492f-bad4-f0983fffaba2",
+      "drug": "Lipitor",
+      "section": "2.1 Important Dosage Information",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- Take Lipitor orally once daily at any",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "27c64c43-8934-4c85-80f3-9407d6642f7e",
+      "drug": "Lipitor",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "Tablets: - 10 mg of atorvastatin: white, elliptical,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "df17bf41-6f50-490e-aad9-cf96683dcb54",
+      "drug": "Lipitor",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- Acute liver failure or decompensated cirrhosis [see",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "157b0116-b767-44f0-8293-d0b7a7ec49e6",
+      "drug": "Lipitor",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "Urinary tract infection | 5.6 | 6.9 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c826ed5b-489e-4cc0-907f-2d351cb13e7a",
+      "drug": "Lipitor",
+      "section": "7.1 Drug Interactions that may Increase the Risk of Myopathy and Rhabdomyolysis with LIPITOR",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "Examples: | Erythromycin, clarithromycin, itraconazole, ketoconazole, posaconazole, and",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c82e5d5d-b671-4b63-b114-267dcec15182",
+      "drug": "Lipitor",
+      "section": "7.1 Drug Interactions that may Increase the Risk of Myopathy and Rhabdomyolysis with LIPITOR",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "Intervention: | •Concomitant use of tipranavir plus ritonavir",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d1fc2921-1404-4a5c-ad39-bb6c9155801a",
+      "drug": "Lipitor",
+      "section": "8.1 Pregnancy",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "Data Human Data A Medicaid cohort linkage study",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4f9870c2-0d3e-430b-98dc-6515c4e2a1ab",
+      "drug": "Lipitor",
+      "section": "12.3 Pharmacokinetics",
+      "page": 20,
+      "pageEnd": 21,
+      "anchor": "Elbasvir 50 mg QD/grazoprevir 200 mg QD, 13",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "84752334-3c20-4449-b466-c9b7e1011a1f",
+      "drug": "Lipitor",
+      "section": "12.3 Pharmacokinetics",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "Amlodipine 10 mg, single dose | 80 mg",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "eaae3265-9a82-4ea0-a190-84ad2b22cb33",
+      "drug": "Lipitor",
+      "section": "12.3 Pharmacokinetics",
+      "page": 21,
+      "pageEnd": 21,
+      "anchor": "80 mg QDOnce daily for 15 days |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c1ce51ec-ebd9-4ffb-a7fa-00b273b3be39",
+      "drug": "Lipitor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 25,
+      "pageEnd": 25,
+      "anchor": "First documented angina endpoint | 615 | (12.3)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6a772d7e-9540-4602-b97b-3ba78da7db6c",
+      "drug": "Lipitor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 26,
+      "pageEnd": 26,
+      "anchor": "Simvastatin 10 mg | 45 | -24 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6d134ead-840d-4181-8854-d96ba3b4c7f5",
+      "drug": "Lipitor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 27,
+      "pageEnd": 27,
+      "anchor": "non-HDL-C | 411 (218, 1272) | -43 (-87,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8276b0ba-911a-4328-9385-9583bf8d815f",
+      "drug": "Lipitor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 27,
+      "pageEnd": 27,
+      "anchor": "HDL-C | 3.8 (-18.6, 13.4) | 13.8 (-9.7,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "853cffbe-5c45-4ff2-a946-f837628cd6dc",
+      "drug": "Lipitor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 27,
+      "pageEnd": 28,
+      "anchor": "HeFH in Pediatric Patients In a double-blind, placebo-controlled",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "85a87020-3bf9-4a28-9ebd-aefc4692955c",
+      "drug": "Lipitor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 28,
+      "pageEnd": 28,
+      "anchor": "Placebo | 47 | -1.5 | -0.4 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ec5fea38-6edb-41e4-833d-c0f80d879661",
+      "drug": "Lipitor",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 28,
+      "pageEnd": 29,
+      "anchor": "LIPITOR tablets are supplied as follows: Strength |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cc1e220e-9159-4179-ac98-5e580fd0559e",
+      "drug": "Januvia",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 2,
+      "pageEnd": 2,
+      "anchor": "JANUVIA® is indicated as an adjunct to diet",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "534485c9-0a30-44be-a6f0-5a8e3a01d684",
+      "drug": "Januvia",
+      "section": "5.3 Acute Renal Failure",
+      "page": 3,
+      "pageEnd": 4,
+      "anchor": "There have been postmarketing reports of worsening renal",
+      "foundOnPage": 4
+    },
+    {
+      "chunk": "a3b1308e-0381-4e3a-abb7-11d8718d3935",
+      "drug": "Januvia",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 3,
+      "pageEnd": 3,
+      "anchor": "- 100 mg tablets are beige, round, film-coated",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0afb36e3-b226-4eee-b1de-9c090c690596",
+      "drug": "Januvia",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "| Number of Patients (%) Monotherapy (18 or",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ef88a40f-29cd-4faa-8ba0-0fec558b3255",
+      "drug": "Januvia",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "Upper Respiratory Infection | 9 (5.1) | 8",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c01141a8-541a-4caa-869b-8d3798bb621e",
+      "drug": "Januvia",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 7,
+      "pageEnd": 7,
+      "anchor": "Add-On to Glimepiride (+/- Metformin) (24 weeks) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "75d3aafb-3cd2-446e-a5b7-122ba366e980",
+      "drug": "Januvia",
+      "section": "12.1 Mechanism of Action",
+      "page": 10,
+      "pageEnd": 11,
+      "anchor": "Sitagliptin is a DPP-4 inhibitor, which is believed",
+      "foundOnPage": 11
+    },
+    {
+      "chunk": "95603c0c-371a-4fd9-9940-516e24f11409",
+      "drug": "Januvia",
+      "section": "12.3 Pharmacokinetics",
+      "page": 12,
+      "pageEnd": 13,
+      "anchor": "Excretion Following administration of an oral [14C]sitagliptin dose",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "33e62ba1-9851-43e0-8ffc-3874b951ad58",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 16,
+      "pageEnd": 17,
+      "anchor": "Difference from placebo + metformin (adjusted mean) (95%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "be2e7c4a-4c77-45b1-98df-4083f2bfe854",
+      "drug": "Januvia",
+      "section": "14.1 Monotherapy",
+      "page": 16,
+      "pageEnd": 17,
+      "anchor": "Change from baseline (adjusted meanLeast squares means adjusted",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "45b2b38f-c8f2-4ab5-b1b0-1f76cf62bc78",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 17,
+      "pageEnd": 17,
+      "anchor": "Change from baseline (adjusted mean) | -62 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "018274d7-4177-4288-82b0-630cc714d356",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 18,
+      "pageEnd": 19,
+      "anchor": "Baseline (mean) | 8.7 | 8.9 | 8.9",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ee87c382-f4d8-4e5e-b5fe-80650e9c60bf",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 18,
+      "pageEnd": 19,
+      "anchor": "Baseline (mean) | 277 | 285 | 293",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d24d7469-4fd1-495f-a8d7-77075a38bce1",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 21,
+      "pageEnd": 21,
+      "anchor": "Baseline (mean) | 8.1 | 8.0 Change from",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "42d425c5-1b9c-4485-a08a-066343d97a08",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 22,
+      "pageEnd": 22,
+      "anchor": "Difference from pioglitazone (adjusted mean) (95% CI) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b9874c13-72fb-4262-9295-b5d9137946ed",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 23,
+      "pageEnd": 23,
+      "anchor": "Difference from placebo + rosiglitazone + metformin (adjusted",
+      "foundOnPage": 22
+    },
+    {
+      "chunk": "96ec75d7-df94-4ef6-a8bd-e31390118f56",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 24,
+      "pageEnd": 25,
+      "anchor": "Difference from placebo (adjusted mean) (95% CI) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "210204fb-f9fb-45f1-8671-853b8d9ebed5",
+      "drug": "Januvia",
+      "section": "14.2 Combination Therapy",
+      "page": 25,
+      "pageEnd": 25,
+      "anchor": "| Sitagliptin 100 mg+Metformin+ Insulin Glargine | Placebo+Metformin+",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "71f8ee06-3eba-4fb5-908a-a75863c8297f",
+      "drug": "Januvia",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 25,
+      "pageEnd": 26,
+      "anchor": "Tablets are supplied as follows: Contents | Description",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2b873975-7684-4b28-b80b-74409e8e225a",
+      "drug": "Seroquel",
+      "section": "2.2 Recommended Dosing",
+      "page": 7,
+      "pageEnd": 7,
+      "anchor": "Bipolar Mania - Children and Adolescents (10 to",
+      "foundOnPage": 6
+    },
+    {
+      "chunk": "ae2c1235-6bdb-41ab-83cd-33f5792b9db8",
+      "drug": "Seroquel",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "- 25 mg tablets are peach, round, biconvex,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "21c6363c-4066-4a9c-b42d-24b1cfacc1a3",
+      "drug": "Seroquel",
+      "section": "5.2 Suicidal Thoughts and Behaviors in Adolescents and Young Adults",
+      "page": 9,
+      "pageEnd": 9,
+      "anchor": "Age Range | Drug-Placebo Difference in Number of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "656a53eb-d7a8-4dc5-b09b-462efc82e5b1",
+      "drug": "Seroquel",
+      "section": "5.5 Metabolic Changes",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "Laboratory Analyte | Indication | Treatment Arm |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5ab7c5f7-0142-4032-8a07-1cefb64094d8",
+      "drug": "Seroquel",
+      "section": "5.5 Metabolic Changes",
+      "page": 14,
+      "pageEnd": 14,
+      "anchor": "Bipolar Mania10-17 years, 3 weeks duration | SEROQUEL",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "dc7875b5-424f-42f6-9842-d1832de95dcc",
+      "drug": "Seroquel",
+      "section": "5.7 Hypotension",
+      "page": 15,
+      "pageEnd": 16,
+      "anchor": "Quetiapine may induce orthostatic hypotension associated with dizziness,",
+      "foundOnPage": 16
+    },
+    {
+      "chunk": "0f9c5df5-dd5d-4161-b592-3ed48f2fd567",
+      "drug": "Seroquel",
+      "section": "6.1 Clinical Study Experience",
+      "page": 23,
+      "pageEnd": 24,
+      "anchor": "Tachycardia | 2% | 1% Increased Appetite |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "63ce90b0-9bce-484c-84a1-81e82aeac49e",
+      "drug": "Seroquel",
+      "section": "6.1 Clinical Study Experience",
+      "page": 24,
+      "pageEnd": 25,
+      "anchor": "Orthostatic Hypotension | 4% | 3% Akathisia |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3f905a5e-3b25-41b8-8814-291ae06436d8",
+      "drug": "Seroquel",
+      "section": "6.1 Clinical Study Experience",
+      "page": 26,
+      "pageEnd": 26,
+      "anchor": "Parkinsonism | 2 | 3.8 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ded00e50-f9a1-437a-8330-513613686764",
+      "drug": "Seroquel",
+      "section": "6.1 Clinical Study Experience",
+      "page": 28,
+      "pageEnd": 29,
+      "anchor": "Dry Mouth | 7% | 7% | 0%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "94bfc313-1adf-4a95-9116-c9f47070e3ad",
+      "drug": "Seroquel",
+      "section": "6.1 Clinical Study Experience",
+      "page": 29,
+      "pageEnd": 30,
+      "anchor": "Dystonic event | 2 | 2.7 | 0",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b2810b56-2172-41ff-afe4-703e2e285b11",
+      "drug": "Seroquel",
+      "section": "6.1 Clinical Study Experience",
+      "page": 29,
+      "pageEnd": 29,
+      "anchor": "Sinus Congestion | 3% | 0% | 0%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c1e3d67e-2afd-44f5-b22e-9fcedf4a3172",
+      "drug": "Seroquel",
+      "section": "6.1 Clinical Study Experience",
+      "page": 30,
+      "pageEnd": 31,
+      "anchor": "ECG Changes Adults: Between-group comparisons for pooled placebo-controlled",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "146d4c6c-d9c2-4bd7-9d57-7ee795adeb50",
+      "drug": "Seroquel",
+      "section": "11 DESCRIPTION",
+      "page": 36,
+      "pageEnd": 37,
+      "anchor": "SEROQUEL® (quetiapine) is an atypical antipsychotic belonging to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "85de3835-fc7d-4de3-8773-0daa3c88c7b2",
+      "drug": "Seroquel",
+      "section": "12.3 Pharmacokinetics",
+      "page": 40,
+      "pageEnd": 40,
+      "anchor": "Imipramine | 75 mg twice daily | 300",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "346e433d-5653-4455-acc5-7a2569ca3f48",
+      "drug": "Seroquel",
+      "section": "14.1 Schizophrenia",
+      "page": 42,
+      "pageEnd": 43,
+      "anchor": "- In a 6-week dose and dose regimen",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cb5fc3ac-fa87-4264-9422-e97d37e8e1e3",
+      "drug": "Seroquel",
+      "section": "14.1 Schizophrenia",
+      "page": 43,
+      "pageEnd": 45,
+      "anchor": "Table 19: Schizophrenia Short-Term Trials Study Number |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e80621cb-fa77-466e-b45c-330d64d5a931",
+      "drug": "Seroquel",
+      "section": "14.1 Schizophrenia",
+      "page": 44,
+      "pageEnd": 45,
+      "anchor": "Study 3 | SEROQUEL (450 mg/day BID) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6d76ed4e-c903-40c4-bfa1-0eb93eab7e6e",
+      "drug": "Seroquel",
+      "section": "14.2 Bipolar Disorder",
+      "page": 45,
+      "pageEnd": 45,
+      "anchor": "Haloperidol | 32.3 (6.0) | -15.7 (1.3) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f745ba59-7704-4a74-a87a-328ffbf684c3",
+      "drug": "Seroquel",
+      "section": "14.2 Bipolar Disorder",
+      "page": 45,
+      "pageEnd": 46,
+      "anchor": "SEROQUEL (600 mg/day) | 30.3 (5.3) | -16.7",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "17d9f228-322a-4524-b412-a69183ed44f0",
+      "drug": "Crestor",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 3,
+      "pageEnd": 4,
+      "anchor": "CRESTOR is indicated: - To reduce the risk",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1a51e6ab-0b76-409a-8286-1553970cb8f3",
+      "drug": "Crestor",
+      "section": "2.1 General Dosage and Administration Information",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- Administer CRESTOR orally as a single dose",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3836fafd-80e1-43a7-9c0b-d0ef8ada3692",
+      "drug": "Crestor",
+      "section": "2.6 Dosage Modifications Due to Drug Interactions",
+      "page": 4,
+      "pageEnd": 5,
+      "anchor": "Table 1 displays dosage modifications for CRESTOR due",
+      "foundOnPage": 5
+    },
+    {
+      "chunk": "96ec326f-0321-4d36-af51-9c6a84c97802",
+      "drug": "Crestor",
+      "section": "2.2 Recommended Dosage in Adult Patients",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- The dosage range for CRESTOR is 5",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "220afcaa-f522-464c-bd44-1151f1bbe6c2",
+      "drug": "Crestor",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "CRESTOR is contraindicated in patients with: - Acute",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b84fd590-411d-43ab-910f-c3532499612a",
+      "drug": "Crestor",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "CRESTOR tablets: - 5 mg of rosuvastatin: yellow,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9243be2b-0129-45b1-836a-a12531596f4f",
+      "drug": "Crestor",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 9,
+      "pageEnd": 10,
+      "anchor": "Myalgia | 6.6 | 7.6 Arthralgia | 3.2",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "23d27e28-7b6f-40d8-98f8-d1ab14ae904f",
+      "drug": "Crestor",
+      "section": "7.1 Drug Interactions that Increase the Risk of Myopathy and Rhabdomyolysis with CRESTOR",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "Ticagrelor Prevention or Management: | In patients taking",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "367568d0-4498-4a7a-9ab8-e4db59948177",
+      "drug": "Crestor",
+      "section": "7.1 Drug Interactions that Increase the Risk of Myopathy and Rhabdomyolysis with CRESTOR",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "Mechanism and Clinical Effect(s): | Rosuvastatin plasma levels",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a6698f53-c560-4c8d-9a02-0d51ec0c2588",
+      "drug": "Crestor",
+      "section": "7.1 Drug Interactions that Increase the Risk of Myopathy and Rhabdomyolysis with CRESTOR",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "Mechanism and Clinical Effect(s): | Cases of myopathy",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b9f8a644-c852-4521-9ef0-cf780b9c0292",
+      "drug": "Crestor",
+      "section": "7.1 Drug Interactions that Increase the Risk of Myopathy and Rhabdomyolysis with CRESTOR",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "Belumosudil Prevention or Management: | In patients taking",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a5915039-5377-46af-a29b-637eefa71b3f",
+      "drug": "Crestor",
+      "section": "11 DESCRIPTION",
+      "page": 17,
+      "pageEnd": 18,
+      "anchor": "CRESTOR (rosuvastatin) is a 3-hydroxy-3-methylglutaryl coenzyme A (HMG",
+      "foundOnPage": 18
+    },
+    {
+      "chunk": "7aedad39-a052-43a4-a58a-04cb99242255",
+      "drug": "Crestor",
+      "section": "12.3 Pharmacokinetics",
+      "page": 20,
+      "pageEnd": 22,
+      "anchor": "| | Mean Ratio (ratio with/without coadministered drug)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ed4191ab-e55b-4fa8-93d0-3c64e37fb404",
+      "drug": "Crestor",
+      "section": "12.3 Pharmacokinetics",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "Ezetimibe 10 mg QD, 14 days | 10",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2674ebdc-cacd-4b2a-bd02-05a50636cbff",
+      "drug": "Crestor",
+      "section": "12.3 Pharmacokinetics",
+      "page": 21,
+      "pageEnd": 21,
+      "anchor": "Simeprevir 150 mg QD, 7 days | 10",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "76c842b8-c9b0-4c9b-83f9-359a2a836949",
+      "drug": "Crestor",
+      "section": "12.3 Pharmacokinetics",
+      "page": 21,
+      "pageEnd": 21,
+      "anchor": "Capmatinib 400 mg BID | 10 mg, single",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "563f28a3-d46e-4f6c-9e99-15511472c554",
+      "drug": "Crestor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 27,
+      "pageEnd": 27,
+      "anchor": "| Treatment Daily Dose Treatment | 10 mg",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1ad4407e-1774-41ee-a96c-3598dd3108a5",
+      "drug": "Crestor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 28,
+      "pageEnd": 28,
+      "anchor": "Table 12: LDL-C Percent Change from Baseline |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7ab1804a-807e-4e89-986e-f03f7b36fd53",
+      "drug": "Crestor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 28,
+      "pageEnd": 28,
+      "anchor": "Simvastatin | -28 | -35 | -39 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d39e1e2b-4315-48c9-88bd-d70f0b2c7b87",
+      "drug": "Crestor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 29,
+      "pageEnd": 29,
+      "anchor": "Placebo | 46 | -1% | +7% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0992fb28-3f77-4c26-bdd4-0876107f78ef",
+      "drug": "Crestor",
+      "section": "14 CLINICAL STUDIES",
+      "page": 30,
+      "pageEnd": 31,
+      "anchor": "| Median at Baseline (mg/dL) | Median percent",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6836fc33-e28f-4a48-b0e3-513085cb613e",
+      "drug": "Crestor",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 31,
+      "pageEnd": 31,
+      "anchor": "CRESTOR tablets are supplied as: Strength | How",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "699c70c8-a13f-4e81-8d13-2167613316b2",
+      "drug": "Ibrance",
+      "section": "2.2 Dose Modification",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "Grade 4 | At any time:Withhold IBRANCE until",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "407f3835-371b-40bd-b076-ccff72a618d7",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "Table 4. Adverse Reactions (≥10%) in PALOMA-2 Grading",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "77e79064-2d9a-4aff-b862-586aef4ba40a",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 9,
+      "pageEnd": 9,
+      "anchor": "Nervous system disorders | Dysgeusia | 10 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8389fc63-731f-47ce-97ae-7f2a07b18e5f",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 10,
+      "pageEnd": 12,
+      "anchor": "Table 7. Laboratory Abnormalities in PALOMA-3 N=number of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e01d2d11-49a4-4db6-97d8-33e27221d93b",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 10,
+      "pageEnd": 10,
+      "anchor": "Laboratory Abnormality | All Grades % | Grade",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a8c4287e-6452-48d1-84f5-0b4639f0670f",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "Anemia | 30 | 4 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0ea1bbed-dcb7-4092-a914-b629b59f57a8",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "Diarrhea | 48 | 3.7 | 16 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "19079d17-bc28-42b8-9922-5cacd4d84572",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "All Grades (%) | Grade 3-4 (%) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "650ee768-6a59-4d07-a8f4-5b98701d88f1",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "Adverse Reaction Preferred Terms (PTs) are listed according",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a9da2059-b8c4-4813-a48c-b9a52971401a",
+      "drug": "Ibrance",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "Headache | 26 | 1.5 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b3f6b5b6-d2dd-4b21-bd0e-b4840be3a726",
+      "drug": "Ibrance",
+      "section": "14.1 HER2-Negative Metastatic Breast Cancer",
+      "page": 28,
+      "pageEnd": 29,
+      "anchor": "Hazard ratio (95% CI) and p‑value | 0.921",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5c5b5e94-a1e7-4eb4-8457-b77e713dc0d5",
+      "drug": "Ibrance",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 35,
+      "pageEnd": 36,
+      "anchor": "- Advise male patients with female partners of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "911d8094-9c60-4533-a595-aaeee3e078c5",
+      "drug": "Xarelto",
+      "section": "2.1 Recommended Dosage in Adults",
+      "page": 7,
+      "pageEnd": 7,
+      "anchor": "Table 1: Recommended Dosage in Adults Indication |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "97574adb-7623-4445-9dda-d69bb16152a0",
+      "drug": "Xarelto",
+      "section": "2.1 Recommended Dosage in Adults",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "CrCl <15 mL/min | Avoid Use Prophylaxis of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "fc8e035b-6549-468f-883b-b78df9dfb6c9",
+      "drug": "Xarelto",
+      "section": "2.2 Recommended Dosage in Pediatric Patients",
+      "page": 9,
+      "pageEnd": 9,
+      "anchor": "Oral Suspension or Tablets | 30 kg to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e4cb437a-c517-421d-99c4-b9639e64d3a5",
+      "drug": "Xarelto",
+      "section": "2.2 Recommended Dosage in Pediatric Patients",
+      "page": 10,
+      "pageEnd": 10,
+      "anchor": "Oral Suspension Only | 7 kg to 7.9",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "614e81af-572f-47c7-90ff-670e55fb3a58",
+      "drug": "Xarelto",
+      "section": "2.2 Recommended Dosage in Pediatric Patients",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "- Moderate or severe renal impairment (eGFR: <50",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ef8da191-54eb-43fb-aa82-5446f9bae58a",
+      "drug": "Xarelto",
+      "section": "2.5 Missed Dose",
+      "page": 12,
+      "pageEnd": 13,
+      "anchor": "Adults - For patients receiving 2.5 mg twice",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0de1ef34-dc7a-4a3c-b519-971009b23d84",
+      "drug": "Xarelto",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 14,
+      "pageEnd": 14,
+      "anchor": "XARELTO is contraindicated in patients with: - active",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8eab91cd-1bb5-4693-9b49-b04b9d593b52",
+      "drug": "Xarelto",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 14,
+      "pageEnd": 14,
+      "anchor": "- 2.5 mg tablets: Round, light yellow, and",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ebe0c201-a945-43a5-ad9d-fcbe9ed9a596",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 19,
+      "pageEnd": 20,
+      "anchor": "Hemorrhagic StrokeHemorrhagic stroke in this table specifically refers",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "61043260-cfb4-4ca6-b71b-b86e7ede5311",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 21,
+      "pageEnd": 21,
+      "anchor": "Retroperitoneal | 1 (<0.1) | 8 (0.2) Intraocular",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cc8b77ef-293f-41f8-8e88-96f55f1c1fce",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 21,
+      "pageEnd": 22,
+      "anchor": "Major bleeding event | 5 (0.4) | 3",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a237df23-efad-4673-9710-449e08703079",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 22,
+      "pageEnd": 24,
+      "anchor": "Total treated patients | N=4487 n (%) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2760f0ed-01fe-4905-b51f-3aa82e6ab4fa",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 23,
+      "pageEnd": 23,
+      "anchor": "Any bleeding event | 60 (5.0) | 60",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d79507bf-6c07-405a-8e31-1ed35f9ae274",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 24,
+      "pageEnd": 24,
+      "anchor": "Major bleedingDefined as clinically overt bleeding associated with",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9a707987-f9bd-4b9c-94cb-28526b74ff6e",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 26,
+      "pageEnd": 26,
+      "anchor": "Fatal bleeding | 6 (0.2) | 0.09 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b2c4c1c1-f04e-4e68-9b28-e4f1a440d362",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "Depression | 20 (1.2) | 10 (0.6) Insomnia",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "191ccaab-96f5-4e6b-bf23-ece9288005f8",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 27,
+      "pageEnd": 28,
+      "anchor": "Trivial bleeding | 113 (34.3) | 44 (27.2)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "198a1ed3-de72-4f57-b966-4da30e185bff",
+      "drug": "Xarelto",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 29,
+      "pageEnd": 29,
+      "anchor": "Major BleedingDefined as clinically overt bleeding associated with",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e8dc098d-cf0a-4a60-90e1-6228cdcc7f08",
+      "drug": "Xarelto",
+      "section": "14.1 Stroke Prevention in Nonvalvular Atrial Fibrillation",
+      "page": 45,
+      "pageEnd": 45,
+      "anchor": "Event | N=7081 n (%) | Event Rate",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f6d8cf94-9b21-481d-8e2e-e8286da909c7",
+      "drug": "Xarelto",
+      "section": "14.2 Treatment of Deep Vein Thrombosis (DVT) and/or Pulmonary Embolism (PE)",
+      "page": 47,
+      "pageEnd": 49,
+      "anchor": "Death (PE cannot be excluded) | 3 (0.2)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8ddd6ff1-6ed0-4084-aac0-6bbf5cc5d02b",
+      "drug": "Xarelto",
+      "section": "14.3 Reduction in the Risk of Recurrence of DVT and/or PE",
+      "page": 51,
+      "pageEnd": 51,
+      "anchor": "Event | XARELTO 10 mg N=1,127 n (%)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "516340dd-caae-4838-bc3f-4ccb977003d6",
+      "drug": "Xarelto",
+      "section": "14.4 Prophylaxis of Deep Vein Thrombosis Following Hip or Knee Replacement Surgery",
+      "page": 54,
+      "pageEnd": 54,
+      "anchor": "Number of Patients | N=2103 | N=2119 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a8b30ac2-5907-4aff-b36d-9e0ac810d1e2",
+      "drug": "Xarelto",
+      "section": "14.4 Prophylaxis of Deep Vein Thrombosis Following Hip or Knee Replacement Surgery",
+      "page": 54,
+      "pageEnd": 54,
+      "anchor": "Proximal DVT | 9 (1.1%) | 19 (2.2%)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1cfc1405-97f0-41e3-b30e-f899336baa04",
+      "drug": "Xarelto",
+      "section": "14.5 Prophylaxis of Venous Thromboembolism in Acutely Ill Medical Patients at Risk for Thromboembolic Complications Not at High Risk of Bleeding",
+      "page": 56,
+      "pageEnd": 57,
+      "anchor": "Symptomatic non-fatal PE | 10 (0.3) | 14",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b921d2ef-7f8e-4176-9c51-fdf667c674bb",
+      "drug": "Xarelto",
+      "section": "14.5 Prophylaxis of Venous Thromboembolism in Acutely Ill Medical Patients at Risk for Thromboembolic Complications Not at High Risk of Bleeding",
+      "page": 56,
+      "pageEnd": 57,
+      "anchor": "Symptomatic non-fatal PE | 7 (0.3) | 10",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "83d51ff0-6a49-4559-8ccd-ce1d6ffd0128",
+      "drug": "Xarelto",
+      "section": "14.6 Reduction of Risk of Major Cardiovascular Events in Patients with CAD",
+      "page": 60,
+      "pageEnd": 61,
+      "anchor": "- Ischemic stroke | 56 (0.7) | 0.3",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "354ba2a7-f908-428e-b47d-8d3e080b2fc9",
+      "drug": "Xarelto",
+      "section": "14.7 Reduction of Risk of Major Thrombotic Vascular Events in Patients with PAD, Including Patients after Lower Extremity Revascularization due to Symptomatic PAD",
+      "page": 65,
+      "pageEnd": 65,
+      "anchor": "ALI | 2.0 | 3.0 | 0.67 (0.55,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b8df23c2-e1f1-4518-a267-39e970624ba1",
+      "drug": "Xarelto",
+      "section": "14.7 Reduction of Risk of Major Thrombotic Vascular Events in Patients with PAD, Including Patients after Lower Extremity Revascularization due to Symptomatic PAD",
+      "page": 65,
+      "pageEnd": 65,
+      "anchor": "MI, all-cause stroke, CV death, ALI, and major",
+      "foundOnPage": 64
+    },
+    {
+      "chunk": "dfce7623-45e5-495d-ae3f-6efd26a3b928",
+      "drug": "Xarelto",
+      "section": "14.9 Thromboprophylaxis in Pediatric Patients with Congenital Heart Disease after the Fontan Procedure",
+      "page": 67,
+      "pageEnd": 67,
+      "anchor": "Venous thrombosis | 1 (8.3) | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "fb9813f2-48d2-4071-8025-08dafd91117d",
+      "drug": "Xarelto",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 67,
+      "pageEnd": 68,
+      "anchor": "XARELTO® (rivaroxaban) Tablets are available in the strengths",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "09f51505-d609-4f8c-a251-c08e095d43c0",
+      "drug": "Xarelto",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 69,
+      "pageEnd": 69,
+      "anchor": "NDC 50458-579-10 | Blister package containing 100 tablets",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "31337a28-e37a-4011-8250-971e8e640904",
+      "drug": "Xarelto",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 70,
+      "pageEnd": 70,
+      "anchor": "- Advise the caregiver the tablet must not",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6ed52a1a-936d-4f00-9baa-1c2b289529f2",
+      "drug": "Xarelto",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 70,
+      "pageEnd": 71,
+      "anchor": "Pregnancy and Pregnancy-Related Hemorrhage - Advise patients to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "dbfe0c50-26e4-4f32-a798-c59e0a282691",
+      "drug": "OZEMPIC",
+      "section": "BW WARNING: RISK OF THYROID C-CELL TUMORS",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- In rodents, semaglutide causes dose-dependent and treatment-duration-dependent",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "fc69ff46-62c3-4126-8aad-b96fb63423c7",
+      "drug": "OZEMPIC",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 4,
+      "pageEnd": 5,
+      "anchor": "RYBELSUS and OZEMPIC tablets are indicated: - as",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "239241ee-ea74-46ae-89b9-18eb99aef6f7",
+      "drug": "OZEMPIC",
+      "section": "2.1 Important Administration Instructions",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- RYBELSUS and OZEMPIC tablets are not substitutable",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "22b32285-0b2e-48ca-89c4-32d42b6b2e1e",
+      "drug": "OZEMPIC",
+      "section": "2.4 Switching from OZEMPIC Injection to RYBELSUS or OZEMPIC Tablets",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "Switching from OZEMPIC Injection to RYBELSUS Tablets -",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8cca158f-507f-4975-8d2c-ba6b5f8940d2",
+      "drug": "OZEMPIC",
+      "section": "2.3 Switching Between RYBELSUS and OZEMPIC Tablets",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "- Do not switch between RYBELSUS and OZEMPIC",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f1acc8cb-b41a-4d06-9886-7b34f40b00ad",
+      "drug": "OZEMPIC",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 6,
+      "pageEnd": 7,
+      "anchor": "RYBELSUS (semaglutide) tablets are available as: - 3",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "56a0fd14-701e-49e3-aad9-bac58b785e6f",
+      "drug": "OZEMPIC",
+      "section": "5.2 Acute Pancreatitis",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "Acute pancreatitis, including fatal and non-fatal hemorrhagic or",
+      "foundOnPage": 8
+    },
+    {
+      "chunk": "205eb144-22ca-48c6-8b3c-3ab230ede9ab",
+      "drug": "OZEMPIC",
+      "section": "5.6 Severe Gastrointestinal Adverse Reactions",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "Use of semaglutide tablets has been associated with",
+      "foundOnPage": 9
+    },
+    {
+      "chunk": "06301e46-8c6a-4fc1-9273-e0678414ad31",
+      "drug": "OZEMPIC",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "Abdominal Pain | 4 | 10 | 11",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2c9fcd0d-dbbf-49af-8443-1072046e2a40",
+      "drug": "OZEMPIC",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "(26 weeks) | N=161 | - | N=163",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "679580b6-fefe-4496-b7d7-e7056595b917",
+      "drug": "OZEMPIC",
+      "section": "12.3 Pharmacokinetics",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "- Levothyroxine : Total thyroxine (i.e., adjusted for",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "aa58b512-1b9f-414e-baa7-95cdfd08552a",
+      "drug": "OZEMPIC",
+      "section": "14.2 Monotherapy Use of Semaglutide Tablets in Patients with Type 2 Diabetes Mellitus",
+      "page": 23,
+      "pageEnd": 23,
+      "anchor": "FPG (mg/dL) | | | Baseline (mean) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ee4fac26-1806-4bd8-880a-16b1d3c74113",
+      "drug": "OZEMPIC",
+      "section": "14.3 Combination Therapy Use of Semaglutide Tablets in Patients with Type 2 Diabetes Mellitus",
+      "page": 23,
+      "pageEnd": 25,
+      "anchor": "Combination with Metformin In a 26-week trial (Trial",
+      "foundOnPage": 24
+    },
+    {
+      "chunk": "4222ab5d-b553-4fca-8638-c2d7e5734c49",
+      "drug": "OZEMPIC",
+      "section": "14.3 Combination Therapy Use of Semaglutide Tablets in Patients with Type 2 Diabetes Mellitus",
+      "page": 25,
+      "pageEnd": 25,
+      "anchor": "FPG (mg/dL) | | Baseline (mean) | 172",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b5b66f7c-fb8e-4c64-94b1-b50bcc5e9e07",
+      "drug": "OZEMPIC",
+      "section": "14.3 Combination Therapy Use of Semaglutide Tablets in Patients with Type 2 Diabetes Mellitus",
+      "page": 25,
+      "pageEnd": 27,
+      "anchor": "Combination with Metformin or Metformin with SGLT-2 Inhibitors",
+      "foundOnPage": 26
+    },
+    {
+      "chunk": "1f9bf0a4-dfba-4152-8b98-c55505266b12",
+      "drug": "OZEMPIC",
+      "section": "14.3 Combination Therapy Use of Semaglutide Tablets in Patients with Type 2 Diabetes Mellitus",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "FPG (mg/dL) | | | Baseline (mean) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9bb5a6a2-1209-41af-a83d-3d2d411635f4",
+      "drug": "OZEMPIC",
+      "section": "14.3 Combination Therapy Use of Semaglutide Tablets in Patients with Type 2 Diabetes Mellitus",
+      "page": 27,
+      "pageEnd": 27,
+      "anchor": "Patients (%) achieving HbA1c <7% | 14 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9f68aeca-a26a-422c-88d0-7fe125d42732",
+      "drug": "OZEMPIC",
+      "section": "14.3 Combination Therapy Use of Semaglutide Tablets in Patients with Type 2 Diabetes Mellitus",
+      "page": 29,
+      "pageEnd": 29,
+      "anchor": "Difference from placebob [95% CI] | | -0.8",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6d47cd3a-5959-4154-8107-0850200dca60",
+      "drug": "OZEMPIC",
+      "section": "14.3 Combination Therapy Use of Semaglutide Tablets in Patients with Type 2 Diabetes Mellitus",
+      "page": 30,
+      "pageEnd": 30,
+      "anchor": "FPG (mg/dL) | | | Baseline (mean) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f88e31a6-3c58-4fe2-ac1c-ccf73d5b36ab",
+      "drug": "OZEMPIC",
+      "section": "14.4 Cardiovascular Outcomes Trial of Semaglutide Tablets in Adult Patients with Type 2 Diabetes Mellitus and High Risk of Having a Cardiovascular Event",
+      "page": 32,
+      "pageEnd": 33,
+      "anchor": "- N=number of patients; %: percentage of participants",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "971060ff-9af0-4edc-8a8e-10d4308fd82a",
+      "drug": "Entresto",
+      "section": "BW WARNING: FETAL TOXICITY",
+      "page": 3,
+      "pageEnd": 3,
+      "anchor": "- When pregnancy is detected, discontinue ENTRESTO as",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "65a9bd4e-ccfa-46b8-a442-29adc16597c6",
+      "drug": "Entresto",
+      "section": "2.3 Pediatric Heart Failure",
+      "page": 4,
+      "pageEnd": 6,
+      "anchor": "19 to less than 26 | 18 mg/18",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "02e10916-8cc8-43bc-9d04-fa6c8f61da4d",
+      "drug": "Entresto",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "ENTRESTO is contraindicated: - in patients with hypersensitivity",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "83e8f369-baa2-43e0-aa59-671e565b6154",
+      "drug": "Entresto",
+      "section": "5.3 Hypotension",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "ENTRESTO lowers blood pressure and may cause symptomatic",
+      "foundOnPage": 9
+    },
+    {
+      "chunk": "f9b2db49-b16f-45b3-b352-27460009f639",
+      "drug": "Entresto",
+      "section": "8.6 Hepatic Impairment",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "No dose adjustment is required when administering ENTRESTO",
+      "foundOnPage": 15
+    },
+    {
+      "chunk": "3f9179d1-9713-4e2f-8da0-085eb52efa38",
+      "drug": "Entresto",
+      "section": "11 DESCRIPTION",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "Its empirical formula (hemipentahydrate) is C48H55N6O8Na3 2.5 H2O.",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "074ad3ae-c6d1-4316-a55d-1114ab2fe920",
+      "drug": "Entresto",
+      "section": "12.3 Pharmacokinetics",
+      "page": 17,
+      "pageEnd": 18,
+      "anchor": "Absorption Following oral administration, ENTRESTO dissociates into sacubitril",
+      "foundOnPage": 18
+    },
+    {
+      "chunk": "2ee08347-cc65-426c-a05a-08612fad2a62",
+      "drug": "Entresto",
+      "section": "14.1 Adult Heart Failure",
+      "page": 22,
+      "pageEnd": 23,
+      "anchor": "*Analyses of the components of the primary composite",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8da11b78-3a1e-4392-b23c-6c32707e3f54",
+      "drug": "Entresto",
+      "section": "14.1 Adult Heart Failure",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "Total HF Hospitalizations | 690 | 9.9 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "379f2ee0-1a79-45e5-998d-a2dd2f19533b",
+      "drug": "Zyprexa",
+      "section": "2.5 ZYPREXA and Fluoxetine in Combination: Depressive Episodes Associated with Bipolar I Disorder",
+      "page": 12,
+      "pageEnd": 12,
+      "anchor": "a Symbyax (olanzapine/fluoxetine HCl) is a fixed-dose combination",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "379201f9-9ce9-4a97-81b1-55bd99217e0a",
+      "drug": "Zyprexa",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 14,
+      "pageEnd": 14,
+      "anchor": "- None with ZYPREXA monotherapy. - When using",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "06f6a0f5-3779-4659-bca8-e87c75dac728",
+      "drug": "Zyprexa",
+      "section": "5.5 Metabolic Changes",
+      "page": 17,
+      "pageEnd": 17,
+      "anchor": "a Not Applicable. | | | Up to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0a8d3622-aeb2-479e-ba00-299108852723",
+      "drug": "Zyprexa",
+      "section": "5.5 Metabolic Changes",
+      "page": 19,
+      "pageEnd": 20,
+      "anchor": "Placebo | 28 | 10.7% | NAa |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ad2a5708-bb99-4b56-852b-46d43abe6b94",
+      "drug": "Zyprexa",
+      "section": "5.5 Metabolic Changes",
+      "page": 19,
+      "pageEnd": 19,
+      "anchor": "Placebo | 402 | 9.5% | NAa |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4027d861-4c91-4537-9399-6d30efe2c6fb",
+      "drug": "Zyprexa",
+      "section": "5.5 Metabolic Changes",
+      "page": 20,
+      "pageEnd": 21,
+      "anchor": "≤0 | 26.2 | 24.3 | 20.8 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7eb170df-2a43-4a51-b21d-5984d25f47d8",
+      "drug": "Zyprexa",
+      "section": "5.5 Metabolic Changes",
+      "page": 22,
+      "pageEnd": 22,
+      "anchor": "≤0 | 2.9 | 2.1 0 to ≤5",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "caa73d82-8605-4b51-a84c-7c4bde9727e5",
+      "drug": "Zyprexa",
+      "section": "5.8 Falls",
+      "page": 23,
+      "pageEnd": 24,
+      "anchor": "ZYPREXA may cause somnolence, postural hypotension, motor and",
+      "foundOnPage": 24
+    },
+    {
+      "chunk": "fe3a82f8-4a32-483e-964c-bbef23867158",
+      "drug": "Zyprexa",
+      "section": "5.15 Hyperprolactinemia",
+      "page": 25,
+      "pageEnd": 25,
+      "anchor": "As with other drugs that antagonize dopamine D2",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2ee94e3c-45f7-4c7f-84d1-16a6d122cf7b",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 30,
+      "pageEnd": 31,
+      "anchor": "Akathisia | 3 | 2 Hypertonia | 3",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4518c10e-f5eb-4f31-a1d4-89296a56337f",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 31,
+      "pageEnd": 32,
+      "anchor": "| Percentage of Patients Reporting Event | |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7176172b-c78c-4e8c-b98b-66ee6b21efc6",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 33,
+      "pageEnd": 35,
+      "anchor": "Nervous System | | Somnolence | 6 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b5abedef-0636-43bc-909a-017c63e59e7d",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 33,
+      "pageEnd": 34,
+      "anchor": "Apathy | 4 | 3 Confusion | 4",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "91da474f-17a4-4f19-a993-c2145509625e",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 35,
+      "pageEnd": 35,
+      "anchor": "c Patients with the following COSTART terms were",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f53cc516-7eb0-4453-aeb3-b6c03885cb5c",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 35,
+      "pageEnd": 36,
+      "anchor": "Akathisia events | 4 | 6 Dyskinetic events",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a0e0cf92-9a45-48f5-95dc-39ec6d146c2d",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 36,
+      "pageEnd": 36,
+      "anchor": "Residual eventse | 0 | 0 | 0",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e39d5d2d-e285-4e48-b9f0-c6378dde9b2f",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 37,
+      "pageEnd": 37,
+      "anchor": "2 Adjusted for gender. Other Adverse Reactions Observed",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "038f771b-40d5-4c7e-922e-81bc86465c1d",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 38,
+      "pageEnd": 38,
+      "anchor": "6 Week Trial% Schizophrenia Patients | 3 Week",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "18911177-d09e-4161-921e-2792d2c5470d",
+      "drug": "Zyprexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 38,
+      "pageEnd": 39,
+      "anchor": "Olanzapine(N=179) | Placebo(N=89) Sedationa | 44 | 9",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cdfff191-2298-4908-9402-1ffe9b953863",
+      "drug": "Zyprexa",
+      "section": "8 USE IN SPECIFIC POPULATIONS",
+      "page": 42,
+      "pageEnd": 43,
+      "anchor": "When using ZYPREXA and fluoxetine in combination, also",
+      "foundOnPage": 41
+    },
+    {
+      "chunk": "871653ee-56f2-4b0c-a18a-5834ae8b1284",
+      "drug": "Zyprexa",
+      "section": "8.4 Pediatric Use",
+      "page": 44,
+      "pageEnd": 45,
+      "anchor": "The safety and effectiveness of oral ZYPREXA in",
+      "foundOnPage": 45
+    },
+    {
+      "chunk": "78926464-cfda-42c1-b1bc-b26ad7d2d213",
+      "drug": "Zestril",
+      "section": "BW WARNING: FETAL TOXICITY",
+      "page": 3,
+      "pageEnd": 3,
+      "anchor": "- When pregnancy is detected, discontinue ZESTRIL as",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "99a348fc-d850-492f-a3b9-4930a0fa925c",
+      "drug": "Zestril",
+      "section": "5.2 Angioedema and Anaphylactoid Reactions",
+      "page": 6,
+      "pageEnd": 7,
+      "anchor": "Patients taking concomitant mTOR inhibitor (e.g. temsirolimus, sirolimus,",
+      "foundOnPage": 7
+    },
+    {
+      "chunk": "dcd7d306-6cea-4b79-b441-e596323d4e67",
+      "drug": "Zestril",
+      "section": "14.3 Acute Myocardial Infarction",
+      "page": 18,
+      "pageEnd": 19,
+      "anchor": "The Gruppo Italiano per lo Studio della Sopravvienza",
+      "foundOnPage": 19
+    },
+    {
+      "chunk": "9b888146-7a82-46d6-b4c7-f8af8d7ea484",
+      "drug": "Lexapro",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "Lexapro is contraindicated in patients: - taking MAOIs",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5d9c3003-a16b-449c-ad52-f4f9424c29c5",
+      "drug": "Lexapro",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "Pediatric Patients Adverse reactions in pediatric patients 7",
+      "foundOnPage": 12
+    },
+    {
+      "chunk": "597d2eb7-1bd4-40ac-a0ff-3af6be9973b7",
+      "drug": "Lexapro",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "TABLE 3 Adverse Reactions Observed with a Frequency",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "87dc5eb6-6fdc-489f-b481-dc0aa120fd3e",
+      "drug": "Lexapro",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "General Influenza-like Symptoms | 5% | 4% Fatigue",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9e13fc24-bd07-4d3f-bc20-94e54581e921",
+      "drug": "Lexapro",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "Pediatric Patients The overall profile of adverse reactions",
+      "foundOnPage": 13
+    },
+    {
+      "chunk": "7b10e106-efa5-4698-aff4-fc2e7c49531e",
+      "drug": "Lexapro",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "Sweating Increased | <1% | 3% | 8%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f06302b4-a323-425a-8d08-a3132283277a",
+      "drug": "Lexapro",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 19,
+      "pageEnd": 20,
+      "anchor": "Sumatriptan Clinical Impact: | There have been postmarketing",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b789c7d2-dc53-48a6-8360-ac96b9860723",
+      "drug": "Lexapro",
+      "section": "10 OVERDOSAGE",
+      "page": 24,
+      "pageEnd": 25,
+      "anchor": "The following have been reported with Lexapro tablet",
+      "foundOnPage": 25
+    },
+    {
+      "chunk": "7123f73c-7cef-457e-9b80-09e6b6d2c7f0",
+      "drug": "Lexapro",
+      "section": "12.3 Pharmacokinetics",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "Metabolism Escitalopram is metabolized to S-DCT and S-didemethylcitalopram",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1f90ca49-1fc8-477b-9b0f-bdb03dc0808a",
+      "drug": "Tradjenta",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "Nasopharyngitis | 7.0 | 6.1 Diarrhea | 3.3",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7a56fd55-bbd4-45b0-a00f-07b1ad32c531",
+      "drug": "Tradjenta",
+      "section": "12.3 Pharmacokinetics",
+      "page": 15,
+      "pageEnd": 15,
+      "anchor": "Ethinylestradiol and levonorgestrel | ethinylestradiol 0.03 mg andlevonorgestrel",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "abcfc3b3-b86e-4e04-ad62-52a8ac89d8e6",
+      "drug": "Tradjenta",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 17,
+      "pageEnd": 18,
+      "anchor": "FPG (mg/dL) | | | | Number of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "df16fce0-6cda-434a-af7c-ff8b8abb4988",
+      "drug": "Tradjenta",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 18,
+      "pageEnd": 19,
+      "anchor": "Change from baseline (adjusted mean***) | -49 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "641f00d8-5ae3-46d8-a656-237af5340539",
+      "drug": "Tradjenta",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 20,
+      "pageEnd": 22,
+      "anchor": "Patients (%) receiving rescue medication | 29.2 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b8431331-fedd-4782-bfb8-8f75a81005ee",
+      "drug": "Tradjenta",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 21,
+      "pageEnd": 21,
+      "anchor": "FPG (mg/dL) | | | | Number of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b43e3157-8df3-43a4-8dba-ba8cc099b505",
+      "drug": "Tradjenta",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 23,
+      "pageEnd": 23,
+      "anchor": "Change from baseline (adjusted mean**) | -33 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5bcfeadb-9a09-4b76-8260-843a997d6ac2",
+      "drug": "Tradjenta",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 24,
+      "pageEnd": 24,
+      "anchor": "Change from baseline (adjusted mean***) | -5 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2d65b7a0-4e6d-458f-aeb0-7fd2b6301bfe",
+      "drug": "Tradjenta",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 25,
+      "pageEnd": 27,
+      "anchor": "Patients [n (%)] achieving A1C <7%** | 116",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5d2d1bb4-372e-4d6d-a49c-863f854e4e14",
+      "drug": "Nexium",
+      "section": "2.3 Preparation and Administration Instructions",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "- Use the mixture immediately after preparation. Do",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c53b08fb-21f2-4dba-9d5e-3146f8018955",
+      "drug": "Nexium",
+      "section": "2.3 Preparation and Administration Instructions",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "- Take NEXIUM delayed-release capsules and NEXIUM for",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "002c489e-18ae-4539-a451-33d80c2a0e01",
+      "drug": "Nexium",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 9,
+      "pageEnd": 9,
+      "anchor": "NEXIUM Delayed-Release Capsules - 20 mg esomeprazole in",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0f1c49b6-6f66-41c3-92ad-69d1b06b00de",
+      "drug": "Nexium",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 9,
+      "pageEnd": 10,
+      "anchor": "- NEXIUM is contraindicated in patients with known",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b771e0a8-f632-49f2-aedc-2adeb1d72d21",
+      "drug": "Nexium",
+      "section": "5.5 Severe Cutaneous Adverse Reactions",
+      "page": 10,
+      "pageEnd": 11,
+      "anchor": "Severe cutaneous adverse reactions, including Stevens-Johnson syndrome (SJS)",
+      "foundOnPage": 11
+    },
+    {
+      "chunk": "acf9c68b-bbee-417e-8190-6d0b00727eee",
+      "drug": "Nexium",
+      "section": "5.9 Hypomagnesemia and Mineral Metabolism",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "Hypomagnesemia, symptomatic and asymptomatic, has been reported rarely",
+      "foundOnPage": 12
+    },
+    {
+      "chunk": "b37155d2-c5af-45d2-85e9-4857453fcf8c",
+      "drug": "Nexium",
+      "section": "6 ADVERSE REACTIONS",
+      "page": 12,
+      "pageEnd": 13,
+      "anchor": "The following serious adverse reactions are described below",
+      "foundOnPage": 13
+    },
+    {
+      "chunk": "64231305-4421-4baa-a7d4-796daf6496cd",
+      "drug": "Nexium",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 17,
+      "pageEnd": 19,
+      "anchor": "Intervention: | Monitor tacrolimus whole blood concentrations and",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6961344c-468a-4631-be87-352ee0f3293d",
+      "drug": "Nexium",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 17,
+      "pageEnd": 19,
+      "anchor": "Intervention: | Monitor INR and prothrombin time and",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c531533e-92d8-44d5-a11b-6e4eaad3f58d",
+      "drug": "Nexium",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 17,
+      "pageEnd": 19,
+      "anchor": "Digoxin Clinical Impact: | Potential for increased exposure",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cf43054d-cdae-498a-8c33-88d80ad652ab",
+      "drug": "Nexium",
+      "section": "8.2 Lactation",
+      "page": 21,
+      "pageEnd": 22,
+      "anchor": "Risk Summary Esomeprazole is the S-isomer of omeprazole",
+      "foundOnPage": 22
+    },
+    {
+      "chunk": "78e237e7-f7de-46c3-9018-790679b899c9",
+      "drug": "Nexium",
+      "section": "11 DESCRIPTION",
+      "page": 24,
+      "pageEnd": 24,
+      "anchor": "The active ingredient in NEXIUM® (esomeprazole magnesium) delayed-release",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d6988a48-1e0e-403f-94fe-d3418c391488",
+      "drug": "Nexium",
+      "section": "12.3 Pharmacokinetics",
+      "page": 27,
+      "pageEnd": 28,
+      "anchor": "Tmax (hours) | 1.6 | 1.6 t1/2 (hours)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1d50923e-2d7a-47a5-9f68-9d22cdfeb6fe",
+      "drug": "Nexium",
+      "section": "12.3 Pharmacokinetics",
+      "page": 29,
+      "pageEnd": 29,
+      "anchor": "t½ (h) (n=8) | 0.93 tmax (h) (n=15)Median",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ce3e48eb-54cd-4a06-a3e0-370f052c6c49",
+      "drug": "Nexium",
+      "section": "12.3 Pharmacokinetics",
+      "page": 29,
+      "pageEnd": 30,
+      "anchor": "Parameter | NEXIUM For Delayed-Release Oral Suspension 1",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e867c425-bac8-4289-9a0c-a2fc16f810bb",
+      "drug": "Nexium",
+      "section": "12.3 Pharmacokinetics",
+      "page": 30,
+      "pageEnd": 30,
+      "anchor": "AUC (micromol h/L) | 3.65 | 13.86 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a1e4ebc8-e806-4c95-b1b1-6f8eb95de732",
+      "drug": "Nexium",
+      "section": "12.3 Pharmacokinetics",
+      "page": 31,
+      "pageEnd": 32,
+      "anchor": "Diazepam Co-administration of esomeprazole 30 mg and diazepam,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5fb4d187-fe66-4e80-9250-d3aab828f14c",
+      "drug": "Nexium",
+      "section": "12.4 Microbiology",
+      "page": 33,
+      "pageEnd": 34,
+      "anchor": "Susceptible | 182 | 162 | 4 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5b71f6bf-b51e-4ab1-9ed8-9e376fcdb4fb",
+      "drug": "Nexium",
+      "section": "14.4 Pediatric GERD",
+      "page": 39,
+      "pageEnd": 40,
+      "anchor": "1 Year to 11 Years of Age In",
+      "foundOnPage": 40
+    },
+    {
+      "chunk": "dbe4c9d6-307f-4277-b94e-a1a899e45f70",
+      "drug": "Nexium",
+      "section": "14.6 H. pylori Eradication in Adult Patients with Duodenal Ulcer Disease",
+      "page": 41,
+      "pageEnd": 42,
+      "anchor": "191 | NEXIUM, amoxicillin and clarithromycin | 84%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "dfff5d3f-7c33-4af4-b637-97115a2bd53f",
+      "drug": "Abilify",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "ABILIFY® (aripiprazole) Tablets are available as described in",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c5c7692b-6f74-4550-8254-147f2de5f5f2",
+      "drug": "Abilify",
+      "section": "5.3 Suicidal Thoughts and Behaviors in Children, Adolescents, and Young Adults",
+      "page": 10,
+      "pageEnd": 10,
+      "anchor": "Age Range | Drug-Placebo Difference in Number of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5d643f83-4976-4ba1-9ee4-bd4d526e6e3c",
+      "drug": "Abilify",
+      "section": "5.5 Tardive Dyskinesia",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "A syndrome of potentially irreversible, involuntary, dyskinetic movements",
+      "foundOnPage": 12
+    },
+    {
+      "chunk": "5e813450-4ee2-47c7-bd55-fa347eda0722",
+      "drug": "Abilify",
+      "section": "5.6 Metabolic Changes",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "Placebo | 99/794 | 12.5 In monotherapy trials",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "31fe3f67-4f88-4ddb-8f87-7cbcd7f55cc9",
+      "drug": "Abilify",
+      "section": "5.6 Metabolic Changes",
+      "page": 17,
+      "pageEnd": 17,
+      "anchor": "Fasting LDL Cholesterol Normal to High(<100 mg/dL to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3a0116e0-ba7d-4c8d-94bf-20d81f863f77",
+      "drug": "Abilify",
+      "section": "5.6 Metabolic Changes",
+      "page": 17,
+      "pageEnd": 17,
+      "anchor": "HDL Cholesterol Normal to Low(≥40 mg/dL to <40",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "49300004-997e-451c-a04c-a7c7cd96871f",
+      "drug": "Abilify",
+      "section": "5.6 Metabolic Changes",
+      "page": 18,
+      "pageEnd": 18,
+      "anchor": "HDL Cholesterol Normal to Low(≥40 mg/dL to <40",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d0c260d8-36a5-4115-8c82-90f0ad532659",
+      "drug": "Abilify",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 25,
+      "pageEnd": 25,
+      "anchor": "ABILIFY(n=1,843) | Placebo(n=1,166) Eye Disorders Blurred Vision |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cfa90d9c-34c1-4e8f-8d2d-8015c09b069a",
+      "drug": "Abilify",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "Infections and Infestations Nasopharyngitis | 3 | 2",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cc730145-e89b-4a18-9fae-a8489f0038e6",
+      "drug": "Abilify",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 27,
+      "pageEnd": 28,
+      "anchor": "Preferred Term | Percentage of Patients Reporting Reaction",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1a9c1804-c72f-432d-bdab-54269b05d989",
+      "drug": "Abilify",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 30,
+      "pageEnd": 31,
+      "anchor": "Epistaxis | 2 | 1 Skin and Subcutaneous",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "15220a09-b974-48d7-bf49-c325cbffeda1",
+      "drug": "Abilify",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 31,
+      "pageEnd": 32,
+      "anchor": "Feeling Jittery | 3 | 1 Infections and",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4239fbce-f596-4382-84d8-6757949d4db1",
+      "drug": "Abilify",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 34,
+      "pageEnd": 35,
+      "anchor": "- Eye Disorders: infrequent – photophobia; rare –",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f94baeb9-d0f7-45ce-829c-1c79ee897c18",
+      "drug": "Abilify",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 35,
+      "pageEnd": 35,
+      "anchor": "- Skin and Subcutaneous Tissue Disorders: infrequent –",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f3d947ab-11df-40f6-a665-6e1377951318",
+      "drug": "Abilify",
+      "section": "12.2 Pharmacodynamics",
+      "page": 43,
+      "pageEnd": 43,
+      "anchor": "Aripiprazole exhibits high affinity for dopamine D2 and",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8e14d332-e651-4478-9659-d5b6910cb173",
+      "drug": "Abilify",
+      "section": "14.1 Schizophrenia",
+      "page": 51,
+      "pageEnd": 53,
+      "anchor": "Study 2 | ABILIFY (20 mg/day) | 92.6",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1ee785ba-3a89-4e7c-8955-a72dd424c193",
+      "drug": "Abilify",
+      "section": "14.1 Schizophrenia",
+      "page": 52,
+      "pageEnd": 52,
+      "anchor": "ABILIFY (30 mg/day) | 94.0 (16.1) | -28.6",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "69ad8697-058d-4748-9260-50887ffb9d3d",
+      "drug": "Abilify",
+      "section": "14.2 Bipolar Disorder",
+      "page": 54,
+      "pageEnd": 54,
+      "anchor": "Table 24: Bipolar Studies Study Number | Treatment",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "79e75c4a-6af2-49bf-9e97-289648fff4cc",
+      "drug": "Abilify",
+      "section": "14.2 Bipolar Disorder",
+      "page": 54,
+      "pageEnd": 54,
+      "anchor": "Placebo + Lithium/Valproate | 23.0 (4.9) | -10.70",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "42b8c532-d44c-4f76-a726-920926857f27",
+      "drug": "Abilify",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 61,
+      "pageEnd": 62,
+      "anchor": "How Supplied ABILIFY® (aripiprazole) Tablets have markings on",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "10ad7d5f-00a8-4821-9b29-54fb34b10b6b",
+      "drug": "Xeljanz",
+      "section": "BW WARNING: SERIOUS INFECTIONS, MORTALITY, MALIGNANCY, MAJOR ADVERSE CARDIOVASCULAR EVENTS, and THROMBOSIS",
+      "page": 7,
+      "pageEnd": 7,
+      "anchor": "THROMBOSIS Thrombosis, including pulmonary embolism, deep venous thrombosis,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "687574b8-5bd4-4dd2-82af-94d7b3723a99",
+      "drug": "Xeljanz",
+      "section": "1.2 Psoriatic Arthritis",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "XELJANZ (tablets and oral solution) is indicated for",
+      "foundOnPage": 8
+    },
+    {
+      "chunk": "2b53f7eb-0203-40db-8afb-2245e5929a99",
+      "drug": "Xeljanz",
+      "section": "2.2 Important Administration Instructions",
+      "page": 9,
+      "pageEnd": 9,
+      "anchor": "- XELJANZ XR (extended-release tablets) is not substitutable",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3a7fdcd7-6864-4d32-9ba3-b2d6263f6586",
+      "drug": "Xeljanz",
+      "section": "2.3 Recommended Dosage in Adults with Rheumatoid Arthritis, Psoriatic Arthritis, and Ankylosing Spondylitis",
+      "page": 10,
+      "pageEnd": 11,
+      "anchor": "Mild RI (CLcr >50 and ≤80 mL/min) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "81d69061-e3a9-45d9-9110-c589c26a5622",
+      "drug": "Xeljanz",
+      "section": "2.4 Recommended Dosage in Pediatric Patients 2 Years of Age and Older with Psoriatic Arthritis or Polyarticular Course Juvenile Idiopathic Arthritis",
+      "page": 12,
+      "pageEnd": 12,
+      "anchor": "Patients with ANC less than 500 cells/mm3 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "bf89dd74-5a3b-4712-a565-2b27b0c7fa01",
+      "drug": "Xeljanz",
+      "section": "2.5 Recommended Dosage in Adults with Ulcerative Colitis",
+      "page": 12,
+      "pageEnd": 15,
+      "anchor": "Severe HI (Child-Pugh C) | Use of XELJANZ",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "fadb8f52-a1b7-4468-a489-073fb70b53ff",
+      "drug": "Xeljanz",
+      "section": "2.5 Recommended Dosage in Adults with Ulcerative Colitis",
+      "page": 14,
+      "pageEnd": 14,
+      "anchor": "Severe RI (CLcr <30 mL/min) | Maintenance: 5",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e6b6eb2d-11d5-4b34-8aab-67680f9bf199",
+      "drug": "Xeljanz",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 16,
+      "pageEnd": 17,
+      "anchor": "XELJANZ tablets: - 5 mg of tofacitinib: White,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ecdbd29b-236f-4459-8db4-f06d30bef191",
+      "drug": "Xeljanz",
+      "section": "2.5 Recommended Dosage in Adults with Ulcerative Colitis",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "Lymphocyte count less than 500 cells/mm3, confirmed by",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0d596547-ce01-45a1-b517-220ff1ef7500",
+      "drug": "Xeljanz",
+      "section": "5.1 Serious Infections",
+      "page": 17,
+      "pageEnd": 18,
+      "anchor": "- with a history of a serious or",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "872ba7b3-f5bd-416c-a4de-4dc7ce585c24",
+      "drug": "Xeljanz",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 24,
+      "pageEnd": 24,
+      "anchor": "- In combination with DMARDs (including methotrexate), XELJANZ",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cfd37d3b-eb14-4b1a-9eb0-d32257f5a28d",
+      "drug": "Xeljanz",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 26,
+      "pageEnd": 26,
+      "anchor": "Confirmed lymphocyte counts less than 500 cells/mm3 were",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c51684a4-a33d-41af-981a-d07a62739159",
+      "drug": "Xeljanz",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 28,
+      "pageEnd": 28,
+      "anchor": "Table 5: Common Adverse ReactionsReported in ≥2% of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6ee74e7e-33b2-4215-9232-8851f7ec17d9",
+      "drug": "Xeljanz",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 30,
+      "pageEnd": 31,
+      "anchor": "N = 198 (%) | N = 198",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8d58d011-0cdc-4193-af49-eb6dda2e4c73",
+      "drug": "Xeljanz",
+      "section": "11 DESCRIPTION",
+      "page": 38,
+      "pageEnd": 38,
+      "anchor": "- 10 mg blue round, immediate-release film-coated tablet.",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e8306c2c-a053-466a-a355-6862cb8a9157",
+      "drug": "Xeljanz",
+      "section": "12.3 Pharmacokinetics",
+      "page": 41,
+      "pageEnd": 41,
+      "anchor": "Cmin (ng/mL) | 1.41 (40) | 3.10 (54)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9a11dd29-26a9-4922-afbc-2658e23875c1",
+      "drug": "Xeljanz",
+      "section": "14.1 Clinical Studies in Rheumatoid Arthritis",
+      "page": 45,
+      "pageEnd": 46,
+      "anchor": "- Study RA-III (NCT00853385) was a 12-month trial",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "457c737d-eed5-4566-9775-17ea7c1ec83f",
+      "drug": "Xeljanz",
+      "section": "14.1 Clinical Studies in Rheumatoid Arthritis",
+      "page": 46,
+      "pageEnd": 46,
+      "anchor": "- Study RA-VI (NCT01039688) was a 2-year monotherapy",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e36a300a-7dbb-4f9d-8339-baf2059c8066",
+      "drug": "Xeljanz",
+      "section": "14.1 Clinical Studies in Rheumatoid Arthritis",
+      "page": 47,
+      "pageEnd": 47,
+      "anchor": "Study RA-I | Study RA-IV | Study RA-V",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "117edaef-07e8-4c4c-b326-2a4a633d79af",
+      "drug": "Xeljanz",
+      "section": "14.1 Clinical Studies in Rheumatoid Arthritis",
+      "page": 48,
+      "pageEnd": 49,
+      "anchor": "Physician global assessment | 56 (18) | 43",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "14491b78-79bc-4423-85cb-826a111786d5",
+      "drug": "Xeljanz",
+      "section": "14.2 Clinical Studies in Psoriatic Arthritis",
+      "page": 50,
+      "pageEnd": 51,
+      "anchor": "- Study PsA-I was a 12-month clinical trial",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b18c68db-53e6-44f3-a2ac-bbd3a37e0de3",
+      "drug": "Xeljanz",
+      "section": "14.2 Clinical Studies in Psoriatic Arthritis",
+      "page": 51,
+      "pageEnd": 52,
+      "anchor": "Treatment Group | Placebo | XELJANZ 5 mg",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "90957162-e48d-4baf-b961-1b7b1ef98008",
+      "drug": "Xeljanz",
+      "section": "14.2 Clinical Studies in Psoriatic Arthritis",
+      "page": 52,
+      "pageEnd": 53,
+      "anchor": "Baseline | 11.5 | 12.9 | 10.5 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1e09edb8-f3c6-4520-88c8-69d8ed87199f",
+      "drug": "Xeljanz",
+      "section": "14.2 Clinical Studies in Psoriatic Arthritis",
+      "page": 54,
+      "pageEnd": 54,
+      "anchor": "Difference from Placebo (95% CI) | - |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5d54c28e-b49f-4d95-b8a0-23562a2a8737",
+      "drug": "Xeljanz",
+      "section": "14.3 Clinical Studies in Ankylosing Spondylitis",
+      "page": 57,
+      "pageEnd": 57,
+      "anchor": "-Total spinal pain (0–10) | 6.9 | -1.1",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f40b5527-1670-4035-b0df-ff69b4a266d3",
+      "drug": "Xeljanz",
+      "section": "14.5 Clinical Studies in Ulcerative Colitis",
+      "page": 60,
+      "pageEnd": 61,
+      "anchor": "With Prior TNF Blocker FailurePrior TNF blocker failure",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5f0a095a-508c-4f91-b785-dbe6d1528b34",
+      "drug": "Xeljanz",
+      "section": "14.5 Clinical Studies in Ulcerative Colitis",
+      "page": 61,
+      "pageEnd": 61,
+      "anchor": "With Prior TNF Blocker Failure | N=60 7%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7e7430b2-2852-44cd-be06-7fbeb999b864",
+      "drug": "Xeljanz",
+      "section": "14.5 Clinical Studies in Ulcerative Colitis",
+      "page": 62,
+      "pageEnd": 63,
+      "anchor": "At baseline of Study UC-III: - 179 (30%)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "46be9f24-5e88-4e5a-8df3-ea488fa67125",
+      "drug": "Xeljanz",
+      "section": "14.5 Clinical Studies in Ulcerative Colitis",
+      "page": 63,
+      "pageEnd": 63,
+      "anchor": "Total Population | N=59 | N=65 | N=55",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b3dcf6ea-0ab2-4d97-bec1-4b828b4ccac0",
+      "drug": "Xeljanz",
+      "section": "14.5 Clinical Studies in Ulcerative Colitis",
+      "page": 63,
+      "pageEnd": 63,
+      "anchor": "| 11% | 34% | 41% | |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4823235c-5f80-42f8-91aa-d8cd995efe75",
+      "drug": "Xeljanz",
+      "section": "14.6 Safety Study in Adults with Rheumatoid Arthritis (XELJANZ Versus TNF-blocker)",
+      "page": 65,
+      "pageEnd": 66,
+      "anchor": "MACE, n [IR] | 43 [0.79] | 50",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5bb5d800-6deb-4506-9330-41588ebf823e",
+      "drug": "Xeljanz",
+      "section": "14.6 Safety Study in Adults with Rheumatoid Arthritis (XELJANZ Versus TNF-blocker)",
+      "page": 65,
+      "pageEnd": 66,
+      "anchor": "HR (95% CI) | | 1.19 (0.84, 1.70)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "62f3d1b6-80d0-41dc-bd4f-fbd5c858b2ac",
+      "drug": "Xeljanz",
+      "section": "14.6 Safety Study in Adults with Rheumatoid Arthritis (XELJANZ Versus TNF-blocker)",
+      "page": 65,
+      "pageEnd": 65,
+      "anchor": "HR (95% CI) | | 1.55 (0.94, 2.55)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "24038b3d-54fd-440f-a336-6fddb1bd2d96",
+      "drug": "Verzenio",
+      "section": "1.1 Early Breast Cancer",
+      "page": 3,
+      "pageEnd": 3,
+      "anchor": "VERZENIO® (abemaciclib) is indicated: - in combination with",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f0bba9d0-7a2d-4926-b852-df896ab5779a",
+      "drug": "Verzenio",
+      "section": "1.2 Advanced or Metastatic Breast Cancer",
+      "page": 3,
+      "pageEnd": 4,
+      "anchor": "VERZENIO (abemaciclib) is indicated: - in combination with",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "dc834b69-e5b7-41dc-90a8-3b769036c80f",
+      "drug": "Verzenio",
+      "section": "2.3 Dosage Modification for Adverse Reactions",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "Grade 1 | No dosage modification is required.",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7842f0fc-9408-4116-94fd-758905433802",
+      "drug": "Verzenio",
+      "section": "2.3 Dosage Modification for Adverse Reactions",
+      "page": 6,
+      "pageEnd": 7,
+      "anchor": "Grade 3 or 4 | Discontinue VERZENIO. Table",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "50877cc5-17ea-4c9a-a659-29d45654964a",
+      "drug": "Verzenio",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "Rashb | 11 | 0.4 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6db79fb1-bb48-4a85-b667-d95eea0453dc",
+      "drug": "Verzenio",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "Platelets decreased | 37 | 0.7 | 0.2",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d02f0908-9c84-4efc-9375-976f57c76252",
+      "drug": "Verzenio",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "General Disorders and Administration Site Conditions Fatigue |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d32877e3-fdcc-4a97-a08f-bb2b3ecad345",
+      "drug": "Verzenio",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 15,
+      "pageEnd": 15,
+      "anchor": "Creatinine increased | 98 | 2.2 | 0",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "083e0620-0826-4dd1-8475-d30d4531a91c",
+      "drug": "Verzenio",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 16,
+      "pageEnd": 17,
+      "anchor": "Vomiting | 26 | 0.9 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "462a1708-0f45-4e5c-90cf-52153e35ee4d",
+      "drug": "Verzenio",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 19,
+      "pageEnd": 19,
+      "anchor": "Nervous System Disorders Headacheb | 10 | 0.5",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "88367664-74cb-4874-954b-0b28950bf038",
+      "drug": "Verzenio",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 19,
+      "pageEnd": 20,
+      "anchor": "Cholesterol increased | 18 | 0 | 12",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a36cb3a7-e520-49f0-aa87-14f383c63e08",
+      "drug": "Verzenio",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 21,
+      "pageEnd": 21,
+      "anchor": "Skin and Subcutaneous Tissue Disorders Alopecia | 12",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "76fd7e36-a059-4997-8ce0-b462c04675fa",
+      "drug": "Verzenio",
+      "section": "14.1 Early Breast Cancer",
+      "page": 31,
+      "pageEnd": 31,
+      "anchor": "| VERZENIO Plus Tamoxifen or an Aromatase Inhibitor",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d6b3ff36-f5a0-45f5-9318-60d011cdf860",
+      "drug": "Verzenio",
+      "section": "14.2 Advanced or Metastatic Breast Cancer",
+      "page": 32,
+      "pageEnd": 33,
+      "anchor": "p-value | <0.0001 Overall Survival | N=328 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2fb7806e-459f-46f9-95ef-5d8debe60453",
+      "drug": "Verzenio",
+      "section": "14.2 Advanced or Metastatic Breast Cancer",
+      "page": 35,
+      "pageEnd": 36,
+      "anchor": "Median in months (95% CI) | 16.4 (14.4,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "79772a16-9c43-49cd-8723-cfe84c769edc",
+      "drug": "Verzenio",
+      "section": "14.2 Advanced or Metastatic Breast Cancer",
+      "page": 36,
+      "pageEnd": 37,
+      "anchor": "- Within 12 months of completing neoadjuvant or",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "775cc07c-6876-44fb-b3c1-4831542d4b82",
+      "drug": "Verzenio",
+      "section": "14.2 Advanced or Metastatic Breast Cancer",
+      "page": 38,
+      "pageEnd": 39,
+      "anchor": "Progression-free Survival (PFS) a,b Number of PFS Events,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8636111b-9058-4ed2-9d40-9a3ce2cca90a",
+      "drug": "Verzenio",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 39,
+      "pageEnd": 40,
+      "anchor": "How Supplied Strength | Description | Blister Pack",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3be166de-e68b-4d25-bad7-043b93e25b3d",
+      "drug": "Verzenio",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 41,
+      "pageEnd": 41,
+      "anchor": "- Advise females of reproductive potential to use",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6f02eb24-c54e-4579-ad4e-5c961ab3eb00",
+      "drug": "Verzenio",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 41,
+      "pageEnd": 42,
+      "anchor": "- Instruct patients that if a dose is",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "827dd1e3-67c1-4297-bd7b-659a7d6cfcd2",
+      "drug": "Celexa",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "CELEXA tablets are available as: - 10 mg:",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ffb4c9ea-8d4b-4ea9-be1c-fb4948167abd",
+      "drug": "Celexa",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 4,
+      "pageEnd": 5,
+      "anchor": "CELEXA is contraindicated in patients: - taking, or",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d9007a55-0bcb-4c68-a68e-fe9285d07615",
+      "drug": "Celexa",
+      "section": "5.6 Discontinuation Syndrome",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "Adverse reactions after discontinuation of serotonergic antidepressants, particularly",
+      "foundOnPage": 8
+    },
+    {
+      "chunk": "fbeeeeb2-1b75-44fe-984f-c017bba13468",
+      "drug": "Celexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 10,
+      "pageEnd": 11,
+      "anchor": "Somnolence | 2 | 1 Agitation | 1",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f02cb2f5-07ce-40c7-9b3c-70a7d02488cd",
+      "drug": "Celexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "Sinusitis | 3 | <1 General Fatigue |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e157809b-2bba-4e14-93d7-50675288117b",
+      "drug": "Celexa",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 12,
+      "pageEnd": 12,
+      "anchor": "| CELEXA | Placebo n (males) | 425",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5ff0d928-ca8a-4c76-9f40-9ff8e0b05b65",
+      "drug": "Celexa",
+      "section": "6.2 Postmarketing Experience",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "The following adverse reactions have been identified during",
+      "foundOnPage": 14
+    },
+    {
+      "chunk": "83c9aaed-1203-44db-a042-32a2891c3921",
+      "drug": "Celexa",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 15,
+      "pageEnd": 15,
+      "anchor": "Other Serotonergic Drugs Clinical Impact: | Concomitant use",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a4094328-3ffe-451d-a1ba-8447dd47f624",
+      "drug": "Celexa",
+      "section": "8.1 Pregnancy",
+      "page": 15,
+      "pageEnd": 16,
+      "anchor": "Pregnancy Exposure Registry There is a pregnancy exposure",
+      "foundOnPage": 16
+    },
+    {
+      "chunk": "32425e35-c00d-4f54-aa70-5d64362fa67f",
+      "drug": "Celexa",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "Discontinuation Syndrome Advise patients not to abruptly discontinue",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7f8f3736-2367-4524-97c2-f87681f8871a",
+      "drug": "Eliquis",
+      "section": "1.2 Prophylaxis of Deep Vein Thrombosis Following Hip or Knee Replacement Surgery",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "ELIQUIS is indicated for the prophylaxis of deep",
+      "foundOnPage": 6
+    },
+    {
+      "chunk": "969a8f7d-6dc8-44dd-a05e-bab41f74a09d",
+      "drug": "Eliquis",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 9,
+      "pageEnd": 9,
+      "anchor": "- 0.5 mg, pink, round, film-coated tablets for",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0e495193-6d46-44f7-9cd9-7a4515405738",
+      "drug": "Eliquis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 12,
+      "pageEnd": 15,
+      "anchor": "| ELIQUIS N=9088 n (per 100 pt-year) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "51f278e7-05a4-472a-a22e-30f99d1aada2",
+      "drug": "Eliquis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 15,
+      "anchor": "Intracranial | 4 (0.03) | 30 (0.20) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "432ec0a2-a9b2-4398-947e-35f7998c2fb1",
+      "drug": "Eliquis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 15,
+      "pageEnd": 16,
+      "anchor": "All treated | N=2673 | N=2659 | N=1501",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "95711f1a-a3db-4679-bfb5-902281debf1d",
+      "drug": "Eliquis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 15,
+      "pageEnd": 15,
+      "anchor": "Intracranial | 11 (0.34) | 11 (0.35) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9bab74f8-13c8-483b-bf01-c2123e54eea5",
+      "drug": "Eliquis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 17,
+      "pageEnd": 17,
+      "anchor": "All | 313 (11.71%) | 334 (12.56%) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "aa474b47-831d-48df-83aa-40b385fc7153",
+      "drug": "Eliquis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 18,
+      "pageEnd": 19,
+      "anchor": "Hemoptysis | 32 (1.2) | 31 (1.2) Rectal",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b63f54fa-cdbf-4c64-844e-0979b84bc8f9",
+      "drug": "Eliquis",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "Number (%) Subjects with Event | 54 (35.5)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "95d06069-3fcd-4878-8819-b62291b9be3c",
+      "drug": "Eliquis",
+      "section": "14.1 Reduction of Risk of Stroke and Systemic Embolism in Nonvalvular Atrial Fibrillation",
+      "page": 33,
+      "pageEnd": 34,
+      "anchor": "Stroke or systemic embolism | 212 (1.27) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "32b57874-e261-4277-b617-cabaaa8f8372",
+      "drug": "Eliquis",
+      "section": "14.2 Prophylaxis of Deep Vein Thrombosis Following Hip or Knee Replacement Surgery",
+      "page": 38,
+      "pageEnd": 38,
+      "anchor": "Symptomatic DVT | 3 (0.19%)(0.04, 0.59) | 7",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4fee9f79-f577-4773-abfd-a43f9bf9e28f",
+      "drug": "Eliquis",
+      "section": "14.4 Treatment of VTE and Prevention of Recurrent VTE in Pediatric Patients from birth and older",
+      "page": 40,
+      "pageEnd": 41,
+      "anchor": "Study CV185325 ELIQUIS for the treatment of venous",
+      "foundOnPage": 41
+    },
+    {
+      "chunk": "af2d334e-f4f3-4d4d-874f-6dec61b4c6f9",
+      "drug": "Eliquis",
+      "section": "14.3 Treatment of DVT and PE and Reduction in the Risk of Recurrence of DVT and PE",
+      "page": 40,
+      "pageEnd": 40,
+      "anchor": "DVTPatients with more than one event are counted",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "acb3e7da-009a-4439-8322-bbb0dca1eb3a",
+      "drug": "Eliquis",
+      "section": "14.4 Treatment of VTE and Prevention of Recurrent VTE in Pediatric Patients from birth and older",
+      "page": 42,
+      "pageEnd": 42,
+      "anchor": "Number (%) Subjects with Event | 4 (2.6)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9aff4185-ab2e-4686-9e0b-278884ac5ad5",
+      "drug": "Eliquis",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 43,
+      "pageEnd": 44,
+      "anchor": "- What to do if the child vomits",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "18863c67-5c55-46ee-8ba9-0888a870f419",
+      "drug": "Fosamax",
+      "section": "1.1 Treatment of Osteoporosis in Postmenopausal Women",
+      "page": 3,
+      "pageEnd": 3,
+      "anchor": "FOSAMAX® is indicated for the treatment of osteoporosis",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "05cfb2f4-7694-4726-ab7c-e75b613a5c59",
+      "drug": "Fosamax",
+      "section": "2.1 Treatment of Osteoporosis in Postmenopausal Women",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "The recommended dosage is: - one 70 mg",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c2e72c3a-1593-4baf-823d-2a3df6371af2",
+      "drug": "Fosamax",
+      "section": "2.2 Prevention of Osteoporosis in Postmenopausal Women",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "The recommended dosage is: - one 35 mg",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7a5e97f3-536b-4dcf-a0b4-fe6b2dd5ff37",
+      "drug": "Fosamax",
+      "section": "2.6 Important Administration Instructions",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "Instruct patients to do the following: - Take",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8ab35311-fb6a-4c01-bd77-dc444f4568b3",
+      "drug": "Fosamax",
+      "section": "2.3 Treatment to Increase Bone Mass in Men with Osteoporosis",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "The recommended dosage is: - one 70 mg",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "579749f0-e126-40c9-aa74-b77c995ac005",
+      "drug": "Fosamax",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "- 70 mg tablets are white, oval, uncoated",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0b19e7e8-b5c3-48cd-b7b8-b8a7518cca1f",
+      "drug": "Fosamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 10,
+      "pageEnd": 11,
+      "anchor": "muscle cramp | 0.0 | 1.0 | 0.2",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "50afe706-788a-4423-8455-ac3948a32d0f",
+      "drug": "Fosamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 11,
+      "pageEnd": 13,
+      "anchor": "muscle cramp | 0.2 | 1.1 Prevention of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "bdb077c6-86bc-4ea5-9e86-cfa72be9849b",
+      "drug": "Fosamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "| Two-year Study | One-year Study | FOSAMAX10",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f29d2bef-6665-494f-af27-04230b08821d",
+      "drug": "Fosamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "abdominal pain | 1.7 | 3.4 | 4.2",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "febac19f-93ed-4d78-aee9-f06aa6770e61",
+      "drug": "Fosamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "acid regurgitation | 2.5 | 1.9 | 1.3",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f23e2a77-849d-4126-a375-ed2ef088b899",
+      "drug": "Fosamax",
+      "section": "14.1 Treatment of Osteoporosis in Postmenopausal Women",
+      "page": 24,
+      "pageEnd": 26,
+      "anchor": "Wrist (forearm) fracture | 2.2 | 4.1 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3b03260f-2ddc-4238-9ef7-8de02fea120b",
+      "drug": "Fosamax",
+      "section": "14.1 Treatment of Osteoporosis in Postmenopausal Women",
+      "page": 26,
+      "pageEnd": 26,
+      "anchor": "≥1 new vertebral fracture | 2.5 | 4.8",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4a4d7a6e-c2d6-447d-90f8-274897419e91",
+      "drug": "Vfend",
+      "section": "2.3 Recommended Dosing Regimen in Adults",
+      "page": 7,
+      "pageEnd": 7,
+      "anchor": "| Intravenous infusion | Intravenous infusion | Oral",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ba3307e0-1471-4004-8030-abe0a47caa55",
+      "drug": "Vfend",
+      "section": "2.3 Recommended Dosing Regimen in Adults",
+      "page": 7,
+      "pageEnd": 7,
+      "anchor": "- If the patient is unable to tolerate",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "05f4331c-5b97-4dc9-9d32-3acf415ceca3",
+      "drug": "Vfend",
+      "section": "2.5 Dosage Modifications in Patients With Hepatic Impairment",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "Adults The maintenance dose of VFEND should be",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "29a85d6c-b504-4b71-b539-46ef8a66a52b",
+      "drug": "Vfend",
+      "section": "2.4 Recommended Dosing Regimen in Pediatric Patients",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "Scedosporiosis and Fusariosis Esophageal Candidiasis | Not Evaluated",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e1e5bbdd-f574-4bc4-9618-0f8361f6d9ea",
+      "drug": "Vfend",
+      "section": "2.8 Preparation and Intravenous Administration of VFEND for Injection",
+      "page": 10,
+      "pageEnd": 11,
+      "anchor": "15 | - | 6 mL (1) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1e5a3302-65e4-490b-a94b-30da5fe3f70f",
+      "drug": "Vfend",
+      "section": "2.8 Preparation and Intravenous Administration of VFEND for Injection",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "85 | 25.5 mL (2) | 34 mL",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5cab9cc1-e0bb-4786-86fa-831f84e486ed",
+      "drug": "Vfend",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 12,
+      "pageEnd": 13,
+      "anchor": "- VFEND is contraindicated in patients with known",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "27f0404b-ea7a-4bd1-bf66-1fc38954beb8",
+      "drug": "Vfend",
+      "section": "5.2 Arrhythmias and QT Prolongation",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "Some azoles, including VFEND, have been associated with",
+      "foundOnPage": 14
+    },
+    {
+      "chunk": "4a10af5b-968d-498d-8139-379ed9936545",
+      "drug": "Vfend",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "- Long-acting barbiturates - Rifabutin - Rifampin -",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6f3b316a-06c2-424c-9acb-d93f679e186a",
+      "drug": "Vfend",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 18,
+      "pageEnd": 18,
+      "anchor": "| N (%) | N (%) | N",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c20e1f54-f206-416f-8bf1-dde4ded0673f",
+      "drug": "Vfend",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 18,
+      "pageEnd": 19,
+      "anchor": "Nervous System | | | | | |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e8af3216-9a1b-43a9-b432-6768f23e1eed",
+      "drug": "Vfend",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 18,
+      "pageEnd": 18,
+      "anchor": "Liver function tests abnormal | 45 (2.7) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "27f3baa2-5005-4e06-88f0-1edd228fca57",
+      "drug": "Vfend",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 22,
+      "pageEnd": 22,
+      "anchor": "T. Bilirubin | >1.5× ULN | 8/185 (4.3)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "bb34245a-4c6f-459c-b296-be88868c4b34",
+      "drug": "Vfend",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 24,
+      "pageEnd": 24,
+      "anchor": "Hypocalcemia | 6 (6) Hypophosphotemia | 6 (6)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "12d302a1-fa18-4c62-a1bb-e89b7a3672ed",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 30,
+      "anchor": "Efavirenz (300 mg every 24 hours) (CYP3A4 Inhibition)",
+      "foundOnPage": 29
+    },
+    {
+      "chunk": "1655f00c-e61d-44e1-8464-71f1f3473516",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 30,
+      "anchor": "Other HIV Protease Inhibitors(CYP3A4 Inhibition) | In Vivo",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "498228c4-c28e-45c8-b964-44dac90a5f1b",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 35,
+      "anchor": "Alfentanil (CYP3A4 Inhibition) | Significantly Increased | An",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "78c52506-d82b-4969-bacb-f5389a59527c",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 30,
+      "anchor": "Lurasidone (CYP3A4 Inhibition) | Not Studied In Vivo",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9542cd3f-f1de-48fc-823f-2f1af3d985b9",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 36,
+      "anchor": "Dihydropyridine Calcium Channel Blockers(CYP3A4 Inhibition) | In Vitro",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9898619c-3a00-4982-8414-c2d969af45b3",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 30,
+      "anchor": "High-dose Ritonavir (400 mg every 12 hours) (CYP450",
+      "foundOnPage": 27
+    },
+    {
+      "chunk": "9df0aa06-87ed-4aab-acf2-969ed485fe9a",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 36,
+      "anchor": "Oral Contraceptives containing ethinyl estradiol and norethindrone (CYP3A4",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a026909b-82c0-4776-9171-8fc0a8b266cf",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 35,
+      "anchor": "Omeprazole (CYP2C19/3A4 Inhibition) | Significantly Increased | When",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e5332147-c459-4d38-9b0f-fa6bb417b6ca",
+      "drug": "Vfend",
+      "section": "7 DRUG INTERACTIONS",
+      "page": 28,
+      "pageEnd": 36,
+      "anchor": "Tyrosine kinase inhibitors (including but not limited to",
+      "foundOnPage": 31
+    },
+    {
+      "chunk": "59e8dfd8-fe4d-4a1a-82d8-4a461d85009b",
+      "drug": "Vfend",
+      "section": "10 OVERDOSAGE",
+      "page": 38,
+      "pageEnd": 39,
+      "anchor": "In clinical trials, there were three cases of",
+      "foundOnPage": 39
+    },
+    {
+      "chunk": "a77e7049-d132-400e-b731-828f6f70b799",
+      "drug": "Vfend",
+      "section": "12.3 Pharmacokinetics",
+      "page": 41,
+      "pageEnd": 41,
+      "anchor": "Cmin (μg/mL) | -- | 0.46 (97) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1394a761-e471-49c8-8d9a-4df98e49972a",
+      "drug": "Vfend",
+      "section": "12.3 Pharmacokinetics",
+      "page": 45,
+      "pageEnd": 46,
+      "anchor": "Macrolide antibiotics –Coadministration of erythromycin (CYP3A4 inhibitor; 1",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "58754cc1-ad3c-458f-ae02-3b03b9e8c8d3",
+      "drug": "Vfend",
+      "section": "14.1 Invasive Aspergillosis (IA)",
+      "page": 50,
+      "pageEnd": 51,
+      "anchor": "Voriconazole was studied in patients for primary therapy",
+      "foundOnPage": 51
+    },
+    {
+      "chunk": "f7e6bd52-6073-41b0-99ed-f83692369ba5",
+      "drug": "Vfend",
+      "section": "14.1 Invasive Aspergillosis (IA)",
+      "page": 52,
+      "pageEnd": 52,
+      "anchor": "Success by Species | | | | Success",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "bb72c817-6383-41e1-8544-bd1e56774ccb",
+      "drug": "Vfend",
+      "section": "14.2 Candidemia in Non-neutropenic Patients and Other Deep Tissue Candida Infections",
+      "page": 53,
+      "pageEnd": 54,
+      "anchor": "C. albicans | 46/107 (43%) | 30/63 (48%)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "06f9e23d-ad1e-4367-a70d-a352daad8a01",
+      "drug": "Vfend",
+      "section": "14.3 Esophageal Candidiasis (EC)",
+      "page": 55,
+      "pageEnd": 55,
+      "anchor": "Favorable endoscopic response Patients with endoscopic and/or mycological",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0163b6e6-e2a1-459e-bf5e-a4efbf6121d9",
+      "drug": "Vfend",
+      "section": "14.5 Pediatric Studies",
+      "page": 56,
+      "pageEnd": 56,
+      "anchor": "Table 18: Global ResponseGlobal response rate was defined",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7f7cfde1-4b5d-45d8-81ee-1f02e159d10d",
+      "drug": "Rinvoq",
+      "section": "BW WARNING: SERIOUS INFECTIONS, MORTALITY, MALIGNANCY, MAJOR ADVERSE CARDIOVASCULAR EVENTS, and THROMBOSIS",
+      "page": 7,
+      "pageEnd": 7,
+      "anchor": "SERIOUS INFECTIONS Patients treated with RINVOQ /RINVOQ LQ",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "01a34ec9-5188-4dbc-8ace-f436043b86fe",
+      "drug": "Rinvoq",
+      "section": "1.1 Rheumatoid Arthritis",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "RINVOQ® is indicated for the treatment of adults",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "96997c02-c790-4e80-b7f8-c88b62f3dd34",
+      "drug": "Rinvoq",
+      "section": "2.2 Important Administration Instructions",
+      "page": 10,
+      "pageEnd": 10,
+      "anchor": "- RINVOQ LQ oral solution is not substitutable",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "efcf4824-8cb7-4cd1-b04b-6f77df641d60",
+      "drug": "Rinvoq",
+      "section": "2.12 Recommended Dosage in Patients with Renal Impairment or Hepatic Impairment",
+      "page": 12,
+      "pageEnd": 14,
+      "anchor": "Renal Impairment Rheumatoid Arthritis , Psoriatic Arthritis ,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6cbc0892-ebd4-42d6-81df-51d1f596f4fb",
+      "drug": "Rinvoq",
+      "section": "2.12 Recommended Dosage in Patients with Renal Impairment or Hepatic Impairment",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "- RINVOQ is not recommended for use in",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b9a23f17-c688-4ee1-a1be-ae958a0cf8f8",
+      "drug": "Rinvoq",
+      "section": "2.13 Dosage Modifications Due to Drug Interactions",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "Rheumatoid Arthritis, Psoriatic Arthritis, Ankylos ing Spondylitis ,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a7ca2373-b746-4632-a350-cfcbd51115d2",
+      "drug": "Rinvoq",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 15,
+      "pageEnd": 15,
+      "anchor": "RINVOQ extended-release tablets: - 15 mg upadacitinib: purple,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ed0e48b1-9877-4f9a-9e3e-7ac20ffa6f1a",
+      "drug": "Rinvoq",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 24,
+      "pageEnd": 24,
+      "anchor": "- Mean HDL cholesterol increased by 8.16 mg/dL",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "94f5f898-1ba7-4c76-a56e-b901bc44afed",
+      "drug": "Rinvoq",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 26,
+      "pageEnd": 26,
+      "anchor": "Neutropenia | <1 | 1 | 2 Myalgia",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0e9da2fa-97f0-4843-bac6-40dd4211a98e",
+      "drug": "Rinvoq",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 27,
+      "pageEnd": 28,
+      "anchor": "Adverse Reaction | Placebo | RINVOQ 45 mg",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "00539bc3-0488-48b5-a338-dee56fd6d2ce",
+      "drug": "Rinvoq",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 28,
+      "pageEnd": 29,
+      "anchor": "Laboratory Abnormalities Hepatic Transaminase Elevations In studies UC-1,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6490c632-5db9-4b65-a567-d934d21374f0",
+      "drug": "Rinvoq",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 28,
+      "pageEnd": 28,
+      "anchor": "Hypercholesterolemia* | 1 | 2 | 4 Influenza",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "60e2c42e-27e6-423c-b873-1ecef510cea9",
+      "drug": "Rinvoq",
+      "section": "8.3 Females and Males of Reproductive Potential",
+      "page": 35,
+      "pageEnd": 36,
+      "anchor": "Pregnancy Testing Verify the pregnancy status of females",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "326d515b-8810-4e5a-a2b2-572dc4c33b41",
+      "drug": "Rinvoq",
+      "section": "8.4 Pediatric Use",
+      "page": 36,
+      "pageEnd": 36,
+      "anchor": "Ankylosing Spondylitis , Non-radiographic Axial Spondyloarthritis , Ulcerative",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "443d4929-71b6-4220-adec-1a478d86e00c",
+      "drug": "Rinvoq",
+      "section": "12.2 Pharmacodynamics",
+      "page": 39,
+      "pageEnd": 40,
+      "anchor": "Inhibition of IL-6 I nduced STAT3 and IL-7",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "070e6b1d-df40-4172-bf5b-fddb56299065",
+      "drug": "Rinvoq",
+      "section": "12.3 Pharmacokinetics",
+      "page": 43,
+      "pageEnd": 43,
+      "anchor": "Methotrexate | 6 mg to 24 mg BIDb",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "74b56799-8965-49e6-9603-acb0f68a15ab",
+      "drug": "Rinvoq",
+      "section": "12.3 Pharmacokinetics",
+      "page": 43,
+      "pageEnd": 44,
+      "anchor": "Rosuvastatin | 30 mg QDc | 0.77(0.63-0.94) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f5dca8f4-1ce6-4a1d-b747-8eefd38e8756",
+      "drug": "Rinvoq",
+      "section": "14.1 Rheumatoid Arthritis",
+      "page": 44,
+      "pageEnd": 45,
+      "anchor": "The efficacy and safety of RINVOQ 15 mg",
+      "foundOnPage": 45
+    },
+    {
+      "chunk": "9136a255-ea00-4f7d-8dd5-0066e6031506",
+      "drug": "Rinvoq",
+      "section": "14.1 Rheumatoid Arthritis",
+      "page": 46,
+      "pageEnd": 50,
+      "anchor": "24c/26d | 59 | 7920 (13, 27) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ea559cf1-d1cb-4545-a573-8204823fa25c",
+      "drug": "Rinvoq",
+      "section": "14.1 Rheumatoid Arthritis",
+      "page": 46,
+      "pageEnd": 50,
+      "anchor": "Disability Index (HAQ-DI) d Baseline | 1.60(0.67) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "029aadaa-c90c-4c71-9b49-ee20e335f1f9",
+      "drug": "Rinvoq",
+      "section": "14.1 Rheumatoid Arthritis",
+      "page": 47,
+      "pageEnd": 47,
+      "anchor": "Week12/14 | 13(15) | 9(12) | 15(16) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "310fa5bf-afe5-44c0-8a01-e14fbab3bf11",
+      "drug": "Rinvoq",
+      "section": "14.1 Rheumatoid Arthritis",
+      "page": 47,
+      "pageEnd": 50,
+      "anchor": "24c/26d | 18 | 4830 (23, 37) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8bf1c9e2-217e-4b90-a41b-1389e214ad55",
+      "drug": "Rinvoq",
+      "section": "14.1 Rheumatoid Arthritis",
+      "page": 49,
+      "pageEnd": 49,
+      "anchor": "Week12/14 | 10.9(14.9) | 4.2(8.8) | 12.8(21.4) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c709d0ab-d29a-4caa-90a6-9f488e1a6e0a",
+      "drug": "Rinvoq",
+      "section": "14.1 Rheumatoid Arthritis",
+      "page": 49,
+      "pageEnd": 49,
+      "anchor": "| Trial RA-I MTX- naïve | Monotherapy DAS28-CRP",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6249e143-dd76-4c27-b38a-c6f48f67cb50",
+      "drug": "Rinvoq",
+      "section": "14.1 Rheumatoid Arthritis",
+      "page": 51,
+      "pageEnd": 51,
+      "anchor": "Week 24d | 0.67 (2.8) | 0.14 (1.4)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5b961e07-7532-4653-98d8-6da6cb6cc905",
+      "drug": "Rinvoq",
+      "section": "14.2 Psoriatic Arthritis",
+      "page": 53,
+      "pageEnd": 53,
+      "anchor": "Number of swollen joints (0-66) Baseline | 11.0",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6c8d83db-449e-4e51-b6c6-cedbe9f2df44",
+      "drug": "Rinvoq",
+      "section": "14.2 Psoriatic Arthritis",
+      "page": 53,
+      "pageEnd": 54,
+      "anchor": "Week 12 | 4.3 (2.2) | 3.1 (2.0)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2bdd86b9-564b-4088-8aac-1f9b23e4c22b",
+      "drug": "Rinvoq",
+      "section": "14.2 Psoriatic Arthritis",
+      "page": 55,
+      "pageEnd": 55,
+      "anchor": "Week 24b | 0.23 (0.07) | -0.02 (0.04)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7da948cf-ccad-42ae-9f43-b7e886664dc3",
+      "drug": "Rinvoq",
+      "section": "14.3 Atopic Dermatitis",
+      "page": 56,
+      "pageEnd": 59,
+      "anchor": "EASI-75a | 16% | 70% | 80% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6358b4a4-9ede-4116-89d4-495452a1a8f7",
+      "drug": "Rinvoq",
+      "section": "14.3 Atopic Dermatitis",
+      "page": 57,
+      "pageEnd": 58,
+      "anchor": "Difference from PBO (95% CI) | | 39%(31%,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "77c88806-25e1-4648-bd78-08c68fb2f744",
+      "drug": "Rinvoq",
+      "section": "14.3 Atopic Dermatitis",
+      "page": 59,
+      "pageEnd": 59,
+      "anchor": "EASI-75a , | 26% | 65% | 77%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8053661a-3bff-4275-a56c-0bf7fd4e927b",
+      "drug": "Rinvoq",
+      "section": "14.4 Ulcerative Colitis",
+      "page": 63,
+      "pageEnd": 63,
+      "anchor": "Prior biologic failurec | N=895% | N=17337% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a6787e17-3bb6-4861-bccd-0ae6ed9a3e91",
+      "drug": "Rinvoq",
+      "section": "14.4 Ulcerative Colitis",
+      "page": 63,
+      "pageEnd": 63,
+      "anchor": "Prior biologic failurec | N=781% | N=16823% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c1ad7b26-ea71-4d7e-a352-b1c0696d2bee",
+      "drug": "Rinvoq",
+      "section": "14.4 Ulcerative Colitis",
+      "page": 63,
+      "pageEnd": 64,
+      "anchor": "Endoscopic and Histologic Assessment Normalization of the endoscopic",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5646df34-7a4a-42dd-b567-11cdfe28fa52",
+      "drug": "Rinvoq",
+      "section": "14.5 Crohn’s Disease",
+      "page": 65,
+      "pageEnd": 66,
+      "anchor": "Induction Trials (Studies CD-1 and CD-2) In two",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a2a48df9-5db3-4d2f-8ead-ae0d49d3b974",
+      "drug": "Rinvoq",
+      "section": "14.4 Ulcerative Colitis",
+      "page": 65,
+      "pageEnd": 65,
+      "anchor": "Prior biologic failurec | N=815% | N=7133% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "065598d7-7010-49a6-a3ce-6ad39c36f8db",
+      "drug": "Rinvoq",
+      "section": "14.5 Crohn’s Disease",
+      "page": 68,
+      "pageEnd": 68,
+      "anchor": "Prior biologic failure | N=623% | N=13522% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "57d8a1cc-b9e4-4598-a18d-8b2251c292c2",
+      "drug": "Rinvoq",
+      "section": "14.5 Crohn’s Disease",
+      "page": 69,
+      "pageEnd": 69,
+      "anchor": "Maintenance of clinical remission d Total population |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "65450261-6270-466f-b0aa-ab8214c8e699",
+      "drug": "Rinvoq",
+      "section": "14.5 Crohn’s Disease",
+      "page": 70,
+      "pageEnd": 70,
+      "anchor": "Prior biologic failure | N=872% | N=8513% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6f9d70c0-f699-4b23-a6ac-726d4cfb6f98",
+      "drug": "Rinvoq",
+      "section": "14.6 Ankylosing Spondylitis",
+      "page": 72,
+      "pageEnd": 72,
+      "anchor": "hsCRP (mg/L) Baseline | 11.02 (10.85) | 8.90",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5c661e30-ac7a-44a6-819c-c6b4706abe81",
+      "drug": "Rinvoq",
+      "section": "14.7 Non-radiographic Axial Spondyloarthritis",
+      "page": 74,
+      "pageEnd": 75,
+      "anchor": "Baseline | 5.99 (2.14) | 5.89 (2.08) Week",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d5800017-00fd-4948-b264-9637bb11fbb5",
+      "drug": "Rinvoq",
+      "section": "14.7 Non-radiographic Axial Spondyloarthritis",
+      "page": 74,
+      "pageEnd": 74,
+      "anchor": "Table 32: Clinical Response at Week 14 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "54d796cd-3e21-445b-9c29-f087c664bd47",
+      "drug": "Rinvoq",
+      "section": "14.9 Giant Cell Arteritis",
+      "page": 76,
+      "pageEnd": 77,
+      "anchor": "Treatment Group | PBO + 52-week corticosteroid taper",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f9a8f1ab-eaa4-40af-aedc-a247784adb52",
+      "drug": "Rinvoq",
+      "section": "14.9 Giant Cell Arteritis",
+      "page": 77,
+      "pageEnd": 77,
+      "anchor": "Cumulative C orticosteroid D ose The total actual",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "80237eef-18a6-432c-aca8-88450edc41f8",
+      "drug": "Gleevec",
+      "section": "1.5 Myelodysplastic/Myeloproliferative Diseases (MDS/MPD)",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "Adult patients with myelodysplastic/myeloproliferative diseases associated with platelet-derived",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "fc4a309e-3ad0-4d5c-9877-3429ced602ef",
+      "drug": "Gleevec",
+      "section": "2.14 Dose Adjustment for Hematologic Adverse Reactions",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "Pediatric newly diagnosed chronic phase CML (starting dose",
+      "foundOnPage": 9
+    },
+    {
+      "chunk": "fe54ab52-1fc3-48bc-9516-b72c2cbae7ab",
+      "drug": "Gleevec",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 9,
+      "pageEnd": 10,
+      "anchor": "- 100 mg film coated tablets Very dark",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1c10fffa-7478-4d22-a07a-e048a554824e",
+      "drug": "Gleevec",
+      "section": "5.7 Hypereosinophilic Cardiac Toxicity",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "In patients with hypereosinophilic syndrome with occult infiltration",
+      "foundOnPage": 12
+    },
+    {
+      "chunk": "213c0f2d-ac1f-4d84-9f00-7a4289c70f15",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "Diarrhea | 45.4 | 43.3 | 3.3 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8637713f-af44-404b-aaff-a6effe854e46",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 15,
+      "pageEnd": 17,
+      "anchor": "Gastrointestinal disorders | Nausea | 41 | 22",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d2b1abcc-6641-4618-b343-f47b631c045b",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 15,
+      "pageEnd": 15,
+      "anchor": "Weight increased | 15.6 | 2.6 | 2.0",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4be3df1a-075c-48a4-921a-a4906f268c3e",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 17,
+      "pageEnd": 17,
+      "anchor": "Muscle cramps | 28 | 1 | 47",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a214180d-e5c0-4fb3-9927-9437166bc487",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 17,
+      "pageEnd": 17,
+      "anchor": "| Upper respiratory tract infection | 14 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c5528605-2369-42c1-aecc-169d923e973e",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 17,
+      "pageEnd": 18,
+      "anchor": "Dyspnea | 15 | 4 | 21 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9695c189-5d17-43aa-9e27-0f06b4789b65",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 19,
+      "pageEnd": 20,
+      "anchor": "− Elevated bilirubin | 0.9 | 0.2 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "64cc3f1a-c3cf-4ce5-afec-fa6ad8858f06",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "| % | % | % CTC Grades",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "90db9765-8a0a-4a27-9d9e-257e05557021",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "Elevated alkaline phosphatase | < 1 | 0",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b6d3efab-53d9-4b2f-878c-f9ed2cf87a7e",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 22,
+      "pageEnd": 22,
+      "anchor": "Myalgia | 5 (5) | 0 | 4",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "595c69f2-7a3e-4306-93b9-66a4b5ffe1f5",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 25,
+      "pageEnd": 25,
+      "anchor": "Anemia | 32.0 | 4.9 | 34.8 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c9906d3c-508e-4872-beac-4a270f487dfb",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 25,
+      "pageEnd": 26,
+      "anchor": "Sweating | 12.7 | 4.6 | 8.5 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d26acfc6-e90b-4046-925a-e4fd5a1a17e1",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "− Reduced albumin | 3 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a8772b51-2720-422b-8aa9-0b0d73f6395a",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 27,
+      "pageEnd": 28,
+      "anchor": "Abdominal pain | 21.1 | 22.3 | 3.0",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "244ee127-4c55-486a-8d54-cfd881180755",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 28,
+      "pageEnd": 28,
+      "anchor": "Lacrimation increased | 9.8 | 3.8 | 0",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "37f068b7-c11c-43ea-945e-e8baf147dae6",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 29,
+      "pageEnd": 29,
+      "anchor": "Pain | 25.8 | 45.5 | 1.0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "44122a38-dbda-4c4d-abbd-5e3d45c378fa",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 29,
+      "pageEnd": 29,
+      "anchor": "Upper respiratory tract infection | 5.0 | 3.5",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "72f078c0-c4a7-4b61-9056-ab6100fea2ef",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 29,
+      "pageEnd": 30,
+      "anchor": "Arthralgia | 8.8 | 17.2 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "351f3458-0e52-4328-82b7-227e82554e81",
+      "drug": "Gleevec",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 30,
+      "pageEnd": 30,
+      "anchor": "Palpitations | 5.2 | 5.1 | 0 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8769344f-b850-44a1-8164-17871457d7d2",
+      "drug": "Gleevec",
+      "section": "14.1 Chronic Myeloid Leukemia",
+      "page": 43,
+      "pageEnd": 44,
+      "anchor": "- The primary efficacy endpoint of the study",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9f574fe9-1c17-42c2-ba0a-e8f71e5b0468",
+      "drug": "Gleevec",
+      "section": "14.1 Chronic Myeloid Leukemia",
+      "page": 46,
+      "pageEnd": 46,
+      "anchor": "[95% CI] | [70.8, 78.3] | [4.6, 8.9]",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "583f2ca7-07d2-4a28-8343-66ea9008c615",
+      "drug": "Gleevec",
+      "section": "14.1 Chronic Myeloid Leukemia",
+      "page": 49,
+      "pageEnd": 50,
+      "anchor": "(Unconfirmed3) | (65%) | (27%) | (15%) Complete4",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "869c50fe-a2bc-43a7-93d2-1a4a5d28ea8b",
+      "drug": "Gleevec",
+      "section": "14.1 Chronic Myeloid Leukemia",
+      "page": 49,
+      "pageEnd": 49,
+      "anchor": "| | 600 mg n = 158 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7a708249-22d3-4a38-a686-6c830da4b21e",
+      "drug": "Gleevec",
+      "section": "14.5 Myelodysplastic/Myeloproliferative Diseases",
+      "page": 52,
+      "pageEnd": 52,
+      "anchor": "| Number of patients | Complete hematologic response",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "882395c3-de4b-477e-950b-3031f419ee20",
+      "drug": "Gleevec",
+      "section": "14.6 Aggressive Systemic Mastocytosis",
+      "page": 53,
+      "pageEnd": 53,
+      "anchor": "Cytogenetic abnormality | Number of patients N |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "22d124fc-593f-4c70-ae44-2eadbcb4639d",
+      "drug": "Gleevec",
+      "section": "14.8 Dermatofibrosarcoma Protuberans",
+      "page": 54,
+      "pageEnd": 55,
+      "anchor": "| Number of patients (n = 18) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a2106f8e-6b96-40ef-a1e3-247c7dcd7843",
+      "drug": "Gleevec",
+      "section": "14.9 Gastrointestinal Stromal Tumors",
+      "page": 56,
+      "pageEnd": 56,
+      "anchor": "Best overall tumor response Complete response Partial response",
+      "foundOnPage": 55
+    },
+    {
+      "chunk": "385308f5-2563-48db-93d4-c47e3367e0e8",
+      "drug": "Cozaar",
+      "section": "1.1 Hypertension",
+      "page": 3,
+      "pageEnd": 4,
+      "anchor": "COZAAR® is indicated for the treatment of hypertension",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "7819c612-85f3-4609-b154-342970c8590c",
+      "drug": "Cozaar",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "COZAAR is contraindicated: - In patients who are",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9fa20142-3a66-4c40-a2d7-4f4d183cd1c4",
+      "drug": "Cozaar",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 5,
+      "pageEnd": 5,
+      "anchor": "- COZAAR, 25 mg, are white, oval, film-coated",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ad371950-fa9f-495a-a649-9c3426ba0f99",
+      "drug": "Cozaar",
+      "section": "7.1 Agents Increasing Serum Potassium",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "Coadministration of losartan with other drugs that raise",
+      "foundOnPage": 9
+    },
+    {
+      "chunk": "62f23560-8f1f-490a-be0c-5c234b13aa94",
+      "drug": "Cozaar",
+      "section": "12.2 Pharmacodynamics",
+      "page": 13,
+      "pageEnd": 14,
+      "anchor": "Losartan inhibits the pressor effect of angiotensin II",
+      "foundOnPage": 14
+    },
+    {
+      "chunk": "6dcf0edf-8740-423a-88c5-2abac63aca25",
+      "drug": "Cozaar",
+      "section": "12.3 Pharmacokinetics",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "CMAX (ng/mL) | 224 ± 82 | 212",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e1845ff8-26b9-4ddf-ae14-891faf7864c5",
+      "drug": "Cozaar",
+      "section": "14.2 Hypertensive Patients with Left Ventricular Hypertrophy",
+      "page": 20,
+      "pageEnd": 20,
+      "anchor": "| N (%) | RateRate per 1000 patient-years",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5d405e42-58ba-453d-b1b2-58d9b0fe9d38",
+      "drug": "Cozaar",
+      "section": "14.3 Nephropathy in Type 2 Diabetic Patients",
+      "page": 22,
+      "pageEnd": 24,
+      "anchor": "≥65 years | 508 | 42.3 | 43.5",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a019d553-56ca-4d60-8821-ac62a3986f8c",
+      "drug": "Cozaar",
+      "section": "14.3 Nephropathy in Type 2 Diabetic Patients",
+      "page": 23,
+      "pageEnd": 23,
+      "anchor": "Death | 21.0% | 20.3% | -1.7% |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "06b8445e-d76c-4687-bfb2-479d9f6bde74",
+      "drug": "Valium",
+      "section": "BW WARNING: RISKS FROM CONCOMITANT USE WITH OPIOIDS; ABUSE, MISUSE, AND ADDICTION; and DEPENDENCE AND WITHDRAWAL REACTIONS",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- Concomitant use of benzodiazepines and opioids may",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b6fdee20-bcaa-4067-b536-82c80a34709e",
+      "drug": "Valium",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "VALIUM is indicated for the: - Treatment of",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3e406a0d-a7a3-4c5e-83aa-c3941ccd0de6",
+      "drug": "Valium",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "VALIUM is contraindicated in patients with: - Known",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "bc6c5bb5-5fd4-4010-aed4-e752a40f8a68",
+      "drug": "Valium",
+      "section": "5.2 Abuse, Misuse, and Addiction",
+      "page": 6,
+      "pageEnd": 7,
+      "anchor": "The use of benzodiazepines, including VALIUM, exposes users",
+      "foundOnPage": 7
+    },
+    {
+      "chunk": "22c7b9c0-7463-472c-8815-d70368274231",
+      "drug": "Valium",
+      "section": "5.5 Suicidal Behavior and Ideation",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "Epilepsy | 1.0 | 3.4 | 3.5 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2a52f51a-3fda-40ef-9013-2ede0a823770",
+      "drug": "Valium",
+      "section": "8.8 Debilitated Patients",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "Debilitated patients are at an increased risk of",
+      "foundOnPage": 15
+    },
+    {
+      "chunk": "5b93239b-07e8-45cf-b068-4399bd978161",
+      "drug": "Pristiq",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "- Hypersensitivity to desvenlafaxine succinate, venlafaxine hydrochloride or",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c301ede4-bc48-4b04-aba8-a4fbb0547d66",
+      "drug": "Pristiq",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "- 25 mg Tablet: tan, square pyramid tablet",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "11aafe22-d464-42aa-acd3-741683a69767",
+      "drug": "Pristiq",
+      "section": "5.1 Suicidal Thoughts and Behaviors in Pediatric and Young Adult Patients",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "| Increases Compared to Placebo <18 | 14",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5b32be26-2fca-4f0c-a2ef-65e9e2ef177e",
+      "drug": "Pristiq",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "Anxiety | 2 | 3 | 5 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "39d54562-0e78-4cf9-b456-0e6fa137a95d",
+      "drug": "Pristiq",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 14,
+      "pageEnd": 14,
+      "anchor": "Orgasm abnormal | 0 | 0 | 1",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "eff943d1-c255-4f82-b635-bd52ec1ec838",
+      "drug": "Pristiq",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "Lipids Elevations in fasting serum total cholesterol, LDL",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2a3e3abd-6106-44b8-8388-85ec0b52d5f3",
+      "drug": "Pristiq",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "Blood pressure | | | | | Supine",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e3063ec6-d16d-4327-9891-4831dcd8f5bc",
+      "drug": "Pristiq",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "PRISTIQ 100 mg per day | 0.7% PRISTIQ",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c14a0381-f3cd-4745-8047-8f40a17faef7",
+      "drug": "Pristiq",
+      "section": "7.1 Drugs Having Clinically Important Interactions with PRISTIQ",
+      "page": 18,
+      "pageEnd": 18,
+      "anchor": "Examples | NSAIDs, aspirin, and warfarin Drugs that",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5ce3f6e3-25bc-413f-9b73-7c80f859768e",
+      "drug": "Pristiq",
+      "section": "13.1 Carcinogenesis, Mutagenesis, Impairment of Fertility",
+      "page": 28,
+      "pageEnd": 29,
+      "anchor": "Carcinogenesis Desvenlafaxine succinate administered by oral gavage to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "5163f415-e83d-4ebc-9d65-76508204139f",
+      "drug": "Pristiq",
+      "section": "14 CLINICAL STUDIES",
+      "page": 30,
+      "pageEnd": 30,
+      "anchor": "| Difference from Placebo (95% CIDifference between least",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e948c00e-25f8-4439-93d4-e9f2ab6afc97",
+      "drug": "Pristiq",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 32,
+      "pageEnd": 33,
+      "anchor": "PRISTIQ® (desvenlafaxine) extended-release tablets are available as follows:",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "25ddcc80-9c8a-49db-b880-8ed6d7223fa6",
+      "drug": "Jantoven",
+      "section": "BW WARNING: BLEEDING RISK",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- Warfarin Sodium can cause major or fatal",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4eae7168-86da-45a0-9b2d-24f638678ded",
+      "drug": "Jantoven",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "JANTOVEN ®is indicated for: - Prophylaxis and treatment",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1f73625c-a586-4644-a429-9675961552e7",
+      "drug": "Jantoven",
+      "section": "2.2 Recommended Target INR Ranges and Durations for Individual Indications",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "- For patients with AF and mitral stenosis,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "59f608b4-a12f-4e4e-91f6-863f6bb674f4",
+      "drug": "Jantoven",
+      "section": "2.8 Conversion from Other Anticoagulants",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "Heparin Since the full anticoagulant effect of JANTOVEN",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2f05be13-5769-4ee5-a9f0-01a693e7d5c1",
+      "drug": "Jantoven",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 8,
+      "pageEnd": 9,
+      "anchor": "JANTOVEN is contraindicated in: - Pregnancy JANTOVEN is",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2c83355f-6846-4eb8-b530-265781358200",
+      "drug": "Jantoven",
+      "section": "6 ADVERSE REACTIONS",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "The following serious adverse reactions to JANTOVEN are",
+      "foundOnPage": 12
+    },
+    {
+      "chunk": "55c851db-58c0-4449-bfdd-f4adbdcdc5c2",
+      "drug": "Jantoven",
+      "section": "7.2 CYP450 Interactions",
+      "page": 13,
+      "pageEnd": 13,
+      "anchor": "CYP1A2 | acyclovir, allopurinol, caffeine, cimetidine, ciprofloxacin, disulfiram,",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "8a76e60f-a85a-4a2d-a37e-f26e837c52bf",
+      "drug": "Jantoven",
+      "section": "8.1 Pregnancy",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "Risk Summary JANTOVEN is contraindicated in women who",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "b8c0710e-b4cc-49a8-9d4d-85ef82b707c5",
+      "drug": "Jantoven",
+      "section": "14.2 Mechanical and Bioprosthetic Heart Valves",
+      "page": 22,
+      "pageEnd": 22,
+      "anchor": "py=patient years Thromboembolism | 4.0/100 py | 3.7/100",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "1808f1a4-67a8-4f0d-b536-187553f49be8",
+      "drug": "Jantoven",
+      "section": "14.3 Myocardial Infarction",
+      "page": 23,
+      "pageEnd": 23,
+      "anchor": "Reinfarction | 117 | 90 | 69 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ff740296-6901-4396-bcde-8c7a526c75b6",
+      "drug": "Jantoven",
+      "section": "16 HOW SUPPLIED/STORAGE AND HANDLING",
+      "page": 23,
+      "pageEnd": 24,
+      "anchor": "Tablets JANTOVEN tablets are single scored, compressed tablets",
+      "foundOnPage": 24
+    },
+    {
+      "chunk": "40987070-e15f-4fcd-9034-b259f7fc60eb",
+      "drug": "Jantoven",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 24,
+      "pageEnd": 25,
+      "anchor": "Advise the patient to read the FDA-approved patient",
+      "foundOnPage": 25
+    },
+    {
+      "chunk": "f6ab5544-f603-4388-a759-fffdf01fbe66",
+      "drug": "Jantoven",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 25,
+      "pageEnd": 26,
+      "anchor": "- Immediately contact their physician when taking JANTOVEN",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e98c75c7-6402-4489-945d-1b3bb3ee2f09",
+      "drug": "Topamax",
+      "section": "5.4 Metabolic Acidosis",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "TOPAMAX can cause hyperchloremic, non-anion gap, metabolic acidosis",
+      "foundOnPage": 8
+    },
+    {
+      "chunk": "db91a49f-c16c-4d10-8f89-d3723c6db5b1",
+      "drug": "Topamax",
+      "section": "5.5 Suicidal Behavior and Ideation",
+      "page": 9,
+      "pageEnd": 10,
+      "anchor": "Epilepsy | 1.0 | 3.4 | 3.5 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "cd89c900-108e-4c41-8305-70f0d6982e27",
+      "drug": "Topamax",
+      "section": "5.8 Withdrawal of Antiepileptic Drugs",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "In patients with or without a history of",
+      "foundOnPage": 12
+    },
+    {
+      "chunk": "151a0739-e7ff-4416-a70b-b277f88d6618",
+      "drug": "Topamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 16,
+      "pageEnd": 17,
+      "anchor": "Insomnia | | | 8 | 9 Decrease",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "93fbcd6a-6620-4796-b57c-9da30802e3d0",
+      "drug": "Topamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 16,
+      "pageEnd": 16,
+      "anchor": "| Age Group | Pediatric(6 to 15 Years)",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "4592ded7-4855-453d-b1db-c6539e35cdd1",
+      "drug": "Topamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 18,
+      "pageEnd": 19,
+      "anchor": "Gastro-Intestinal System Disorders Nausea | 8 | 10",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "744857d5-cc7b-4d8f-9d38-b5d88d6988f4",
+      "drug": "Topamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 20,
+      "pageEnd": 21,
+      "anchor": "Confusion | 3 | 4 Psychomotor slowing |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "06428207-824f-44ea-8e12-5e808ee25727",
+      "drug": "Topamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 21,
+      "pageEnd": 22,
+      "anchor": "Body System/ Adverse Reaction | Placebo(N=445)% | 50(N=235)%",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2d10e692-5261-4b5d-ad69-9a168176ba63",
+      "drug": "Topamax",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 22,
+      "pageEnd": 23,
+      "anchor": "Respiratory System Disorders Upper respiratory tract infection |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "402f42c3-e586-4082-9b78-7aaa880864cf",
+      "drug": "Topamax",
+      "section": "7.5 Hydrochlorothiazide (HCTZ)",
+      "page": 26,
+      "pageEnd": 26,
+      "anchor": "Topiramate Cmax and AUC increased when HCTZ was",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "79646018-3c8d-4919-a859-ca472bc1d0cc",
+      "drug": "Topamax",
+      "section": "7.6 Pioglitazone",
+      "page": 26,
+      "pageEnd": 27,
+      "anchor": "A decrease in the exposure of pioglitazone and",
+      "foundOnPage": 27
+    },
+    {
+      "chunk": "15f820d6-503f-4260-b3aa-064a252e21a8",
+      "drug": "Topamax",
+      "section": "8.4 Pediatric Use",
+      "page": 32,
+      "pageEnd": 33,
+      "anchor": "Annual Change in Height (cm) (4–15 years) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "aa352a40-b85f-4315-a38e-69d16a047bf8",
+      "drug": "Topamax",
+      "section": "10 OVERDOSAGE",
+      "page": 34,
+      "pageEnd": 35,
+      "anchor": "Overdoses of TOPAMAX have been reported. Signs and",
+      "foundOnPage": 35
+    },
+    {
+      "chunk": "32f1eb94-816a-4f7a-9802-c0e00f32bed7",
+      "drug": "Topamax",
+      "section": "11 DESCRIPTION",
+      "page": 35,
+      "pageEnd": 35,
+      "anchor": "Topiramate is a sulfamate-substituted monosaccharide. TOPAMAX® (topiramate) Tablets",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "d37c9de2-993e-4fe6-a5d1-b894a0befa3f",
+      "drug": "Topamax",
+      "section": "12.3 Pharmacokinetics",
+      "page": 39,
+      "pageEnd": 39,
+      "anchor": "Phenobarbital | NC | NE Primidone | NC",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "de49a690-286d-4fa2-9df2-b036f89abc23",
+      "drug": "Topamax",
+      "section": "14.2 Adjunctive Therapy Epilepsy",
+      "page": 44,
+      "pageEnd": 45,
+      "anchor": "Patients With Lennox-Gastaut Syndrome The effectiveness of TOPAMAX",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "21edfb38-9ca5-4289-b262-5b0416e8ff80",
+      "drug": "Topamax",
+      "section": "14.2 Adjunctive Therapy Epilepsy",
+      "page": 45,
+      "pageEnd": 46,
+      "anchor": "| Median Dose | 6.0 | 200 |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6910cf21-7a15-451c-809f-633743bf3fda",
+      "drug": "Topamax",
+      "section": "14.2 Adjunctive Therapy Epilepsy",
+      "page": 47,
+      "pageEnd": 47,
+      "anchor": "Median % Reduction | -12 | -- |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0382c4be-c9c7-43d8-800f-1dfe0c738f4f",
+      "drug": "Topamax",
+      "section": "16.1 How Supplied",
+      "page": 50,
+      "pageEnd": 51,
+      "anchor": "TOPAMAX Tablets TOPAMAX® (topiramate) Tablets are available as",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2c47c32a-b57f-4e7c-8bb8-467d551fe6b1",
+      "drug": "terbinafine",
+      "section": "13.1 Carcinogenesis, Mutagenesis, Impairment of Fertility",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "In a 28-month oral carcinogenicity study in rats,",
+      "foundOnPage": 12
+    },
+    {
+      "chunk": "78b962d5-1f72-4525-81b0-f2b22d0ea8de",
+      "drug": "Bystolic",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 4,
+      "pageEnd": 5,
+      "anchor": "BYSTOLIC is contraindicated in the following conditions: -",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "26b9e9d7-12a0-409f-abe5-eaea105b0a84",
+      "drug": "Bystolic",
+      "section": "5.6 Thyrotoxicosis",
+      "page": 5,
+      "pageEnd": 6,
+      "anchor": "β-blockers may mask clinical signs of hyperthyroidism, such",
+      "foundOnPage": 6
+    },
+    {
+      "chunk": "02920aa0-aa15-4121-b639-f12695cea07d",
+      "drug": "Bystolic",
+      "section": "6.1 Clinical Studies Experience",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "Cardiac Disorders | | | | Bradycardia |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3f232dac-2dab-4711-b74d-f2b5f555bc17",
+      "drug": "Bystolic",
+      "section": "14.1 Hypertension",
+      "page": 17,
+      "pageEnd": 17,
+      "anchor": "Study 2 | | | -3.8/-3.2* | -3.1/-3.9*",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c042d163-bdd2-4c01-a475-ae4d97609600",
+      "drug": "Bystolic",
+      "section": "17 PATIENT COUNSELING INFORMATION",
+      "page": 18,
+      "pageEnd": 18,
+      "anchor": "See FDA- a pproved p atient l abeling",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2a02108f-c2a5-4ccb-b2be-6657a5bd8aab",
+      "drug": "Ozempic",
+      "section": "2.1 Important Administration Instructions",
+      "page": 4,
+      "pageEnd": 5,
+      "anchor": "- Inspect OZEMPIC visually before use. It should",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "3d90fdcc-26af-446d-ac5c-4c7f4be1a750",
+      "drug": "Ozempic",
+      "section": "1 INDICATIONS AND USAGE",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "OZEMPIC is indicated: - as an adjunct to",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6cc4a3c3-825f-418f-aac7-dabc56622a04",
+      "drug": "Ozempic",
+      "section": "BW WARNING: RISK OF THYROID C-CELL TUMORS",
+      "page": 4,
+      "pageEnd": 4,
+      "anchor": "- In rodents, semaglutide causes dose-dependent and treatment-duration-dependent",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6a344ac3-6522-4938-99c8-267ea0253ccd",
+      "drug": "Ozempic",
+      "section": "4 CONTRAINDICATIONS",
+      "page": 6,
+      "pageEnd": 6,
+      "anchor": "OZEMPIC is contraindicated in patients with: - A",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2a3b7125-a3a6-4a47-a96e-f071ad262664",
+      "drug": "Ozempic",
+      "section": "5.8 Hypersensitivity Reactions",
+      "page": 7,
+      "pageEnd": 8,
+      "anchor": "Serious hypersensitivity reactions (e.g., anaphylaxis, angioedema) have been",
+      "foundOnPage": 8
+    },
+    {
+      "chunk": "cb04a195-561b-4def-ba74-bcad3514ff2d",
+      "drug": "Ozempic",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 9,
+      "pageEnd": 10,
+      "anchor": "Nausea | 6.1 | 15.8 | 20.3 Vomiting",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "25740702-e831-4c40-9cf8-f27482f2547a",
+      "drug": "Ozempic",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 11,
+      "pageEnd": 12,
+      "anchor": "Severe† or Blood Glucose Confirmed Symptomatic (≤56 mg/dL",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "61f784f9-b7b9-44c7-b482-40e6d27d7077",
+      "drug": "Ozempic",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 23,
+      "pageEnd": 24,
+      "anchor": "| Placebo | OZEMPIC 0.5 mg | OZEMPIC",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "2f8a3cfe-cbe8-466b-9c82-ae64c724e89c",
+      "drug": "Ozempic",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 24,
+      "pageEnd": 27,
+      "anchor": "FPG (mg/dL) | | Baseline (mean) | 191",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "82dc1b5a-49ef-4f30-9b68-d648a01daa23",
+      "drug": "Ozempic",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 24,
+      "pageEnd": 27,
+      "anchor": "FPG (mg/dL) | | | Baseline (mean) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9a36d13b-8cba-43a5-8e2b-1b9433e5713b",
+      "drug": "Ozempic",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 25,
+      "pageEnd": 26,
+      "anchor": "Figure 5. Mean HbA1c (%) Over Time -",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "c1b52c11-e14f-4d73-a8a5-2d0a7ef07631",
+      "drug": "Ozempic",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 28,
+      "pageEnd": 29,
+      "anchor": "- Combination with metformin or metformin with sulfonylurea",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "fefae30a-8e3a-49fc-bddd-77a3cd690dd3",
+      "drug": "Ozempic",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 28,
+      "pageEnd": 28,
+      "anchor": "FPG (mg/dL) | | | Baseline (mean) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "a889bb7f-8f36-4502-8244-14df3fa791a8",
+      "drug": "Ozempic",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 29,
+      "pageEnd": 30,
+      "anchor": "FPG (mg/dL) | | Baseline (mean) | 196",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "369fe250-2218-4ab3-8370-d2a17f327268",
+      "drug": "Ozempic",
+      "section": "14.1 Glycemic Control Trials in Adults with Type 2 Diabetes Mellitus",
+      "page": 31,
+      "pageEnd": 31,
+      "anchor": "- b Intent-to-treat analysis using ANCOVA adjusted for",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "dcfcd148-d9b9-4475-9811-1e1fc2b50438",
+      "drug": "Ozempic",
+      "section": "14.2 Cardiovascular Outcomes Trial of OZEMPIC in Adults with Type 2 Diabetes Mellitus and Cardiovascular Disease",
+      "page": 33,
+      "pageEnd": 33,
+      "anchor": "Fatal or Non-fatal Stroke | 46 (2.8) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "f2b0c787-3e45-4ab3-9009-df247e2a874f",
+      "drug": "Ozempic",
+      "section": "14.3 Kidney Outcomes Trial of OZEMPIC in Adults with Type 2 Diabetes Mellitus and Chronic Kidney Disease",
+      "page": 35,
+      "pageEnd": 35,
+      "anchor": "≥50% sustained eGFR decline3 | 213 (12.1) |",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0ccda055-da27-42e2-b8b6-7304d15e4e58",
+      "drug": "Tamiflu",
+      "section": "1.3 Limitations of Use",
+      "page": 3,
+      "pageEnd": 4,
+      "anchor": "- TAMIFLU is not a substitute for early",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "0dfe4829-6632-42bb-817a-79ab33bcc3d2",
+      "drug": "Tamiflu",
+      "section": "2.6 Emergency Preparation of Oral Suspension from 75 mg TAMIFLU Capsules",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "Amount of Water | 2.5 mL | 5",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "ece1b1af-e9f3-4764-a063-5ce52868d6dd",
+      "drug": "Tamiflu",
+      "section": "2.6 Emergency Preparation of Oral Suspension from 75 mg TAMIFLU Capsules",
+      "page": 8,
+      "pageEnd": 8,
+      "anchor": "- Store the prepared oral suspension in glass",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "e4f551ed-2fbc-4df2-bcd7-f0871f6a6e90",
+      "drug": "Tamiflu",
+      "section": "3 DOSAGE FORMS AND STRENGTHS",
+      "page": 9,
+      "pageEnd": 9,
+      "anchor": "TAMIFLU Capsules: - 30-mg (30 mg free base",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "40f44f91-2747-4627-8918-437f25db8606",
+      "drug": "Tamiflu",
+      "section": "6.1 Clinical Trials Experience",
+      "page": 11,
+      "pageEnd": 11,
+      "anchor": "Nervous System Disorders | | | | Headache",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "6fc3fc92-17cc-40d1-b7ed-c49bb6833058",
+      "drug": "Tamiflu",
+      "section": "8.4 Pediatric Use",
+      "page": 14,
+      "pageEnd": 15,
+      "anchor": "- 13 to 17 years of age: Prophylaxis",
+      "foundOnPage": null
+    },
+    {
+      "chunk": "9d3fff07-6948-40f8-a62f-2261b5112aea",
+      "drug": "Tamiflu",
+      "section": "12.3 Pharmacokinetics",
+      "page": 19,
+      "pageEnd": 19,
+      "anchor": "AUC48 (ng∙hr/mL) | 5294 | 8336 | 6262",
+      "foundOnPage": null
+    }
+  ]
+}
