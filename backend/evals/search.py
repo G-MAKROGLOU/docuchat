@@ -84,7 +84,7 @@ class CosineSearch:
 
 _FIELDS = (
     "id, document_id, drug_name, section_number, section_title, page_start, page_end, "
-    "content, anchor, token_count, embedding_model"
+    "content, anchor, token_count, embedding_model, table_header"
 )
 
 

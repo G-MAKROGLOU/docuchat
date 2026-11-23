@@ -24,8 +24,11 @@ _FIELDS = (
     "anchor",
     "token_count",
     "embedding_model",
+    "table_header",
 )
 _COLUMNS = sql.SQL(", ").join(map(sql.Identifier, _FIELDS))
+# A title match counts half a content match. ASSUMED value, to tune on the golden set.
+TITLE_BOOST = 0.5
 
 
 def _filter(labels: Sequence[UUID]) -> tuple[sql.Composable, tuple[Any, ...]]:
@@ -65,15 +68,16 @@ class PostgresChunkSearch:
     async def text_search(self, query: str, labels: Sequence[UUID], limit: int) -> list[Chunk]:
         where, params = _filter(labels)
         # ||| matches any token; ### boosts tokens in order, so "2.5 mg twice daily" ranks above
-        # "5 mg ... twice daily". Both tokenize the text and do not parse query syntax.
+        # "5 mg ... twice daily". A section title match ("Lactation") adds a smaller share.
         statement = sql.SQL(
             "SELECT {} FROM chunks "
-            "WHERE (content ||| %s OR content ### %s::pdb.boost(2)){} "
+            "WHERE (content ||| %s OR content ### %s::pdb.boost(2) "
+            "OR section_title ||| %s::pdb.boost({})){} "
             "ORDER BY pdb.score(id) DESC LIMIT %s"
-        ).format(_COLUMNS, where)
+        ).format(_COLUMNS, sql.Literal(TITLE_BOOST), where)
         async with self._connections.connection() as conn:
             cursor = conn.cursor(row_factory=dict_row)
             with SEARCH_SECONDS.labels("bm25").time():
-                await cursor.execute(statement, (query, query, *params, limit))
+                await cursor.execute(statement, (query, query, query, *params, limit))
                 rows = await cursor.fetchall()
         return [Chunk(**row) for row in rows]

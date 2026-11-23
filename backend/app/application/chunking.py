@@ -15,12 +15,41 @@ def anchor_of(content: str) -> str:
     return " ".join(content.split()[:ANCHOR_WORDS])
 
 
-def embedding_input(brand: str, generic: str, section: str, content: str, *, prefix: bool) -> str:
-    """section is "<number> <title>", for example "2.1 Recommended Dosage"."""
+def embedding_input(  # noqa: PLR0913  # the parts of one embedding input
+    brand: str, generic: str, section: str, content: str, *, prefix: bool, context: str = ""
+) -> str:
+    """section is "<number> <title>", for example "2.1 Recommended Dosage". context is the
+    caption and header row of the table that the chunk continues."""
+    if context:
+        content = f"{context}\n{content}"
     if not prefix:
         return content
     drug = f"{brand} ({generic})" if brand else generic
     return f"Drug: {drug}. Section: {section}.\n{content}"
+
+
+def _is_row(line: str) -> bool:
+    return " | " in line
+
+
+def table_context(text: str, start: int) -> str:
+    """The caption and header row of the table that a chunk starting at start continues,
+    without the lines that the chunk already holds. Empty outside a table."""
+    lines: list[tuple[int, str]] = []
+    offset = 0
+    for line in text.split("\n"):
+        lines.append((offset, line))
+        offset += len(line) + 1
+    current = max((i for i, (off, _) in enumerate(lines) if off <= start), default=0)
+    if not _is_row(lines[current][1]):
+        return ""
+    first = current
+    while first > 0 and _is_row(lines[first - 1][1]):
+        first -= 1
+    context = [lines[first]]
+    if first > 0 and lines[first - 1][1].lower().startswith("table"):
+        context.insert(0, lines[first - 1])
+    return "\n".join(line for off, line in context if off < start)
 
 
 def build_chunks(
@@ -33,7 +62,7 @@ def build_chunks(
     """pages_of gives the first and last PDF page of each chunk text, in reading order."""
     drug_name = document.brand_name or document.generic_name
     drafts = [
-        (section, span.text.strip())
+        (section, span.text.strip(), table_context(section.text, span.start))
         for section in sections
         for span in splitter.split(section.text)
         if span.text.strip()
@@ -44,7 +73,7 @@ def build_chunks(
             f"{_heading(section)}\n{content}"
             if i == 0 or drafts[i - 1][0] is not section
             else content
-            for i, (section, content) in enumerate(drafts)
+            for i, (section, content, _) in enumerate(drafts)
         ]
     )
     return [
@@ -59,8 +88,9 @@ def build_chunks(
             content=content,
             anchor=anchor_of(content),
             token_count=counter.count(content),
+            table_header=header,
         )
-        for (section, content), (page_start, page_end) in zip(drafts, pages, strict=True)
+        for (section, content, header), (page_start, page_end) in zip(drafts, pages, strict=True)
     ]
 
 

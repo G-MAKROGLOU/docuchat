@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 from app.application.chunking import anchor_of, build_chunks, embedding_input
 from app.domain.documents import Document
-from app.domain.entities import LabelSection
+from app.domain.entities import LabelSection, TextSpan
 from tests.support.factories import make_document
 from tests.support.fakes_ingestion import SentenceSplitter, WordCounter
 
@@ -109,3 +109,61 @@ def test_the_first_chunk_of_a_section_is_located_with_its_heading() -> None:
 
     assert seen == ["4 CONTRAINDICATIONS\nNone.", "Really none."]
     assert chunks[0].content == "None."
+
+
+class TwoLineSplitter:
+    """Fake splitter: spans of two lines each, with their start offsets."""
+
+    def split(self, text: str) -> list[TextSpan]:
+        starts = [0, *(i + 1 for i, ch in enumerate(text) if ch == "\n")]
+        lines = text.split("\n")
+        return [
+            TextSpan(start=starts[i], text="\n".join(lines[i : i + 2]))
+            for i in range(0, len(lines), 2)
+        ]
+
+
+TABLE = "\n".join(
+    [
+        "Doses by group.",
+        "Table 1. Doses",
+        "Group | Dose",
+        "Adults | 10 mg",
+        "Children | 5 mg",
+        "Elderly | 5 mg",
+        "After the table.",
+    ]
+)
+
+
+def test_a_split_table_keeps_its_caption_and_header_row_as_context() -> None:
+    chunks = build_chunks(
+        document("Lipitor"),
+        [section("2.1", "Dosage", TABLE)],
+        TwoLineSplitter(),
+        WordCounter(),
+        pages_of,
+    )
+
+    assert [c.table_header for c in chunks] == [
+        "",
+        "Table 1. Doses",  # the header row is in the chunk, the caption is not
+        "Table 1. Doses\nGroup | Dose",
+        "",  # the text after the table needs no table context
+    ]
+    # The chunk text stays as in the label, so the page lookup and the highlight still match.
+    assert chunks[2].content == "Children | 5 mg\nElderly | 5 mg"
+    assert chunks[2].anchor == "Children | 5 mg Elderly | 5 mg"
+
+
+def test_the_embedding_input_puts_the_table_context_before_the_text() -> None:
+    text = embedding_input(
+        "Lipitor",
+        "atorvastatin",
+        "2.1 Dosage",
+        "Children | 5 mg",
+        prefix=False,
+        context="Table 1. Doses\nGroup | Dose",
+    )
+
+    assert text == "Table 1. Doses\nGroup | Dose\nChildren | 5 mg"

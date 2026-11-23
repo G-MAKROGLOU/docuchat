@@ -378,7 +378,8 @@ def validate_answer(answer: str, sources: Sequence[SourceRef], question: str = "
 def source_block(sources: Sequence[SourceRef]) -> str:
     return "\n\n".join(
         f"[{s.id}] {s.chunk.drug_name}, section {s.chunk.section_number} "
-        f"{s.chunk.section_title}, page {s.chunk.page_start}:\n{s.chunk.content}"
+        f"{s.chunk.section_title}, page {s.chunk.page_start}:\n"
+        f"{s.chunk.table_header + chr(10) if s.chunk.table_header else ''}{s.chunk.content}"
         for s in sources
     )
 

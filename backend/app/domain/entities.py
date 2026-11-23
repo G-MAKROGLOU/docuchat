@@ -63,6 +63,8 @@ class Chunk:
     token_count: int
     embedding: tuple[float, ...] | None = field(default=None, repr=False)
     embedding_model: str | None = None
+    # Caption and header row of the table that the chunk continues; empty outside a table.
+    table_header: str = ""
 
 
 @dataclass(frozen=True, slots=True)

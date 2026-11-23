@@ -102,6 +102,7 @@ class IngestionService:
                 f"{c.section_number} {c.section_title}",
                 c.content,
                 prefix=self.embedding_prefix,
+                context=c.table_header,
             )
             for c in drafts
         ]

@@ -28,8 +28,8 @@ class PostgresChunkRepository:
             await cursor.executemany(
                 "INSERT INTO chunks (id, document_id, drug_name, section_number, "
                 "section_title, page_start, page_end, content, anchor, embedding, "
-                "embedding_model, token_count) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector, %s, %s)",
+                "embedding_model, token_count, table_header) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector, %s, %s, %s)",
                 [
                     (
                         c.id,
@@ -44,6 +44,7 @@ class PostgresChunkRepository:
                         vector_literal(c.embedding or ()),
                         c.embedding_model,
                         c.token_count,
+                        c.table_header,
                     )
                     for c in chunks
                 ],
