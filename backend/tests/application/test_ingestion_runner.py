@@ -8,10 +8,16 @@ from fastapi.testclient import TestClient
 
 from app.api.dependencies import get_corpus_stats_repository, get_ingestion_control
 from app.application.corpus_update import UpdateReport
+from app.application.ingestion import IngestResult
 from app.application.ingestion_runner import IngestionRunner
 from app.application.label_queue import QueueReport
 from app.main import app
-from tests.support.fakes_ingestion import FakeCorpusStats, ListedDocuments, StubIngestionControl
+from tests.support.fakes_ingestion import (
+    FakeCorpusStats,
+    FakeTracker,
+    ListedDocuments,
+    StubIngestionControl,
+)
 
 
 class FakeService:
@@ -145,3 +151,130 @@ def test_each_ingested_document_is_reported_with_its_time() -> None:
 
     assert len(seen) == 2
     assert all(isinstance(seconds, float) and seconds >= 0 for _, seconds in seen)
+
+
+class ParallelService:
+    """Counts the documents in progress; fails or raises for the named source IDs."""
+
+    def __init__(self, *, fail: str = "", explode: str = "") -> None:
+        self.active = 0
+        self.most = 0
+        self.ingested: list[str] = []
+        self._fail = fail
+        self._explode = explode
+
+    async def ingest(self, document: Any, *, force: bool = False) -> IngestResult:
+        self.active += 1
+        self.most = max(self.most, self.active)
+        try:
+            await asyncio.sleep(0.01)
+            if document.source_id == self._explode:
+                raise ConnectionError("pool timeout")
+            self.ingested.append(document.source_id)
+            if document.source_id == self._fail:
+                return IngestResult(document.id, error="ValueError")
+            return IngestResult(document.id, chunks=1)
+        finally:
+            self.active -= 1
+
+
+def run_parallel(
+    service: ParallelService, *, concurrency: int, force: bool = False
+) -> tuple[list[IngestResult], FakeTracker, str]:
+    async def no_queue() -> QueueReport:
+        return QueueReport()
+
+    async def no_updates() -> UpdateReport:
+        return UpdateReport()
+
+    tracker = FakeTracker(stale=False)
+    seen: list[IngestResult] = []
+
+    async def scenario() -> str:
+        runner = IngestionRunner(
+            cast(Any, service),
+            cast(Any, ListedDocuments(*"abcdefg")),
+            no_updates,
+            no_queue,
+            tracker,
+            concurrency=concurrency,
+        )
+        runner.observe = lambda result, seconds: seen.append(result)
+        runner.start(force=force)
+        await runner._task  # type: ignore[misc]
+        return runner.phase
+
+    phase = asyncio.run(scenario())
+    return seen, tracker, phase
+
+
+def test_a_pass_ingests_at_most_the_limit_of_documents_at_once() -> None:
+    service = ParallelService()
+
+    seen, _, _ = run_parallel(service, concurrency=3)
+
+    assert service.most == 3
+    assert sorted(service.ingested) == list("abcdefg")
+    assert len(seen) == 7
+
+
+def test_a_limit_of_one_ingests_one_document_at_a_time_in_order() -> None:
+    service = ParallelService()
+
+    run_parallel(service, concurrency=1)
+
+    assert service.most == 1
+    assert service.ingested == list("abcdefg")
+
+
+def test_a_failed_document_does_not_stop_the_others_and_is_counted() -> None:
+    service = ParallelService(fail="b")
+
+    seen, tracker, phase = run_parallel(service, concurrency=3, force=True)
+
+    assert sorted(service.ingested) == list("abcdefg")
+    assert sum(1 for r in seen if r.error) == 1
+    assert sum(r.chunks for r in seen) == 6
+    # Stored as failed: the next pass takes it again, so the marker moves as before.
+    assert tracker.marked == 1
+    assert phase == "idle"
+
+
+def test_a_document_that_raises_does_not_stop_the_others_and_keeps_the_marker() -> None:
+    service = ParallelService(explode="c")
+
+    seen, tracker, phase = run_parallel(service, concurrency=3, force=True)
+
+    assert sorted(service.ingested) == list("abdefg")
+    assert len(seen) == 6
+    # Its status did not change, so it can still hold chunks of the old index.
+    assert tracker.marked == 0
+    assert phase == "idle"
+
+
+def test_stopping_a_pass_cancels_the_documents_in_progress() -> None:
+    class Blocked:
+        def __init__(self) -> None:
+            self.started = 0
+            self.cancelled = 0
+
+        async def ingest(self, document: Any, *, force: bool = False) -> None:
+            self.started += 1
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                self.cancelled += 1
+                raise
+
+    async def scenario() -> tuple[int, int, bool]:
+        service = Blocked()
+        runner = make_runner(cast(Any, service))
+        runner.start()
+        for _ in range(100):
+            if service.started == 2:
+                break
+            await asyncio.sleep(0.05)
+        await runner.stop()
+        return service.started, service.cancelled, runner.running
+
+    assert asyncio.run(scenario()) == (2, 2, False)
