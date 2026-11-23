@@ -1,0 +1,159 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.message {
+  display: block;
+  margin: 12px 0 0;
+  font-size: 0.875rem;
+  color: var(--color-foreground-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.generic {
+  margin-left: 8px;
+  color: var(--color-foreground-muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.meta {
+  color: var(--color-foreground-muted);
+  font-size: 0.75rem;
+}
+
+.problem {
+  color: var(--color-error);
+  font-size: 0.75rem;
+}
+
+.note {
+  margin: 12px 0 0;
+  color: var(--color-foreground-muted);
+  font-size: 0.8125rem;
+}
+
+.add {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-accent);
+  border-radius: 9999px;
+  color: var(--color-accent);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-foreground-muted);
+  font-size: 0.875rem;
+}
+
+/* A result row is one button: the whole row adds the label. */
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover,
+.option:focus-visible {
+  background: var(--color-surface-raised, var(--color-border));
+}
+
+.option:hover .add,
+.option:focus-visible .add {
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+}
+
+.list li:has(> .option) {
+  padding: 0;
+  border-left: 4px solid var(--color-accent);
+}
+
+/* The results list scrolls inside the card when it is long. */
+.results {
+  max-height: 360px;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.remove {
+  color: var(--color-error);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.pager .note {
+  margin: 0;
+}
+
+/* Queue rows: orange waits for the next pass, green is in the corpus. */
+.list li.queued {
+  border-left: 4px solid var(--color-warning);
+}
+
+.list li.added {
+  border-left: 4px solid var(--color-success);
+}

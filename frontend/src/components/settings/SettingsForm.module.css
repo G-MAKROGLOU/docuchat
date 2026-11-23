@@ -1,0 +1,89 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.row {
+  display: grid;
+  margin-bottom: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.help {
+  margin: 8px 0 0;
+  color: var(--color-foreground-muted);
+  font-size: 0.8125rem;
+}
+
+.effects {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding-left: 18px;
+  color: var(--color-foreground-muted);
+  font-size: 0.8125rem;
+}
+
+.effects strong {
+  color: var(--color-foreground);
+}
+
+.fixed {
+  margin: 16px 0 0;
+  color: var(--color-foreground-muted);
+  font-size: 0.8125rem;
+}
+
+.actions {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.message {
+  color: var(--color-foreground-muted);
+  font-size: 0.875rem;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.modal p {
+  margin: 0;
+}
+
+.field {
+  margin-top: 16px;
+}
+
+/* The text and the cost line inside a grader tile. */
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legendCost {
+  color: var(--color-foreground-muted);
+  font-size: 0.75rem;
+}
+
+/* Read by screen readers only. */
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
