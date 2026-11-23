@@ -26,6 +26,8 @@ services:
 
   db:
     image: paradedb/paradedb:0.26.8-pg18
+    # An init as PID 1 reaps orphaned exec processes; Postgres treats their exit as a crash.
+    init: true
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
