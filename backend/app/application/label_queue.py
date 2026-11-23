@@ -4,7 +4,9 @@ into the corpus on each ingestion pass."""
 import asyncio
 import logging
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Protocol
 
 from app.application.corpus import SPL_NAMESPACE, CorpusEntry, download_corpus
 from app.application.ingestion import public_reason
@@ -50,6 +52,29 @@ async def add_label(
     if not await queue.add(set_id, label.title):
         raise LabelKnownError(set_id)
     return label
+
+
+class PassRequests(Protocol):
+    async def request(self, *, force: bool) -> None: ...
+
+
+async def queue_manifest(
+    entries: Sequence[CorpusEntry],
+    queue: LabelQueueRepository,
+    documents: DocumentRepository,
+    passes: PassRequests,
+) -> int:
+    """Queue the manifest labels that are not in the library, then ask the worker for a pass.
+    A failed entry is queued again. Returns the number queued."""
+    stored = await documents.known_source_ids([e.source_id for e in entries])
+    queued = 0
+    for entry in entries:
+        if entry.source_id not in stored:
+            title = entry.brand_name or entry.generic_name
+            queued += await queue.add(entry.source_id, title)
+    if queued:
+        await passes.request(force=False)
+    return queued
 
 
 @dataclass(slots=True)
@@ -115,7 +140,6 @@ async def _take(entry: QueueEntry, context: QueueContext, delay_seconds: float) 
             generic_name=names.generic_name,
             manufacturer=names.manufacturer,
             source_id=entry.set_id,
-            quick_start=False,
         )
         download = await download_corpus(
             [corpus_entry],

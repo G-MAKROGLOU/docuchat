@@ -1,6 +1,6 @@
 # Retrieval
 
-The `retrieve` node of the chat graph (`app/application/chat.py`) runs this path for each search. `DrugDetector` maps the search query to products and their preferred labels. `RetrievalService.retrieve()` searches only those labels (document IDs), in both legs. It fuses the two lists with RRF and selects the context. `search_cli.py` runs the same detector and retrieval without the graph.
+The `retrieve` node of the chat graph (`app/application/chat.py`) runs this path for each search. `DrugDetector` maps the search query to products and their preferred labels. `RetrievalService.retrieve()` searches only those labels (document IDs), in both legs. It fuses the two lists with RRF and selects the context.
 
 ## Chat turn graph
 

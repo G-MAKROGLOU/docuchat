@@ -7,7 +7,7 @@ flowchart TB
     subgraph entry["Entry points (app/)"]
         main["main.py<br/>FastAPI app, lifespan"]
         worker["ingest_worker.py<br/>schedule and requested passes"]
-        cmds["corpus_init.py, corpus_download.py,<br/>ingest.py, search_cli.py"]
+        cmds["corpus_init.py<br/>manifest labels into the label queue"]
         rconf["runtime_config.py RuntimeConfig<br/>saved settings, rebuild on change"]
     end
 

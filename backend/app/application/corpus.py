@@ -24,7 +24,6 @@ class CorpusEntry:
     generic_name: str
     manufacturer: str
     source_id: str
-    quick_start: bool
 
 
 @dataclass(slots=True)
@@ -35,7 +34,7 @@ class DownloadReport:
     bytes_downloaded: int = 0
 
 
-def parse_manifest(text: str, *, quick: bool) -> list[CorpusEntry]:
+def parse_manifest(text: str) -> list[CorpusEntry]:
     try:
         raw = json.loads(text)["documents"]
         entries = [
@@ -44,22 +43,12 @@ def parse_manifest(text: str, *, quick: bool) -> list[CorpusEntry]:
                 generic_name=item["generic_name"],
                 manufacturer=item["manufacturer"],
                 source_id=item["source_id"],
-                quick_start=bool(item["quick_start"]),
             )
             for item in raw
         ]
     except (KeyError, TypeError, json.JSONDecodeError) as exc:
         raise ValueError(f"Invalid corpus manifest: {exc!r}") from exc
-    return [e for e in entries if e.quick_start] if quick else entries
-
-
-def parse_sources(text: str) -> tuple[str, str]:
-    """The PDF and the SPL XML URL templates of the manifest."""
-    try:
-        manifest = json.loads(text)
-        return manifest["pdf_url_template"], manifest["label_url_template"]
-    except (KeyError, TypeError, json.JSONDecodeError) as exc:
-        raise ValueError(f"Invalid corpus manifest: {exc!r}") from exc
+    return entries
 
 
 async def download_corpus(

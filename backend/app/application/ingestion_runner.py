@@ -124,8 +124,9 @@ class IngestionRunner:
                 report.failed,
             )
             self._phase = "downloading"
-            queued = await self._take_queue()
-            logger.info("label queue: %d added, %d failed", queued.added, queued.failed)
+            # One take is limited, so take again until the queue is empty.
+            while (queued := await self._take_queue()).added or queued.failed:
+                logger.info("label queue: %d added, %d failed", queued.added, queued.failed)
             self._phase = "ingesting"
             # A pass that was cut short earlier left documents with the old chunk settings.
             force = force or await self._chunking.stale()

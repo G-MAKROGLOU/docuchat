@@ -1,25 +1,52 @@
 # Corpus download
 
-`python -m app.corpus_download --quick|--all` stores the label PDF and the SPL XML of each manifest entry, then adds the document row. The run is idempotent by `source_id`. The manifest is `backend/corpus/manifest.json`, mounted at `/corpus/manifest.json`.
+The ingest worker is the only process that downloads labels. Labels come into the label queue from two places: the Corpus page (`POST /api/v1/labels`) and the one-shot `corpus-init` job. `download_corpus()` stores the label PDF and the SPL XML of a label, then adds the document row. It is idempotent by `source_id`.
 
-Other callers of `download_corpus()`: the one-shot `corpus-init` job runs `corpus_download.main(["--all"])`, then `ingest.main(["--all"])`, when a manifest label is not in the library. The label queue of the ingest worker (`label_queue.process_queue()`) calls it for one label at a time, with the SPL XML that it already fetched.
+## Fill the library: corpus-init and the label queue
+
+`python -m app.corpus_init` runs once per stack start. The manifest is `backend/corpus/manifest.json`, mounted at `/corpus/manifest.json`.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Op as Operator
-    participant CLI as corpus_download.main
+    participant Init as corpus-init (queue_manifest)
+    participant Docs as PostgresDocumentRepository
+    participant Queue as PostgresLabelQueueRepository
+    participant State as ingestion_state
+    participant Worker as ingest worker (IngestionRunner)
+
+    Init->>Init: apply_migrations, parse_manifest(manifest.json)
+    Init->>Docs: known_source_ids(manifest set IDs)
+    loop each manifest label not in the library
+        Init->>Queue: add(set_id, brand or generic name)
+        Note over Queue: new or failed entry: queued<br/>queued or added entry: unchanged
+    end
+    alt at least one label queued
+        Init->>State: request(force=false)
+    end
+    Note over Init: exit 0
+    Worker->>State: take() on the next tick, after a running pass
+    loop phase downloading, until a take returns nothing
+        Worker->>Queue: next_queued(50)
+        Worker->>Worker: _take(entry): fetch SPL XML, check namespace,<br/>read names, download_corpus() with the fetched XML
+        Worker->>Queue: mark(added or failed with a reason)
+    end
+    Note over Worker: phase ingesting: every document, 4 at a time
+```
+
+## One label: download_corpus()
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Q as label_queue._take
     participant DL as corpus._Downloader
     participant Repo as PostgresDocumentRepository
     participant Src as DailyMedClient
     participant Store as DocumentStore (S3)
 
-    Op->>CLI: --quick or --all [--manifest]
-    CLI->>CLI: apply_migrations(DATABASE_URL)
-    CLI->>CLI: parse_manifest(manifest.json, quick)
-    CLI->>Src: create with pdf_url_template, label_url_template (https only)
     Note over Src: each GET: 3 tries with backoff 1 s, 2 s<br/>on 408, 429, 500, 502, 503, 504 and network errors<br/>response at most 50 MB
-    CLI->>DL: download_corpus(entries, source, store, repository)
+    Q->>DL: download_corpus([entry], prefetched source, store, repository)
 
     loop each CorpusEntry, errors counted as failed
         DL->>Repo: find_by_source_id(source_id)
@@ -60,6 +87,6 @@ sequenceDiagram
         end
     end
 
-    DL-->>CLI: DownloadReport(downloaded, skipped, failed, bytes)
-    CLI-->>Op: summary line, exit 1 if failed > 0
+    DL-->>Q: DownloadReport(downloaded, skipped, failed, bytes)
+    Note over Q: no row for the set ID: failed, with the reason
 ```

@@ -8,7 +8,6 @@ from app.application.corpus import (
     CorpusEntry,
     download_corpus,
     parse_manifest,
-    parse_sources,
 )
 from app.domain.documents import Document, DocumentStatus
 from app.domain.storage import label_key
@@ -21,11 +20,11 @@ MANIFEST = """
  "label_url_template": "https://example.test/{source_id}.xml",
  "documents": [
   {"brand_name": "Alpha", "generic_name": "alphamab", "manufacturer": "M1", "source_id": "s1",
-   "quick_start": true, "tags": {"class": "x"}},
+   "tags": {"class": "x"}},
   {"brand_name": "", "generic_name": "betanol", "manufacturer": "M2", "source_id": "s2",
-   "quick_start": false, "tags": {}},
+   "tags": {}},
   {"brand_name": "Gamma", "generic_name": "gammazine", "manufacturer": "M3", "source_id": "s3",
-   "quick_start": true, "tags": {}}
+   "tags": {}}
  ]}
 """
 
@@ -38,15 +37,12 @@ def run(
     return {"downloaded": report.downloaded, "skipped": report.skipped, "failed": report.failed}
 
 
-def test_parse_manifest_and_quick_mode_selects_quick_start_entries() -> None:
-    entries = parse_manifest(MANIFEST, quick=True)
-
-    assert [e.source_id for e in entries] == ["s1", "s3"]
-    assert len(parse_manifest(MANIFEST, quick=False)) == 3
+def test_parse_manifest_reads_every_entry() -> None:
+    assert [e.source_id for e in parse_manifest(MANIFEST)] == ["s1", "s2", "s3"]
 
 
 def test_download_stores_documents_and_a_second_run_downloads_nothing(tmp_path: Path) -> None:
-    entries = parse_manifest(MANIFEST, quick=False)
+    entries = parse_manifest(MANIFEST)
     source, repo = FakeSource(), FakeDocumentRepository()
 
     assert run(entries, source, repo, tmp_path) == {"downloaded": 3, "skipped": 0, "failed": 0}
@@ -65,7 +61,7 @@ def test_download_stores_documents_and_a_second_run_downloads_nothing(tmp_path: 
 
 
 def test_same_content_under_another_source_id_is_not_stored_twice(tmp_path: Path) -> None:
-    entries = parse_manifest(MANIFEST, quick=False)
+    entries = parse_manifest(MANIFEST)
     same = b"%PDF-1.7 same"
     source = FakeSource({"s1": same, "s2": same, "s3": same})
 
@@ -78,8 +74,8 @@ def test_same_content_under_another_source_id_is_not_stored_twice(tmp_path: Path
 
 def test_a_failed_download_is_counted_and_the_rest_continue(tmp_path: Path) -> None:
     entries = [
-        CorpusEntry("Broken", "x", "M", "broken", quick_start=False),
-        CorpusEntry("Ok", "y", "M", "ok", quick_start=False),
+        CorpusEntry("Broken", "x", "M", "broken"),
+        CorpusEntry("Ok", "y", "M", "ok"),
     ]
 
     assert run(entries, FakeSource(), FakeDocumentRepository(), tmp_path) == {
@@ -90,14 +86,14 @@ def test_a_failed_download_is_counted_and_the_rest_continue(tmp_path: Path) -> N
 
 
 def test_non_pdf_content_is_a_failure(tmp_path: Path) -> None:
-    entries = [CorpusEntry("Html", "x", "M", "html", quick_start=False)]
+    entries = [CorpusEntry("Html", "x", "M", "html")]
     source = FakeSource({"html": b"<html>error page</html>"})
 
     assert run(entries, source, FakeDocumentRepository(), tmp_path)["failed"] == 1
 
 
 def test_non_spl_label_content_is_a_failure_and_nothing_is_stored(tmp_path: Path) -> None:
-    entries = [CorpusEntry("Html", "x", "M", "html", quick_start=False)]
+    entries = [CorpusEntry("Html", "x", "M", "html")]
     source = FakeSource(labels={"html": b"<html>error page</html>"})
     repo = FakeDocumentRepository()
 
@@ -113,7 +109,7 @@ def known_document() -> Document:
     )
 
 
-ENTRY = [CorpusEntry("Alpha", "alphamab", "M1", "s1", quick_start=True)]
+ENTRY = [CorpusEntry("Alpha", "alphamab", "M1", "s1")]
 
 
 def test_missing_object_for_a_known_document_is_stored_again(tmp_path: Path) -> None:
@@ -137,16 +133,4 @@ def test_a_known_document_without_its_label_gets_only_the_label(tmp_path: Path) 
 @pytest.mark.parametrize("bad", ['{"documents": [{"source_id": "x"}]}', "[]"])
 def test_invalid_manifest_raises(bad: str) -> None:
     with pytest.raises(ValueError, match="manifest"):
-        parse_manifest(bad, quick=False)
-
-
-def test_parse_sources_reads_both_url_templates() -> None:
-    assert parse_sources(MANIFEST) == (
-        "https://example.test/{source_id}",
-        "https://example.test/{source_id}.xml",
-    )
-
-
-def test_a_manifest_without_the_label_template_raises() -> None:
-    with pytest.raises(ValueError, match="manifest"):
-        parse_sources('{"pdf_url_template": "https://example.test/{source_id}"}')
+        parse_manifest(bad)

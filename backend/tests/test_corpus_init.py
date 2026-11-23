@@ -1,58 +1,59 @@
-import pytest
+import asyncio
+from typing import Any, cast
 
-from app import corpus_download, corpus_init, ingest
-
-
-class Calls:
-    def __init__(self, download_code: int = 0, ingest_code: int = 0) -> None:
-        self.download_code = download_code
-        self.ingest_code = ingest_code
-        self.made: list[tuple[str, list[str] | None]] = []
-
-    def download(self, argv: list[str] | None = None) -> int:
-        self.made.append(("download", argv))
-        return self.download_code
-
-    def ingest(self, argv: list[str] | None = None) -> int:
-        self.made.append(("ingest", argv))
-        return self.ingest_code
+from app.application.corpus import CorpusEntry
+from app.application.label_queue import queue_manifest
+from app.domain.label_queue import QueueStatus
+from tests.support.factories import make_document
+from tests.support.fakes_ingestion import FakeDocumentRepository, FakeQueue
 
 
-def patch(monkeypatch: pytest.MonkeyPatch, missing: int, calls: Calls) -> None:
-    monkeypatch.setattr(corpus_init, "missing_labels", lambda: missing)
-    monkeypatch.setattr(corpus_download, "main", calls.download)
-    monkeypatch.setattr(ingest, "main", calls.ingest)
+class FakeState:
+    def __init__(self) -> None:
+        self.requests: list[bool] = []
+
+    async def request(self, *, force: bool) -> None:
+        self.requests.append(force)
 
 
-def test_an_empty_library_downloads_and_ingests_every_manifest_label(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    calls = Calls()
-    patch(monkeypatch, 50, calls)
-
-    assert corpus_init.main() == 0
-    assert calls.made == [("download", ["--all"]), ("ingest", ["--all"])]
-
-
-def test_a_library_with_every_manifest_label_is_left_alone(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls = Calls()
-    patch(monkeypatch, 0, calls)
-
-    assert corpus_init.main() == 0
-    assert calls.made == []
+def entry(set_id: str, brand: str = "", generic: str = "g") -> CorpusEntry:
+    return CorpusEntry(
+        brand_name=brand,
+        generic_name=generic,
+        manufacturer="m",
+        source_id=set_id,
+    )
 
 
-def test_failed_downloads_still_ingest_the_others_and_fail_the_run(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    calls = Calls(download_code=1)
-    patch(monkeypatch, 3, calls)
-
-    assert corpus_init.main() == 1
-    assert [name for name, _ in calls.made] == ["download", "ingest"]
+def run(queue: FakeQueue, documents: FakeDocumentRepository, entries: list[CorpusEntry]) -> int:
+    state = FakeState()
+    queued = asyncio.run(queue_manifest(entries, queue, cast(Any, documents), state))
+    assert state.requests == ([False] if queued else [])
+    return queued
 
 
-def test_a_failed_ingest_fails_the_run(monkeypatch: pytest.MonkeyPatch) -> None:
-    patch(monkeypatch, 2, Calls(ingest_code=1))
+def test_an_empty_library_queues_every_manifest_label_and_asks_for_a_pass() -> None:
+    queue = FakeQueue()
 
-    assert corpus_init.main() == 1
+    queued = run(queue, FakeDocumentRepository(), [entry("a", "Brand"), entry("b")])
+
+    assert queued == 2
+    assert {s: e.title for s, e in queue.entries.items()} == {"a": "Brand", "b": "g"}
+
+
+def test_a_library_with_every_manifest_label_is_left_alone() -> None:
+    documents = FakeDocumentRepository(make_document(source_id="a"))
+
+    assert run(FakeQueue(), documents, [entry("a")]) == 0
+
+
+def test_a_failed_label_is_queued_again_and_a_waiting_one_is_not_added_twice() -> None:
+    queue = FakeQueue()
+    asyncio.run(queue.add("failed", "t"))
+    asyncio.run(queue.mark("failed", QueueStatus.FAILED, "timeout"))
+    asyncio.run(queue.add("waiting", "t"))
+
+    queued = run(queue, FakeDocumentRepository(), [entry("failed"), entry("waiting")])
+
+    assert queued == 1
+    assert queue.entries["failed"].status is QueueStatus.QUEUED

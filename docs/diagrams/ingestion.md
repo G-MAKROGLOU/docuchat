@@ -1,12 +1,13 @@
 # Ingestion
 
-`IngestionService.ingest()` takes the sections from the SPL XML and the page numbers from the PDF, then writes embedded chunks. Three callers run it: the ingest worker (one pass at a time), `python -m app.ingest --quick|--all [--force]`, and the one-shot `corpus-init` job. Each caller ingests one document at a time.
+`IngestionService.ingest()` takes the sections from the SPL XML and the page numbers from the PDF, then writes embedded chunks. Only the ingest worker runs it, one pass at a time, with at most 4 documents at the same time (`INGEST_CONCURRENCY`).
 
 ## Passes: API, ingest worker and schedule
 
 ```mermaid
 flowchart TD
     api["backend API<br/>POST /api/v1/ingestion<br/>PUT /api/v1/settings with a re-index"] -->|"IngestionControl.request()<br/>no new request while a pass runs or waits<br/>(POST answers 409)"| state[("ingestion_state, one row<br/>requested_at, force_requested,<br/>phase, next_run_at, heartbeat_at")]
+    init["corpus-init: missing manifest labels<br/>into the label queue, then a request"] --> state
     boot["worker start: reset_interrupted()<br/>ingesting back to stored, then a request"] --> state
     sched["IngestionRunner schedule<br/>every 1 day from the worker start"] --> pass
 
@@ -23,8 +24,8 @@ flowchart TD
 
     subgraph pass["IngestionRunner._run(force)"]
         checking["phase checking<br/>check_for_updates(): fetch each SPL XML, 4 at a time<br/>changed: store PDF + XML, row back to stored"]
-        downloading["phase downloading<br/>process_queue(): up to 50 queued labels<br/>through download_corpus()"]
-        ingesting["phase ingesting<br/>force = force or chunk settings stale<br/>for each document in list_all():<br/>service.ingest(document, force), one at a time"]
+        downloading["phase downloading<br/>process_queue(): 50 queued labels per take,<br/>again until the queue is empty,<br/>through download_corpus()"]
+        ingesting["phase ingesting<br/>force = force or chunk settings stale<br/>for each document in list_all():<br/>service.ingest(document, force), 4 at a time"]
         mark["force: mark_embedded()"]
         checking --> downloading --> ingesting --> mark
     end

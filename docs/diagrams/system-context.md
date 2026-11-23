@@ -37,16 +37,13 @@ flowchart LR
     worker -->|"PDF + label.xml objects"| storage
     worker -->|"update check, label queue"| dailymed
     worker -->|"embed_documents"| openrouter
-    init -->|"documents, chunks"| db
-    init -->|"PDF + label.xml objects"| storage
-    init -->|"manifest download"| dailymed
-    init -->|"embed_documents"| openrouter
+    init -->|"label queue, pass request"| db
     prom -->|"scrape backend:8000/metrics"| backend
     prom -->|"scrape ingest-worker:9100"| worker
     grafana -->|"PromQL"| prom
 ```
 
-The ingest worker and corpus-init get `CACHE_URL` too, but they embed document chunks only, and document vectors do not go through the cache.
+The ingest worker gets `CACHE_URL` too, but it embeds document chunks only, and document vectors do not go through the cache. corpus-init gets `CACHE_URL` because the settings require it; it does not use the cache.
 
 Compose: one file, `infra/docker-compose.yml`, development mode only. Start it from the repository root with `docker compose -f infra/docker-compose.yml up`.
 
@@ -88,4 +85,4 @@ Configuration: one `.env` per project.
 
 Compose sets `DATABASE_URL`, `CACHE_URL=redis://cache:6379/0` and the S3 endpoint and keys for the backend services. `infra/setup.sh` and `infra/setup.ps1` create the three files from their examples.
 
-Ports: `backend` and `frontend` publish on all host interfaces. `db`, `storage`, `prometheus` and `grafana` publish on `127.0.0.1` only. `cache` publishes no port. The bind mounts are `backend/` and `frontend/` for hot reload, and `backend/corpus/` at `/corpus` (read-only) for the backend and corpus-init.
+Ports: `backend` and `frontend` publish on all host interfaces. `db`, `storage`, `prometheus` and `grafana` publish on `127.0.0.1` only. `cache` publishes no port. The bind mounts are `backend/` and `frontend/` for hot reload, and `backend/corpus/` at `/corpus` (read-only) for corpus-init.

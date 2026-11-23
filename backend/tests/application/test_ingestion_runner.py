@@ -278,3 +278,32 @@ def test_stopping_a_pass_cancels_the_documents_in_progress() -> None:
         return service.started, service.cancelled, runner.running
 
     assert asyncio.run(scenario()) == (2, 2, False)
+
+
+def test_a_pass_takes_the_queue_until_it_is_empty_before_it_ingests() -> None:
+    reports = [QueueReport(added=50), QueueReport(added=2, failed=1), QueueReport()]
+    taken: list[QueueReport] = []
+
+    async def take_queue() -> QueueReport:
+        taken.append(reports[len(taken)])
+        return taken[-1]
+
+    async def no_updates() -> UpdateReport:
+        return UpdateReport()
+
+    service = ParallelService()
+
+    async def scenario() -> None:
+        runner = IngestionRunner(
+            cast(Any, service),
+            cast(Any, ListedDocuments("a")),
+            no_updates,
+            take_queue,
+            FakeTracker(stale=False),
+        )
+        runner.start()
+        await runner._task  # type: ignore[misc]
+
+    asyncio.run(scenario())
+
+    assert taken == reports

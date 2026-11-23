@@ -7,7 +7,7 @@ Source material for the author, who writes `README.md`. Each fact names its evid
 - Prerequisites: Docker with Compose v2, and an OpenRouter API key.
 - `infra/setup.sh` (Windows: `infra\setup.ps1`) checks Docker and creates `backend/.env`, `infra/.env` and `frontend/.env` from their examples. Only `OPENROUTER_API_KEY` in `backend/.env` must be typed; the other values work for a local run.
 - Start from the repository root: `docker compose -f infra/docker-compose.yml up`. Reset: `docker compose -f infra/docker-compose.yml down -v`. Details: `docs/start-modes.md`.
-- On the first start, `corpus-init` downloads the labels of `backend/corpus/manifest.json` from DailyMed and ingests them. A full ingest of the 53 labels: 3956 chunks, about 1.25 M tokens, about 0.025 USD of embeddings, about 85 s (agent-log, RAG fix 6).
+- On the first start, `corpus-init` puts the labels of `backend/corpus/manifest.json` into the label queue and asks the ingest worker for a pass. The worker downloads them from DailyMed and ingests them; the Corpus page shows the queue. A full ingest of the 53 labels: 3956 chunks, about 1.25 M tokens, about 0.025 USD of embeddings, about 85 s (agent-log, RAG fix 6).
 - URLs (ports in `infra/.env`): app `http://localhost:3000`, API docs `http://localhost:8000/api/v1/docs`, Grafana `http://127.0.0.1:3001`, Prometheus `http://127.0.0.1:9090`.
 - Langfuse tracing is optional: set the three `LANGFUSE_*` values in `backend/.env`.
 
@@ -47,7 +47,6 @@ Source material for the author, who writes `README.md`. Each fact names its evid
 - The pdf.js worker loads from the jsdelivr CDN, so the PDF viewer needs internet access.
 - Detector thresholds are calibrated on 53 labels; a library of thousands has more look-alike names and needs a new calibration.
 - Follow-ups depend on the intake model to name the drug; measured: 24 of 25 follow-up turns kept the right drug. The history window is 10 messages.
-- A full re-embed runs one document at a time today (parallel ingestion is in work).
 
 ## Out of scope
 
