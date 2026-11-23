@@ -2,20 +2,27 @@
 
 from collections.abc import Iterable
 
-from app.application.drug_detection import DrugDetector, DrugEntry
+from app.application.chat import ChatService, Retriever
+from app.application.drug_detection import DetectorCache, DrugDetector, DrugEntry
 from app.application.ingestion import IngestionService
-from app.application.retrieval import RetrievalService
+from app.application.retrieval import TOP_K, RetrievalService
+from app.application.runtime_settings import load_runtime_settings
 from app.config import Settings
 from app.domain.documents import Document, DocumentStatus
+from app.domain.ports import TurnTracer
+from app.domain.runtime_settings import RuntimeSettings
 from app.infrastructure.chunk_repository import PostgresChunkRepository
 from app.infrastructure.chunk_search import PostgresChunkSearch
+from app.infrastructure.conversation_repository import PostgresConversationRepository
 from app.infrastructure.database import Connections
+from app.infrastructure.document_locks import PostgresDocumentLocks
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.models import ModelFactory
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
 from app.infrastructure.pdf_parser import PyMuPdfParser
+from app.infrastructure.runtime_settings_repository import PostgresRuntimeSettingsRepository
 from app.infrastructure.spl_parser import SplXmlParser
-from app.infrastructure.storage import build_document_store
+from app.infrastructure.storage import shared_document_store
 from app.infrastructure.text_splitting import SentenceTokenSplitter, TiktokenCounter
 
 
@@ -33,24 +40,93 @@ def drug_detector(documents: Iterable[Document]) -> DrugDetector:
     )
 
 
-def retrieval_service(settings: Settings, connections: Connections) -> RetrievalService:
-    return RetrievalService(
-        PostgresChunkSearch(connections),
-        ModelFactory(settings).embedder(),
-        settings.embedding_model,
+def default_runtime_settings(settings: Settings) -> RuntimeSettings:
+    """The values that apply until the user saves others."""
+    return RuntimeSettings(
+        chunk_tokens=500,
+        overlap_tokens=50,
+        top_k=TOP_K,
+        embedding_model=settings.embedding_model,
+        chat_model=settings.llm_chat_model,
+        rewrite_model=settings.llm_rewrite_model,
+        grade_model=settings.llm_grade_model,
+        generate_model=settings.llm_generate_model,
+        reasoning_effort="low",
+        grader_mode=settings.grader_mode,
     )
 
 
-def ingestion_service(settings: Settings, connections: Connections) -> IngestionService:
+async def runtime_settings(settings: Settings, connections: Connections) -> RuntimeSettings:
+    """The saved runtime settings over the defaults."""
+    return await load_runtime_settings(
+        default_runtime_settings(settings), PostgresRuntimeSettingsRepository(connections)
+    )
+
+
+def _with_models(settings: Settings, runtime: RuntimeSettings) -> Settings:
+    return settings.model_copy(
+        update={
+            "llm_chat_model": runtime.chat_model,
+            "llm_rewrite_model": runtime.rewrite_model,
+            "llm_grade_model": runtime.grade_model,
+            "llm_generate_model": runtime.generate_model,
+            "embedding_model": runtime.embedding_model,
+        }
+    )
+
+
+def retrieval_service(
+    settings: Settings, connections: Connections, runtime: RuntimeSettings
+) -> RetrievalService:
+    effective = _with_models(settings, runtime)
+    return RetrievalService(
+        PostgresChunkSearch(connections, effective.embedding_model),
+        ModelFactory(effective).embedder(),
+        top_k=runtime.top_k,
+    )
+
+
+def chat_service(
+    settings: Settings,
+    connections: Connections,
+    tracer: TurnTracer,
+    runtime: RuntimeSettings,
+    retriever: Retriever | None = None,
+) -> ChatService:
+    """retriever replaces the default search, for the eval ablations."""
+    documents = PostgresDocumentRepository(connections)
+
+    async def build() -> DrugDetector:
+        return drug_detector(await documents.list_all())
+
+    return ChatService(
+        PostgresConversationRepository(connections),
+        ModelFactory(
+            _with_models(settings, runtime), reasoning_effort=runtime.reasoning_effort
+        ).chat_models(),
+        DetectorCache(documents.ingested_version, build),
+        retriever or retrieval_service(settings, connections, runtime),
+        tracer,
+        grader_mode=runtime.grader_mode,
+    )
+
+
+def ingestion_service(
+    settings: Settings, connections: Connections, runtime: RuntimeSettings
+) -> IngestionService:
+    effective = _with_models(settings, runtime)
     return IngestionService(
-        store=build_document_store(settings),
+        store=shared_document_store(settings),
         documents=PostgresDocumentRepository(connections),
         chunks=PostgresChunkRepository(connections),
         pdf_parser=PyMuPdfParser(),
         label_parser=SplXmlParser(),
-        splitter=SentenceTokenSplitter(chunk_tokens=500, overlap_tokens=50),
+        splitter=SentenceTokenSplitter(
+            chunk_tokens=runtime.chunk_tokens, overlap_tokens=runtime.overlap_tokens
+        ),
         counter=TiktokenCounter(),
-        embedder=ModelFactory(settings).embedder(),
-        embedding_model=settings.embedding_model,
+        embedder=ModelFactory(effective).embedder(),
+        embedding_model=effective.embedding_model,
         embedding_prefix=settings.embedding_prefix,
+        locks=PostgresDocumentLocks(connections),
     )

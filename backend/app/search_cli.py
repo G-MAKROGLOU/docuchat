@@ -9,7 +9,7 @@ from app.application.retrieval import RetrievalService, SearchMode
 from app.config import get_settings
 from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
-from app.wiring import drug_detector, retrieval_service
+from app.wiring import drug_detector, retrieval_service, runtime_settings
 
 SAMPLE_QUESTIONS = [
     "What is the recommended starting dose of Lipitor?",
@@ -24,7 +24,7 @@ async def run(questions: list[str], mode: SearchMode) -> None:
     settings = get_settings()
     async with build_pool(settings) as pool:
         detector = drug_detector(await PostgresDocumentRepository(pool).list_all())
-        service = retrieval_service(settings, pool)
+        service = retrieval_service(settings, pool, await runtime_settings(settings, pool))
         for question in questions:
             await _print_question(service, detector, question, mode)
 

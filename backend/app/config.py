@@ -19,6 +19,8 @@ class Settings(BaseSettings):
 
     openrouter_api_key: SecretStr
     openrouter_base_url: str
+    # Cheap model for conversation turns; the three below run the document pipeline.
+    llm_chat_model: str
     llm_rewrite_model: str
     llm_grade_model: str
     llm_generate_model: str
@@ -26,7 +28,11 @@ class Settings(BaseSettings):
     embedding_dimensions: int
     # Switch for the ablation: the drug and section prefix on each embedded chunk.
     embedding_prefix: bool = True
+    # Switch for the ablation: no grading, the plain rule check only, or the rule then the model.
+    grader_mode: Literal["off", "rule", "llm"] = "llm"
     database_url: SecretStr
+    # The shared cache (Redis), for all API processes and the worker.
+    cache_url: SecretStr
 
     langfuse_public_key: SecretStr | None = None
     langfuse_secret_key: SecretStr | None = None

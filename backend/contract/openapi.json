@@ -26,6 +26,38 @@
         }
       }
     },
+    "/api/v1/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Ready",
+        "description": "Whether this process can serve requests: database and storage are required, the ingest\nworker is optional (a stale worker does not stop chat).",
+        "operationId": "ready_api_v1_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A required check failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schemas/stream-events.json": {
       "get": {
         "tags": [
@@ -49,6 +81,118 @@
         }
       }
     },
+    "/api/v1/documents": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "List Documents",
+        "operationId": "list_documents_api_v1_documents_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/documents/{document_id}/thumbnail": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Get Document Thumbnail",
+        "operationId": "get_document_thumbnail_api_v1_documents__document_id__thumbnail_get",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page 1 as a PNG.",
+            "content": {
+              "image/png": {}
+            }
+          },
+          "304": {
+            "description": "The cached thumbnail is current."
+          },
+          "404": {
+            "description": "Unknown document."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/documents/{document_id}/file": {
       "get": {
         "tags": [
@@ -65,6 +209,16 @@
               "type": "string",
               "format": "uuid",
               "title": "Document Id"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
             }
           }
         ],
@@ -99,10 +253,630 @@
           }
         }
       }
+    },
+    "/api/v1/documents/{document_id}/file/{filename}": {
+      "get": {
+        "tags": [
+          "documents"
+        ],
+        "summary": "Get Named Document File",
+        "description": "The same PDF. The PDF viewer saves a download under the last path segment.",
+        "operationId": "get_named_document_file_api_v1_documents__document_id__file__filename__get",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Filename"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The whole PDF.",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "206": {
+            "content": {
+              "application/pdf": {}
+            },
+            "description": "One byte range."
+          },
+          "404": {
+            "description": "Unknown document."
+          },
+          "416": {
+            "description": "Range not satisfiable."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Create Conversation",
+        "operationId": "create_conversation_api_v1_conversations_post",
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Get Conversation",
+        "operationId": "get_conversation_api_v1_conversations__conversation_id__get",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Delete Conversation",
+        "operationId": "delete_conversation_api_v1_conversations__conversation_id__delete",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/messages": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Ask",
+        "operationId": "ask_api_v1_conversations__conversation_id__messages_post",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "StreamEvent objects.",
+            "content": {
+              "text/event-stream": {}
+            }
+          },
+          "404": {
+            "description": "Unknown conversation."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/status": {
+      "get": {
+        "tags": [
+          "status"
+        ],
+        "summary": "Corpus Status",
+        "operationId": "corpus_status_api_v1_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ingestion": {
+      "post": {
+        "tags": [
+          "ingestion"
+        ],
+        "summary": "Start Ingestion",
+        "operationId": "start_ingestion_api_v1_ingestion_post",
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestionStarted"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "An ingestion pass is already running."
+          }
+        }
+      }
+    },
+    "/api/v1/labels": {
+      "get": {
+        "tags": [
+          "labels"
+        ],
+        "summary": "List Labels",
+        "operationId": "list_labels_api_v1_labels_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "labels"
+        ],
+        "summary": "Queue Label",
+        "operationId": "queue_label_api_v1_labels_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddLabelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogLabelResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The catalogue does not know this set ID."
+          },
+          "502": {
+            "description": "DailyMed could not be reached."
+          },
+          "409": {
+            "description": "The label is in the corpus or in the queue."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/labels/search": {
+      "get": {
+        "tags": [
+          "labels"
+        ],
+        "summary": "Search Labels",
+        "description": "Labels that DailyMed has for the name, without those in the corpus or in the queue.",
+        "operationId": "search_labels_api_v1_labels_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 100,
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogLabelResponse"
+                  },
+                  "title": "Response Search Labels Api V1 Labels Search Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/labels/{set_id}": {
+      "delete": {
+        "tags": [
+          "labels"
+        ],
+        "summary": "Remove Label",
+        "operationId": "remove_label_api_v1_labels__set_id__delete",
+        "parameters": [
+          {
+            "name": "set_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Set Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "No queued or failed entry with this set ID."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Read Settings",
+        "operationId": "read_settings_api_v1_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Update Settings",
+        "operationId": "update_settings_api_v1_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsSaved"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "A value is invalid, or OpenRouter does not list a model ID."
+          },
+          "409": {
+            "description": "A chunk change needs confirmation, or a pass is running."
+          }
+        }
+      }
+    },
+    "/api/v1/settings/options": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Read Options",
+        "operationId": "read_options_api_v1_settings_options_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsOptions"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AddLabelRequest": {
+        "properties": {
+          "set_id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$",
+            "title": "Set Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "set_id"
+        ],
+        "title": "AddLabelRequest"
+      },
+      "AskRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "AskRequest"
+      },
+      "CatalogLabelResponse": {
+        "properties": {
+          "set_id": {
+            "type": "string",
+            "title": "Set Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "published": {
+            "type": "string",
+            "title": "Published"
+          }
+        },
+        "type": "object",
+        "required": [
+          "set_id",
+          "title",
+          "version",
+          "published"
+        ],
+        "title": "CatalogLabelResponse"
+      },
+      "ConversationCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ConversationCreated"
+      },
+      "ConversationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/TurnOut"
+            },
+            "type": "array",
+            "title": "Turns"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "turns"
+        ],
+        "title": "ConversationOut"
+      },
       "DatabaseHealth": {
         "properties": {
           "connected": {
@@ -123,6 +897,112 @@
           "extensions"
         ],
         "title": "DatabaseHealth"
+      },
+      "DocumentListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "DocumentListResponse"
+      },
+      "DocumentStatus": {
+        "type": "string",
+        "enum": [
+          "stored",
+          "ingesting",
+          "ingested",
+          "failed"
+        ],
+        "title": "DocumentStatus"
+      },
+      "DocumentSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "brand_name": {
+            "type": "string",
+            "title": "Brand Name"
+          },
+          "generic_name": {
+            "type": "string",
+            "title": "Generic Name"
+          },
+          "page_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Count"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "ingested_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ingested At"
+          },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "brand_name",
+          "generic_name",
+          "page_count",
+          "status",
+          "ingested_at",
+          "failure_reason"
+        ],
+        "title": "DocumentSummary"
       },
       "HTTPValidationError": {
         "properties": {
@@ -157,6 +1037,555 @@
           "database"
         ],
         "title": "HealthResponse"
+      },
+      "IngestionStarted": {
+        "properties": {
+          "running": {
+            "type": "boolean",
+            "title": "Running"
+          }
+        },
+        "type": "object",
+        "required": [
+          "running"
+        ],
+        "title": "IngestionStarted"
+      },
+      "QueueEntryResponse": {
+        "properties": {
+          "set_id": {
+            "type": "string",
+            "title": "Set Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "added",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "set_id",
+          "title",
+          "status",
+          "failure_reason",
+          "created_at"
+        ],
+        "title": "QueueEntryResponse"
+      },
+      "QueueResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QueueEntryResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "queued_total": {
+            "type": "integer",
+            "title": "Queued Total"
+          },
+          "added_total": {
+            "type": "integer",
+            "title": "Added Total"
+          },
+          "failed_total": {
+            "type": "integer",
+            "title": "Failed Total"
+          },
+          "labels_per_pass": {
+            "type": "integer",
+            "title": "Labels Per Pass"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "queued_total",
+          "added_total",
+          "failed_total",
+          "labels_per_pass"
+        ],
+        "title": "QueueResponse"
+      },
+      "ReadyCheck": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "duration_ms": {
+            "type": "number",
+            "title": "Duration Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "ok",
+          "required",
+          "detail",
+          "duration_ms"
+        ],
+        "title": "ReadyCheck"
+      },
+      "ReadyResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "not_ready"
+            ],
+            "title": "Status"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/ReadyCheck"
+            },
+            "type": "array",
+            "title": "Checks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "checks"
+        ],
+        "title": "ReadyResponse"
+      },
+      "SettingsOptions": {
+        "properties": {
+          "chat_models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Chat Models"
+          },
+          "embedding_models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Embedding Models"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chat_models",
+          "embedding_models"
+        ],
+        "title": "SettingsOptions",
+        "description": "The values that the dropdowns offer. An empty chat_models: OpenRouter was not reachable."
+      },
+      "SettingsResponse": {
+        "properties": {
+          "chunk_tokens": {
+            "type": "integer",
+            "maximum": 2000.0,
+            "minimum": 100.0,
+            "title": "Chunk Tokens"
+          },
+          "overlap_tokens": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Overlap Tokens"
+          },
+          "top_k": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 5.0,
+            "title": "Top K"
+          },
+          "embedding_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Embedding Model"
+          },
+          "chat_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Chat Model"
+          },
+          "rewrite_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Rewrite Model"
+          },
+          "grade_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Grade Model"
+          },
+          "generate_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Generate Model"
+          },
+          "reasoning_effort": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Reasoning Effort"
+          },
+          "grader_mode": {
+            "type": "string",
+            "enum": [
+              "off",
+              "rule",
+              "llm"
+            ],
+            "title": "Grader Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chunk_tokens",
+          "overlap_tokens",
+          "top_k",
+          "embedding_model",
+          "chat_model",
+          "rewrite_model",
+          "grade_model",
+          "generate_model",
+          "reasoning_effort",
+          "grader_mode"
+        ],
+        "title": "SettingsResponse"
+      },
+      "SettingsSaved": {
+        "properties": {
+          "chunk_tokens": {
+            "type": "integer",
+            "maximum": 2000.0,
+            "minimum": 100.0,
+            "title": "Chunk Tokens"
+          },
+          "overlap_tokens": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Overlap Tokens"
+          },
+          "top_k": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 5.0,
+            "title": "Top K"
+          },
+          "embedding_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Embedding Model"
+          },
+          "chat_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Chat Model"
+          },
+          "rewrite_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Rewrite Model"
+          },
+          "grade_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Grade Model"
+          },
+          "generate_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Generate Model"
+          },
+          "reasoning_effort": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Reasoning Effort"
+          },
+          "grader_mode": {
+            "type": "string",
+            "enum": [
+              "off",
+              "rule",
+              "llm"
+            ],
+            "title": "Grader Mode"
+          },
+          "reingest_started": {
+            "type": "boolean",
+            "title": "Reingest Started"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chunk_tokens",
+          "overlap_tokens",
+          "top_k",
+          "embedding_model",
+          "chat_model",
+          "rewrite_model",
+          "grade_model",
+          "generate_model",
+          "reasoning_effort",
+          "grader_mode",
+          "reingest_started"
+        ],
+        "title": "SettingsSaved"
+      },
+      "SettingsUpdate": {
+        "properties": {
+          "chunk_tokens": {
+            "type": "integer",
+            "maximum": 2000.0,
+            "minimum": 100.0,
+            "title": "Chunk Tokens"
+          },
+          "overlap_tokens": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Overlap Tokens"
+          },
+          "top_k": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 5.0,
+            "title": "Top K"
+          },
+          "embedding_model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9._:/-]{1,100}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Model"
+          },
+          "chat_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Chat Model"
+          },
+          "rewrite_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Rewrite Model"
+          },
+          "grade_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Grade Model"
+          },
+          "generate_model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:/-]{1,100}$",
+            "title": "Generate Model"
+          },
+          "reasoning_effort": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Reasoning Effort"
+          },
+          "grader_mode": {
+            "type": "string",
+            "enum": [
+              "off",
+              "rule",
+              "llm"
+            ],
+            "title": "Grader Mode"
+          },
+          "reingest_confirmed": {
+            "type": "boolean",
+            "title": "Reingest Confirmed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "chunk_tokens",
+          "overlap_tokens",
+          "top_k",
+          "chat_model",
+          "rewrite_model",
+          "grade_model",
+          "generate_model",
+          "reasoning_effort",
+          "grader_mode"
+        ],
+        "title": "SettingsUpdate",
+        "description": "A change of a chunk field or of the embedding model needs reingest_confirmed: it embeds\nevery document again. Without embedding_model, the model stays as it is."
+      },
+      "StatusResponse": {
+        "properties": {
+          "chunk_count": {
+            "type": "integer",
+            "title": "Chunk Count"
+          },
+          "token_count": {
+            "type": "integer",
+            "title": "Token Count"
+          },
+          "embedding_models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Embedding Models"
+          },
+          "ingestion_running": {
+            "type": "boolean",
+            "title": "Ingestion Running"
+          },
+          "ingestion_phase": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "checking",
+              "downloading",
+              "ingesting"
+            ],
+            "title": "Ingestion Phase"
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run At"
+          },
+          "document_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Document Counts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chunk_count",
+          "token_count",
+          "embedding_models",
+          "ingestion_running",
+          "ingestion_phase",
+          "next_run_at",
+          "document_counts"
+        ],
+        "title": "StatusResponse"
+      },
+      "TurnOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "citations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "text",
+          "citations",
+          "created_at"
+        ],
+        "title": "TurnOut"
       },
       "ValidationError": {
         "properties": {

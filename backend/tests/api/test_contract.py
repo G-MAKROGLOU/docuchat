@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-BACKEND_ROOT = Path(__file__).resolve().parents[1]
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_contract_check_runs_without_settings() -> None:

@@ -1,6 +1,30 @@
 {
   "title": "StreamEvent",
   "$defs": {
+    "ClarifyEvent": {
+      "description": "The drug name matches more than one label; a final event with the question follows.",
+      "properties": {
+        "type": {
+          "const": "clarify",
+          "default": "clarify",
+          "title": "Type",
+          "type": "string"
+        },
+        "candidates": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "candidates"
+      ],
+      "title": "ClarifyEvent",
+      "type": "object"
+    },
     "ErrorEvent": {
       "properties": {
         "type": {
@@ -61,15 +85,32 @@
           "enum": [
             "no_relevant_context",
             "no_valid_citation",
-            "out_of_scope"
+            "out_of_scope",
+            "drug_not_in_corpus"
           ],
           "title": "Reason",
           "type": "string"
+        },
+        "available_drugs": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Available Drugs"
         }
       },
       "required": [
         "type",
-        "reason"
+        "reason",
+        "available_drugs"
       ],
       "title": "RefusalEvent",
       "type": "object"
@@ -99,6 +140,11 @@
         "text": {
           "title": "Text",
           "type": "string"
+        },
+        "anchor": {
+          "default": "",
+          "title": "Anchor",
+          "type": "string"
         }
       },
       "required": [
@@ -107,7 +153,8 @@
         "drug",
         "section",
         "page",
-        "text"
+        "text",
+        "anchor"
       ],
       "title": "Source",
       "type": "object"
@@ -148,7 +195,8 @@
             "rewrite",
             "retrieve",
             "grade",
-            "generate"
+            "generate",
+            "verify"
           ],
           "title": "Stage",
           "type": "string"
@@ -164,6 +212,30 @@
         "message"
       ],
       "title": "StatusEvent",
+      "type": "object"
+    },
+    "SuggestionsEvent": {
+      "description": "Follow-up questions; sent after the final event of an answer or a reply.",
+      "properties": {
+        "type": {
+          "const": "suggestions",
+          "default": "suggestions",
+          "title": "Type",
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "items"
+      ],
+      "title": "SuggestionsEvent",
       "type": "object"
     },
     "TokenEvent": {
@@ -189,11 +261,13 @@
   },
   "discriminator": {
     "mapping": {
+      "clarify": "#/$defs/ClarifyEvent",
       "error": "#/$defs/ErrorEvent",
       "final": "#/$defs/FinalEvent",
       "refusal": "#/$defs/RefusalEvent",
       "sources": "#/$defs/SourcesEvent",
       "status": "#/$defs/StatusEvent",
+      "suggestions": "#/$defs/SuggestionsEvent",
       "token": "#/$defs/TokenEvent"
     },
     "propertyName": "type"
@@ -213,6 +287,12 @@
     },
     {
       "$ref": "#/$defs/RefusalEvent"
+    },
+    {
+      "$ref": "#/$defs/ClarifyEvent"
+    },
+    {
+      "$ref": "#/$defs/SuggestionsEvent"
     },
     {
       "$ref": "#/$defs/ErrorEvent"
