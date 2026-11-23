@@ -6,9 +6,6 @@ from dataclasses import dataclass
 from app.domain.entities import Chunk
 
 RRF_K = 60
-# Added to the fused score of a chunk in a hinted section: about the gap between two
-# neighbouring ranks near the top, so it reorders close results but not distant ones.
-SECTION_BOOST = 0.0003
 MAX_CHUNKS = 8
 TOKEN_BUDGET = 3500
 MIN_PER_DRUG = 3
@@ -37,18 +34,30 @@ def fuse(
             chunks.setdefault(chunk.id, chunk)
             ranks.setdefault(chunk.id, {})[source] = rank
 
+    base = {key: sum(1 / (RRF_K + rank) for rank in r.values()) for key, r in ranks.items()}
+    # The hinted sections act as a third ranked list: hinted chunks, in fused order, add
+    # 1 / (k + rank) like a search hit at that rank. A strong search hit can still win.
+    hinted = sorted(
+        (
+            key
+            for key, chunk in chunks.items()
+            if _in_hinted_section(chunk.section_number, section_hints)
+        ),
+        key=lambda key: -base[key],
+    )
+    section_rank = {key: rank for rank, key in enumerate(hinted, start=1)}
+
     fused = []
     for key, chunk in chunks.items():
         r = ranks[key]
-        score = sum(1 / (RRF_K + rank) for rank in r.values())
-        boosted = _in_hinted_section(chunk.section_number, section_hints)
+        hint = section_rank.get(key)
         fused.append(
             FusedChunk(
                 chunk=chunk,
-                score=score + (SECTION_BOOST if boosted else 0.0),
+                score=base[key] + (1 / (RRF_K + hint) if hint else 0.0),
                 vector_rank=r.get("vector"),
                 bm25_rank=r.get("bm25"),
-                boosted=boosted,
+                boosted=hint is not None,
             )
         )
     # sorted() is stable, so equal scores keep first-seen order (vector before BM25).

@@ -54,6 +54,11 @@ def test_one_close_fuzzy_candidate_is_used_and_marked(detector: DrugDetector) ->
     assert result.fuzzy == ("Lipitor",)
 
 
+def test_one_edit_in_a_short_brand_name_is_found(detector: DrugDetector) -> None:
+    # A swap in a six-letter name scores 83.3 ("celxea"), under the old fuzzy threshold of 85.
+    assert detector.detect("What is the dose of celxea?").drugs == ("Celexa",)
+
+
 def test_look_alike_with_a_clear_winner_is_fuzzy_not_ambiguous(detector: DrugDetector) -> None:
     # celebxa: Celexa 92.3, Celebrex 80.0 (margin 12.3)
     result = detector.detect("What does celebxa treat?")
@@ -83,6 +88,39 @@ def test_named_drug_outside_the_corpus_is_marked(detector: DrugDetector) -> None
     assert result.not_in_corpus == ("ramipril", "metformin")
 
 
+def test_a_generic_name_inside_a_longer_one_is_another_drug() -> None:
+    # omeprazole is not esomeprazole, venlafaxine is not desvenlafaxine; the scores are high.
+    detector = DrugDetector(
+        [
+            DrugEntry(name="Nexium", brand="Nexium", generic="esomeprazole"),
+            DrugEntry(name="Pristiq", brand="Pristiq", generic="desvenlafaxine"),
+        ],
+        RapidFuzzSimilarity(),
+    )
+
+    result = detector.detect("Compare omeprazole and venlafaxine")
+
+    assert (result.drugs, result.ambiguous) == ((), ())
+    assert result.not_in_corpus == ("omeprazole", "venlafaxine")
+    # A misspelling of the longer name still finds it.
+    assert detector.detect("esomeprazol dose").drugs == ("Nexium",)
+
+
+def test_one_brand_name_finds_every_label_with_that_name() -> None:
+    # Two products of one brand: an injection and tablets, named in a different case.
+    detector = DrugDetector(
+        [
+            DrugEntry(name="Ozempic", brand="Ozempic", generic="semaglutide"),
+            DrugEntry(name="OZEMPIC", brand="OZEMPIC", generic="oral semaglutide"),
+        ],
+        RapidFuzzSimilarity(),
+    )
+
+    assert detector.detect("Ozempic dose").drugs == ("OZEMPIC", "Ozempic")
+    assert detector.detect("ozempik dose").drugs == ("OZEMPIC", "Ozempic")
+    assert detector.detect("oral semaglutide dose").drugs == ("OZEMPIC",)
+
+
 def test_exact_match_wins_over_the_outside_corpus_rule(detector: DrugDetector) -> None:
     # rosuvastatin ends like a drug name, but it is in the corpus.
     result = detector.detect("rosuvastatin dose")
@@ -109,3 +147,14 @@ def test_ambiguous_word_next_to_a_named_drug_means_the_other_one(detector: DrugD
     assert result.drugs == ("hydralazine hydrochloride", "hydroxyzine hydrochloride")
     assert result.fuzzy == ("hydroxyzine hydrochloride",)
     assert result.ambiguous == ()
+
+
+def test_catalog_names_each_label_once_with_its_generic_name() -> None:
+    entries = [*CATALOG, DrugEntry(name="Lipitor", brand="Lipitor", generic="atorvastatin")]
+
+    catalog = DrugDetector(entries, RapidFuzzSimilarity()).catalog()
+
+    assert catalog[:3] == ["Celebrex (celecoxib)", "Celexa (citalopram)", "Crestor (rosuvastatin)"]
+    assert catalog.count("Lipitor (atorvastatin)") == 1
+    assert "hydralazine hydrochloride" in catalog
+    assert len(catalog) == len(CATALOG)

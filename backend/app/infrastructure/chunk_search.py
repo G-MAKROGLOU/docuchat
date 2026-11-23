@@ -9,6 +9,7 @@ from psycopg.rows import dict_row
 from app.domain.entities import Chunk
 from app.infrastructure.chunk_repository import vector_literal
 from app.infrastructure.database import Connections
+from app.infrastructure.metrics import SEARCH_SECONDS
 
 _FIELDS = (
     "id",
@@ -33,13 +34,18 @@ def _filter(drugs: Sequence[str]) -> tuple[sql.Composable, tuple[Any, ...]]:
 
 
 class PostgresChunkSearch:
-    def __init__(self, connections: Connections) -> None:
+    def __init__(self, connections: Connections, embedding_model: str | None = None) -> None:
         self._connections = connections
+        # Vectors of another model are not comparable; a re-embed pass can leave both for a while.
+        self._model = embedding_model
 
     async def vector_search(
         self, embedding: Sequence[float], drugs: Sequence[str], limit: int
     ) -> list[Chunk]:
         where, params = _filter(drugs)
+        if self._model is not None:
+            where = sql.SQL("{} AND embedding_model = %s").format(where)
+            params = (*params, self._model)
         query = sql.SQL(
             "SELECT {} FROM chunks WHERE TRUE{} ORDER BY embedding <=> %s::vector LIMIT %s"
         ).format(_COLUMNS, where)
@@ -50,8 +56,9 @@ class PostgresChunkSearch:
             # With a drug filter, keep scanning the HNSW graph until enough rows match.
             await conn.execute("SET LOCAL hnsw.iterative_scan = strict_order")
             cursor = conn.cursor(row_factory=dict_row)
-            await cursor.execute(query, (*params, vector_literal(embedding), limit))
-            rows = await cursor.fetchall()
+            with SEARCH_SECONDS.labels("vector").time():
+                await cursor.execute(query, (*params, vector_literal(embedding), limit))
+                rows = await cursor.fetchall()
         return [Chunk(**row) for row in rows]
 
     async def text_search(self, query: str, drugs: Sequence[str], limit: int) -> list[Chunk]:
@@ -65,11 +72,7 @@ class PostgresChunkSearch:
         ).format(_COLUMNS, where)
         async with self._connections.connection() as conn:
             cursor = conn.cursor(row_factory=dict_row)
-            await cursor.execute(statement, (query, query, *params, limit))
-            rows = await cursor.fetchall()
+            with SEARCH_SECONDS.labels("bm25").time():
+                await cursor.execute(statement, (query, query, *params, limit))
+                rows = await cursor.fetchall()
         return [Chunk(**row) for row in rows]
-
-    async def embedding_models(self) -> set[str]:
-        async with self._connections.connection() as conn:
-            cursor = await conn.execute("SELECT DISTINCT embedding_model FROM chunks")
-            return {str(row[0]) for row in await cursor.fetchall()}

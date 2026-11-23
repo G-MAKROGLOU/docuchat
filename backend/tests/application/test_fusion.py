@@ -4,22 +4,14 @@ import pytest
 
 from app.application.fusion import RRF_K, fuse, select
 from app.domain.entities import Chunk
+from tests.support.factories import make_chunk
 
 IDS = {name: uuid.uuid4() for name in "abcdefghijklmnop"}
 
 
 def chunk(name: str, *, drug: str = "Lipitor", section: str = "1", tokens: int = 100) -> Chunk:
-    return Chunk(
-        id=IDS[name],
-        document_id=uuid.uuid4(),
-        drug_name=drug,
-        section_number=section,
-        section_title="T",
-        page_start=1,
-        page_end=1,
-        content=name,
-        anchor=name,
-        token_count=tokens,
+    return make_chunk(
+        name, chunk_id=IDS[name], drug=drug, section=section, title="T", page_start=1, tokens=tokens
     )
 
 
@@ -64,6 +56,25 @@ def test_section_hint_is_a_boost_not_a_filter() -> None:
     # Rank 1 in both lists beats a hinted chunk that is only rank 9 in one list.
     assert names(fused)[0] == "a"
     assert "i" in names(fused)
+
+
+def test_hinted_sections_count_as_a_third_ranked_list() -> None:
+    # Found by both searches at ranks 5 to 8: strong without a hint.
+    both = [chunk(n, section="5.1") for n in "abcd"]
+    dose, dose_too = chunk("e", section="2.1"), chunk("f", section="2.2")
+
+    fused = fuse(
+        vector=[dose, dose_too, chunk("g"), chunk("h"), *both],
+        bm25=[chunk("i"), chunk("j"), chunk("k"), chunk("l"), *both],
+        section_hints=("2",),
+    )
+
+    # Vector-only ranks 1 and 2 lose to chunks found twice, unless the hint adds its rank.
+    assert names(fused)[:2] == ["e", "f"]
+    by_name = {f.chunk.content: f for f in fused}
+    assert by_name["e"].score == pytest.approx(2 / (RRF_K + 1))
+    assert by_name["f"].score == pytest.approx(2 / (RRF_K + 2))
+    assert not by_name["a"].boosted
 
 
 def test_select_takes_top_eight_within_the_token_budget() -> None:
