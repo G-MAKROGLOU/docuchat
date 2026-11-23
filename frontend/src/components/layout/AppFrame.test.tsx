@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { APP_NAME } from "@/lib/brand";
 import { AppFrame } from "./AppFrame";
 
 const push = vi.fn<(path: string) => void>();
@@ -32,7 +33,7 @@ describe("AppFrame", () => {
       </AppFrame>,
     );
     expect(screen.getByText("page content")).toBeTruthy();
-    expect(screen.getByText("Pfizer DocuChat")).toBeTruthy();
+    expect(screen.getByText(APP_NAME)).toBeTruthy();
   });
 
   it("links the sidebar items to their pages and marks the current one", () => {
