@@ -367,7 +367,7 @@ def test_grade_off_keeps_every_excerpt_without_a_model_call(events: Events) -> N
 
 def test_generate_holds_back_the_tokens_and_returns_the_answer(events: Events) -> None:
     model = FakeModel(tokens=["Take ", "10 mg [S1]."])
-    state: ChatState = {"query": "dose", "sources": [source()]}
+    state: ChatState = {"question": "dose?", "query": "dose", "sources": [source()]}
 
     answer = run(chat.generate(state, models=FakeModels(generate=model), emit=events.append))
 
@@ -375,6 +375,22 @@ def test_generate_holds_back_the_tokens_and_returns_the_answer(events: Events) -
     # Unchecked text never reaches the client; validate sends it after the check.
     assert not [e for e in events if e["type"] == "token"]
     assert "[S1] Lipitor" in model.calls[0][-1].content
+
+
+def test_generate_sends_the_user_question_and_the_search_query(events: Events) -> None:
+    # The search query can drift from the question: "cost per month" searched as package sizes.
+    model = FakeModel(tokens=["NO_ANSWER"])
+    state: ChatState = {
+        "question": "How much does Crestor cost per month?",
+        "query": "Crestor package sizes",
+        "sources": [source()],
+    }
+
+    run(chat.generate(state, models=FakeModels(generate=model), emit=events.append))
+
+    prompt = model.calls[0][-1].content
+    assert prompt.startswith("Question: How much does Crestor cost per month?\n")
+    assert "Search query: Crestor package sizes\n" in prompt
 
 
 def test_validate_finalizes_a_cited_answer_and_refuses_an_uncited_one(events: Events) -> None:

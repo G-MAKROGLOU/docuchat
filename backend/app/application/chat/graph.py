@@ -310,7 +310,8 @@ async def generate(state: ChatState, *, models: ChatModelProvider, emit: Emit) -
         Message(MessageRole.SYSTEM, chat_prompts.GENERATE),
         Message(
             MessageRole.USER,
-            f"Question: {state['query']}\n\nExcerpts:\n\n{source_block(state['sources'])}",
+            f"Question: {state['question']}\nSearch query: {state['query']}\n\n"
+            f"Excerpts:\n\n{source_block(state['sources'])}",
         ),
     ]
     async for token in models.for_role(ModelRole.GENERATE).stream(messages):
