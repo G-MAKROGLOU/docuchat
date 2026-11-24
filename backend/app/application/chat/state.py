@@ -39,6 +39,9 @@ class Detector(Protocol):
 # Read per turn, so labels ingested after startup are known.
 DetectorSource = Callable[[], Awaitable[Detector]]
 
+# Sends one stream event (the shape of app/api/schemas/stream.py) to the client.
+Emit = Callable[[dict[str, object]], None]
+
 
 class Retriever(Protocol):
     async def retrieve(

@@ -1,5 +1,5 @@
 """The chat graph: routes and nodes. Each node is a function of the state and injected ports.
-Nodes emit stream events (the shape of app/api/schemas/stream.py) as custom data."""
+Nodes send stream events through the injected emit port; only build_chat_graph knows LangGraph."""
 
 import logging
 from collections.abc import Sequence
@@ -24,6 +24,7 @@ from app.application.chat.state import (
     ChatState,
     Detector,
     DetectorSource,
+    Emit,
     Retriever,
     SourceRef,
     Verdict,
@@ -107,12 +108,12 @@ def route_after_validate(state: ChatState) -> str:
 # ─────────────────── nodes ───────────────────
 
 
-def _status(stage: str, message: str) -> None:
-    get_stream_writer()({"type": "status", "stage": stage, "message": message})
+def _status(emit: Emit, stage: str, message: str) -> None:
+    emit({"type": "status", "stage": stage, "message": message})
 
 
-def _refuse(reason: str, **extra: object) -> ChatState:
-    get_stream_writer()({"type": "refusal", "reason": reason, **extra})
+def _refuse(emit: Emit, reason: str, **extra: object) -> ChatState:
+    emit({"type": "refusal", "reason": reason, **extra})
     return {"refusal": reason}
 
 
@@ -124,13 +125,13 @@ def _conversation(system: str, state: ChatState) -> list[Message]:
     ]
 
 
-async def guard(state: ChatState) -> ChatState:
+async def guard(state: ChatState, *, emit: Emit) -> ChatState:
     """Plain code before any model call: empty, too long, or a prompt injection."""
     problem = guard_problem(state["question"])
     if problem is None:
         return {}
     logger.info("question refused by the guard", extra={"problem": problem})
-    return _refuse("out_of_scope")
+    return _refuse(emit, "out_of_scope")
 
 
 def intake_prompt(catalog: Sequence[str], list_max: int) -> str:
@@ -159,32 +160,36 @@ async def intake(
     return state_update
 
 
-async def reply(state: ChatState) -> ChatState:
-    write = get_stream_writer()
-    write({"type": "token", "text": state["reply"]})
-    write({"type": "final", "answer": state["reply"], "citations": []})
+async def reply(state: ChatState, *, emit: Emit) -> ChatState:
+    emit({"type": "token", "text": state["reply"]})
+    emit({"type": "final", "answer": state["reply"], "citations": []})
     return {}
 
 
-async def rewrite(state: ChatState, *, models: ChatModelProvider) -> ChatState:
+async def rewrite(state: ChatState, *, models: ChatModelProvider, emit: Emit) -> ChatState:
     messages = _conversation(chat_prompts.REWRITE, state)
     if state.get("attempt", 0):
-        _status("rewrite", "Searching again with other words")
+        _status(emit, "rewrite", "Searching again with other words")
         retry = chat_prompts.REWRITE_RETRY.format(
             query=state["query"], feedback=state.get("feedback") or "not stated."
         )
         # User words and grade output go in the user message, never in the system prompt.
         messages[-1] = Message(MessageRole.USER, f"{state['question']}\n\n{retry}")
     else:
-        _status("rewrite", "Reading the question")
+        _status(emit, "rewrite", "Reading the question")
     query = await models.for_role(ModelRole.REWRITE).complete(messages)
     return {"query": query.strip() or state["question"]}
 
 
 async def retrieve(
-    state: ChatState, *, detectors: DetectorSource, retriever: Retriever, limits: ChatLimits
+    state: ChatState,
+    *,
+    detectors: DetectorSource,
+    retriever: Retriever,
+    limits: ChatLimits,
+    emit: Emit,
 ) -> ChatState:
-    _status("retrieve", "Searching the drug labels")
+    _status(emit, "retrieve", "Searching the drug labels")
     detector = await detectors()
     detection = detector.detect(state["query"])
     labels = detection.labels
@@ -200,7 +205,7 @@ async def retrieve(
         catalog = detector.catalog()
         # The list is for a small library only; a large one has the Documents page.
         extra = {"available_drugs": catalog} if len(catalog) <= limits.intake_list_max else {}
-        return _refuse("drug_not_in_corpus", **extra)
+        return _refuse(emit, "drug_not_in_corpus", **extra)
     result = await retriever.retrieve(
         state["query"],
         labels=labels,
@@ -209,17 +214,16 @@ async def retrieve(
     sources = [SourceRef(f"S{i}", f.chunk) for i, f in enumerate(result.selected, start=1)]
     # On a retry, grade merges in the first search's excerpts, so an empty result can go on.
     if not sources and not state.get("kept"):
-        return _refuse("no_relevant_context")
+        return _refuse(emit, "no_relevant_context")
     return {"sources": sources, "labels": labels}
 
 
-async def clarify(state: ChatState) -> ChatState:
+async def clarify(state: ChatState, *, emit: Emit) -> ChatState:
     candidates = state["candidates"]
     text = f"Which medicine do you mean: {' or '.join(candidates)}?"
-    write = get_stream_writer()
-    write({"type": "clarify", "candidates": candidates})
-    write({"type": "token", "text": text})
-    write({"type": "final", "answer": text, "citations": []})
+    emit({"type": "clarify", "candidates": candidates})
+    emit({"type": "token", "text": text})
+    emit({"type": "final", "answer": text, "citations": []})
     return {"reply": text}
 
 
@@ -246,9 +250,14 @@ async def _llm_grade(
 
 
 async def grade(
-    state: ChatState, *, models: ChatModelProvider, mode: GraderMode, limits: ChatLimits
+    state: ChatState,
+    *,
+    models: ChatModelProvider,
+    mode: GraderMode,
+    limits: ChatLimits,
+    emit: Emit,
 ) -> ChatState:
-    _status("grade", "Checking the excerpts")
+    _status(emit, "grade", "Checking the excerpts")
     attempt = state.get("attempt", 0)
     sources = state["sources"]
     verdict: Verdict
@@ -271,8 +280,8 @@ async def grade(
             "feedback": feedback or "The excerpts do not answer the question.",
         }
     if decision == "refuse":
-        return {**_refuse("no_relevant_context"), "retry": False, "verdict": verdict}
-    get_stream_writer()(
+        return {**_refuse(emit, "no_relevant_context"), "retry": False, "verdict": verdict}
+    emit(
         {
             "type": "sources",
             "items": [
@@ -292,9 +301,9 @@ async def grade(
     return {"sources": kept, "retry": False, "verdict": verdict}
 
 
-async def generate(state: ChatState, *, models: ChatModelProvider) -> ChatState:
+async def generate(state: ChatState, *, models: ChatModelProvider, emit: Emit) -> ChatState:
     """Collects the answer but sends no tokens: the user sees only text that validate passed."""
-    _status("generate", "Writing the answer")
+    _status(emit, "generate", "Writing the answer")
     parts: list[str] = []
     messages = [
         Message(MessageRole.SYSTEM, chat_prompts.GENERATE),
@@ -308,20 +317,19 @@ async def generate(state: ChatState, *, models: ChatModelProvider) -> ChatState:
     return {"answer": "".join(parts)}
 
 
-async def validate(state: ChatState) -> ChatState:
+async def validate(state: ChatState, *, emit: Emit) -> ChatState:
     """The answer check; its output in the trace lists numbers that no cited excerpt has."""
-    _status("verify", "Checking the sources")
+    _status(emit, "verify", "Checking the sources")
     result = validate_answer(state["answer"], state["sources"], state["question"])
     if result.refusal:
-        return _refuse(result.refusal)
+        return _refuse(emit, result.refusal)
     if result.ungrounded:
         logger.info(
             "answer numbers not in the cited excerpts", extra={"numbers": result.ungrounded}
         )
-    write = get_stream_writer()
     # The checked answer is the first answer text the client gets.
-    write({"type": "token", "text": result.answer})
-    write({"type": "final", "answer": result.answer, "citations": result.citations})
+    emit({"type": "token", "text": result.answer})
+    emit({"type": "final", "answer": result.answer, "citations": result.citations})
     return {
         "answer": result.answer,
         "citations": result.citations,
@@ -329,7 +337,9 @@ async def validate(state: ChatState) -> ChatState:
     }
 
 
-async def suggest(state: ChatState, *, models: ChatModelProvider, limits: ChatLimits) -> ChatState:
+async def suggest(
+    state: ChatState, *, models: ChatModelProvider, limits: ChatLimits, emit: Emit
+) -> ChatState:
     """Follow-up questions after an answer or a reply. A failure here never fails the turn."""
     if state.get("refusal"):
         return {}
@@ -345,7 +355,7 @@ async def suggest(state: ChatState, *, models: ChatModelProvider, limits: ChatLi
         return {}
     suggestions = parse_suggestions(text, limits.max_suggestions, limits.max_suggestion_chars)
     if suggestions:
-        get_stream_writer()({"type": "suggestions", "items": suggestions})
+        emit({"type": "suggestions", "items": suggestions})
     return {}
 
 
@@ -356,19 +366,26 @@ def build_chat_graph(
     limits: ChatLimits,
     grader_mode: GraderMode = "llm",
 ) -> Any:
+    def emit(event: dict[str, object]) -> None:
+        # The writer belongs to the running node, so it is read on each event.
+        get_stream_writer()(event)
+
     graph = StateGraph(ChatState)
-    graph.add_node("guard", guard)
+    graph.add_node("guard", partial(guard, emit=emit))
     graph.add_node("intake", partial(intake, models=models, detectors=detectors, limits=limits))
-    graph.add_node("reply", reply)
-    graph.add_node("rewrite", partial(rewrite, models=models))
+    graph.add_node("reply", partial(reply, emit=emit))
+    graph.add_node("rewrite", partial(rewrite, models=models, emit=emit))
     graph.add_node(
-        "retrieve", partial(retrieve, detectors=detectors, retriever=retriever, limits=limits)
+        "retrieve",
+        partial(retrieve, detectors=detectors, retriever=retriever, limits=limits, emit=emit),
     )
-    graph.add_node("clarify", clarify)
-    graph.add_node("grade", partial(grade, models=models, mode=grader_mode, limits=limits))
-    graph.add_node("generate", partial(generate, models=models))
-    graph.add_node("validate", validate)
-    graph.add_node("suggest", partial(suggest, models=models, limits=limits))
+    graph.add_node("clarify", partial(clarify, emit=emit))
+    graph.add_node(
+        "grade", partial(grade, models=models, mode=grader_mode, limits=limits, emit=emit)
+    )
+    graph.add_node("generate", partial(generate, models=models, emit=emit))
+    graph.add_node("validate", partial(validate, emit=emit))
+    graph.add_node("suggest", partial(suggest, models=models, limits=limits, emit=emit))
     graph.add_edge(START, "guard")
     graph.add_conditional_edges("guard", route_after_guard, ["intake", END])
     graph.add_conditional_edges("intake", route_after_intake, ["reply", "rewrite", "retrieve"])
