@@ -9,18 +9,19 @@ from pathlib import Path
 
 from app.application.corpus import CorpusEntry, parse_manifest
 from app.application.label_queue import queue_manifest
-from app.bootstrap import open_database
+from app.bootstrap import open_current_database
 from app.config import get_settings
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.ingestion_state_repository import PostgresIngestionStateRepository
 from app.infrastructure.label_queue_repository import PostgresLabelQueueRepository
 from app.infrastructure.logging import configure_logging
+from app.infrastructure.migrations import SchemaNotCurrentError
 
 MANIFEST = Path("/corpus/manifest.json")
 
 
 async def fill(entries: list[CorpusEntry]) -> int:
-    async with open_database(get_settings()) as pool:
+    async with open_current_database(get_settings()) as pool:
         return await queue_manifest(
             entries,
             PostgresLabelQueueRepository(pool),
@@ -32,7 +33,10 @@ async def fill(entries: list[CorpusEntry]) -> int:
 def main() -> None:
     configure_logging()
     entries = parse_manifest(MANIFEST.read_text(encoding="utf-8"))
-    queued = asyncio.run(fill(entries))
+    try:
+        queued = asyncio.run(fill(entries))
+    except SchemaNotCurrentError as error:
+        raise SystemExit(f"corpus-init not started: {error}") from error
     if queued:
         print(f"{queued} manifest labels queued; the ingest worker downloads and ingests them")
     else:

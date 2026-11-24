@@ -158,7 +158,7 @@ services:
         condition: service_healthy
 
   # One-shot job: queues the manifest labels that the library lacks, asks the worker for a pass, exits.
-  # It waits for the backend, which applies the migrations.
+  # It waits for the backend, which alone applies the migrations; it exits when the schema is not current.
   corpus-init:
     build:
       context: ../backend
