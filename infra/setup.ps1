@@ -65,9 +65,21 @@ $example = Get-Content 'backend/.env.example' -Raw
 $tuningBlock = ($example -split '# --- Tuning', 2)[1] -split '# --- Optional', 2 | Select-Object -First 1
 $tuning = @([regex]::Matches($tuningBlock, '(?m)^([A-Z0-9_]+)=') | ForEach-Object { $_.Groups[1].Value })
 Test-Empty 'backend/.env' $tuning
-Test-Empty 'infra/.env' @('POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB', 'S3_ACCESS_KEY', 'S3_SECRET_KEY',
-    'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT', 'STORAGE_PORT')
+Test-Empty 'infra/.env' @('COMPOSE_PROJECT_NAME', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB', 'DB_SHM_SIZE',
+    'S3_ACCESS_KEY', 'S3_SECRET_KEY', 'FRONTEND_PORT', 'BACKEND_PORT', 'DB_PORT', 'STORAGE_PORT')
 Write-Host 'OK  backend/.env and infra/.env have all required values.'
+
+# The project name must not belong to the stack of another checkout.
+$project = Get-EnvValue 'infra/.env' 'COMPOSE_PROJECT_NAME'
+$here = (Resolve-Path 'infra').Path.TrimEnd('\').ToLower()
+$owners = & { $ErrorActionPreference = 'Continue'
+    docker ps -a --filter "label=com.docker.compose.project=$project" --format '{{.Label "com.docker.compose.project.working_dir"}}' 2>$null }
+foreach ($dir in @($owners | Where-Object { $_ } | ForEach-Object { $_.TrimEnd('\').ToLower() } | Sort-Object -Unique)) {
+    if ($dir -ne $here) {
+        Stop-Setup "The project name $project belongs to the stack in $dir." "Set COMPOSE_PROJECT_NAME to another name in infra/.env."
+    }
+}
+Write-Host "OK  The project name $project is free for this checkout."
 
 # 3. Ports (skipped while this stack runs, because its own containers hold the ports)
 # Continue: in PowerShell 5.1, redirected stderr from a native command is an error record.

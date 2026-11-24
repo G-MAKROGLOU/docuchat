@@ -58,9 +58,20 @@ check_empty backend/.env OPENROUTER_API_KEY OPENROUTER_BASE_URL LLM_CHAT_MODEL L
 tuning=$(sed -n '/^# --- Tuning/,/^# --- Optional/p' backend/.env.example | sed -n 's/^\([A-Z0-9_]*\)=.*/\1/p')
 # shellcheck disable=SC2086  # one name per word
 check_empty backend/.env $tuning
-check_empty infra/.env POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB S3_ACCESS_KEY S3_SECRET_KEY \
-  FRONTEND_PORT BACKEND_PORT DB_PORT STORAGE_PORT
+check_empty infra/.env COMPOSE_PROJECT_NAME POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB DB_SHM_SIZE \
+  S3_ACCESS_KEY S3_SECRET_KEY FRONTEND_PORT BACKEND_PORT DB_PORT STORAGE_PORT
 echo "OK  backend/.env and infra/.env have all required values."
+
+# The project name must not belong to the stack of another checkout.
+project="$(env_value infra/.env COMPOSE_PROJECT_NAME)"
+normalize() { tr '\\' '/' | tr '[:upper:]' '[:lower:]'; }
+here="$( (cd infra && (pwd -W 2>/dev/null || pwd)) | normalize)"
+for dir in $(docker ps -a --filter "label=com.docker.compose.project=$project" \
+  --format '{{.Label "com.docker.compose.project.working_dir"}}' | normalize | sort -u); do
+  [ "$dir" = "$here" ] ||
+    fail "The project name $project belongs to the stack in $dir." "Set COMPOSE_PROJECT_NAME to another name in infra/.env."
+done
+echo "OK  The project name $project is free for this checkout."
 
 # 3. Ports (skipped while this stack runs, because its own containers hold the ports)
 if [ -n "$($COMPOSE ps -q 2>/dev/null)" ]; then
