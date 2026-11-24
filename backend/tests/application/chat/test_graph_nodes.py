@@ -6,10 +6,10 @@ from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any
 
 import pytest
-from langgraph.graph import END
 
 from app.application import chat
 from app.application.chat import (
+    END,
     ChatState,
     SourceRef,
     route_after_grade,

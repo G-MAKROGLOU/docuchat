@@ -8,7 +8,8 @@ from typing import Any
 from uuid import UUID
 
 from langgraph.config import get_stream_writer
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import END as END  # noqa: PLC0414  explicit re-export: the route value
+from langgraph.graph import START, StateGraph
 
 from app.application import chat_prompts
 from app.application.chat.input_guard import guard_problem

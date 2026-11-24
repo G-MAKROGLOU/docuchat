@@ -2,6 +2,7 @@
 citations. The names below are the import surface of the package."""
 
 from app.application.chat.graph import (
+    END,
     build_chat_graph,
     clarify,
     generate,
@@ -64,6 +65,7 @@ from app.application.chat.validation import (
 from app.domain.runtime_settings import GraderMode
 
 __all__ = [
+    "END",
     "MAX_QUESTION_CHARS",
     "ChatLimits",
     "ChatService",
