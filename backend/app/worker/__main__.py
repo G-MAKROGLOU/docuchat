@@ -1,5 +1,5 @@
 """The ingest worker: runs the daily schedule and the passes that the API asks for.
-Run exactly one. Usage: python -m app.ingest_worker"""
+Run exactly one. Usage: python -m app.worker"""
 
 import asyncio
 import logging
@@ -25,7 +25,7 @@ from app.infrastructure.metrics import observe_ingest, observe_phase, serve
 from app.infrastructure.models import close_model_clients
 from app.infrastructure.spl_parser import SplXmlParser
 from app.infrastructure.storage import build_document_store
-from app.wiring import ingestion_service
+from app.worker.wiring import ingestion_service
 
 logger = logging.getLogger(__name__)
 # Prometheus reads the worker here; the API serves its metrics on its own port.

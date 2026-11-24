@@ -61,7 +61,7 @@ async def start_services(app: FastAPI) -> None:
             min_interval=settings.detector_rebuild_seconds,
         ),
     )
-    # Passes run in the ingest worker (app.ingest_worker); this process only asks for them.
+    # Passes run in the ingest worker (app.worker); this process only asks for them.
     app.state.ingestion_control = IngestionControl(
         PostgresIngestionStateRepository(pool), heartbeat_limit(settings)
     )

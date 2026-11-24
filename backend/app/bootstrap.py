@@ -13,7 +13,7 @@ from app.infrastructure.database import build_pool
 from app.infrastructure.migrations import apply_migrations, check_vector_size
 from app.infrastructure.runtime_settings_repository import PostgresRuntimeSettingsRepository
 from app.runtime_config import Rebuild, RuntimeConfig
-from app.wiring import default_runtime_settings
+from app.runtime_defaults import default_runtime_settings
 
 Pool = AsyncConnectionPool[psycopg.AsyncConnection[TupleRow]]
 

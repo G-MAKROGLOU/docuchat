@@ -31,7 +31,8 @@ from app.infrastructure.database import Connections, build_pool
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.models import ModelFactory
 from app.infrastructure.tracing import build_tracer
-from app.wiring import chat_service, retrieval_service, runtime_settings, search_limits
+from app.runtime_defaults import runtime_settings
+from app.wiring import chat_service, retrieval_service, search_limits
 from evals.judge import judge
 from evals.metrics import (
     citation_valid,

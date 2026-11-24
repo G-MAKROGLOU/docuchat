@@ -7,7 +7,8 @@ from app.infrastructure import models
 from app.infrastructure.cache import CachedChatModel
 from app.infrastructure.models import ModelFactory, close_model_clients
 from app.infrastructure.storage import shared_document_store
-from app.wiring import default_runtime_settings, ingestion_service
+from app.runtime_defaults import default_runtime_settings
+from app.worker.wiring import ingestion_service
 
 
 def clients(factory: ModelFactory) -> dict[ModelRole, tuple[object, object]]:

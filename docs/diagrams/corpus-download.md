@@ -4,7 +4,7 @@ The ingest worker is the only process that downloads labels. Labels come into th
 
 ## Fill the library: corpus-init and the label queue
 
-`python -m app.corpus_init` runs once per stack start. The manifest is `backend/corpus/manifest.json`, mounted at `/corpus/manifest.json`.
+`python -m app.worker.corpus_init` runs once per stack start. The manifest is `backend/corpus/manifest.json`, mounted at `/corpus/manifest.json`.
 
 ```mermaid
 sequenceDiagram

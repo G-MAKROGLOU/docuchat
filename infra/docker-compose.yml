@@ -134,7 +134,7 @@ services:
     build:
       context: ../backend
       target: dev
-    command: ["python", "-m", "app.ingest_worker"]
+    command: ["python", "-m", "app.worker"]
     env_file:
       - path: ../backend/.env
     environment:
@@ -163,7 +163,7 @@ services:
     build:
       context: ../backend
       target: dev
-    command: ["python", "-m", "app.corpus_init"]
+    command: ["python", "-m", "app.worker.corpus_init"]
     restart: "no"
     env_file:
       - path: ../backend/.env

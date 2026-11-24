@@ -7,9 +7,9 @@ from app.wiring import (
     chat_limits,
     detector_thresholds,
     heartbeat_limit,
-    ingest_limits,
     search_limits,
 )
+from app.worker.wiring import ingest_limits
 
 SETTINGS = get_settings()
 CHAT = chat_limits(SETTINGS)

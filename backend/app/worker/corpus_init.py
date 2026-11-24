@@ -1,4 +1,4 @@
-"""Fill the library from the manifest. Usage: python -m app.corpus_init
+"""Fill the library from the manifest. Usage: python -m app.worker.corpus_init
 
 Runs once per stack start as a one-shot job. It puts the manifest labels that the library
 does not have into the label queue and asks the ingest worker for a pass; the worker
