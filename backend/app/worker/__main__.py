@@ -1,5 +1,5 @@
 """The ingest worker: runs the daily schedule and the passes that the API asks for.
-Run exactly one. Usage: python -m app.ingest_worker"""
+Run exactly one. Usage: python -m app.worker"""
 
 import asyncio
 import logging
@@ -12,7 +12,7 @@ from app.application.ingestion import IngestionService
 from app.application.ingestion_control import IngestWorker
 from app.application.ingestion_runner import IngestionRunner
 from app.application.label_queue import QueueContext, QueueReport, process_queue
-from app.bootstrap import load_runtime_config, open_database
+from app.bootstrap import load_runtime_config, open_current_database
 from app.config import Settings, get_settings
 from app.domain.ingestion_state import IngestionPhase, IngestionState, IngestionStateRepository
 from app.domain.runtime_settings import RuntimeSettings
@@ -22,10 +22,11 @@ from app.infrastructure.ingestion_state_repository import PostgresIngestionState
 from app.infrastructure.label_queue_repository import PostgresLabelQueueRepository
 from app.infrastructure.logging import configure_logging
 from app.infrastructure.metrics import observe_ingest, observe_phase, serve
+from app.infrastructure.migrations import SchemaNotCurrentError
 from app.infrastructure.models import close_model_clients
 from app.infrastructure.spl_parser import SplXmlParser
 from app.infrastructure.storage import build_document_store
-from app.wiring import ingestion_service
+from app.worker.wiring import ingestion_service
 
 logger = logging.getLogger(__name__)
 # Prometheus reads the worker here; the API serves its metrics on its own port.
@@ -53,7 +54,7 @@ class MeteredState:
 
 
 async def run(settings: Settings) -> None:
-    async with open_database(settings) as pool:
+    async with open_current_database(settings) as pool:
         documents = PostgresDocumentRepository(pool)
         store = await asyncio.to_thread(build_document_store, settings)
         queue = PostgresLabelQueueRepository(pool)
@@ -134,7 +135,10 @@ async def run(settings: Settings) -> None:
 
 def main() -> None:
     configure_logging()
-    asyncio.run(run(get_settings()))
+    try:
+        asyncio.run(run(get_settings()))
+    except SchemaNotCurrentError as error:
+        raise SystemExit(f"ingest worker not started: {error}") from error
 
 
 if __name__ == "__main__":

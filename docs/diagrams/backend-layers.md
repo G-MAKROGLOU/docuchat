@@ -1,17 +1,19 @@
 # Backend layers
 
-Dependencies point inward to `app/domain`. `app/wiring.py`, `app/main.py` and the commands connect the adapters to the ports. The first diagram shows the modules and their imports. The second diagram shows which adapter implements which port.
+Dependencies point inward to `app/domain`. `app/wiring.py` (API), `app/worker/wiring.py` (worker) and the entry points connect the adapters to the ports. `app/runtime_defaults.py` holds the runtime-settings defaults that both use. The worker modules do not import the chat code, LangGraph or FastAPI; `tests/test_worker_imports.py` checks this. The first diagram shows the modules and their imports. The second diagram shows which adapter implements which port.
 
 ```mermaid
 flowchart TB
     subgraph entry["Entry points (app/)"]
         main["main.py<br/>FastAPI app, lifespan"]
-        worker["ingest_worker.py<br/>schedule and requested passes"]
-        cmds["corpus_init.py<br/>manifest labels into the label queue"]
+        worker["worker/__main__.py<br/>schedule and requested passes"]
+        cmds["worker/corpus_init.py<br/>manifest labels into the label queue"]
         rconf["runtime_config.py RuntimeConfig<br/>saved settings, rebuild on change"]
     end
 
-    wiring["wiring.py<br/>composition root<br/>chat_service(), retrieval_service(),<br/>ingestion_service(), drug_detector()"]
+    wiring["wiring.py<br/>API composition root<br/>chat_service(), retrieval_service(),<br/>drug_detector()"]
+    wwiring["worker/wiring.py<br/>worker composition root<br/>ingestion_service()"]
+    defaults["runtime_defaults.py<br/>default_runtime_settings(), with_models()"]
 
     subgraph api["app/api"]
         factory["factory.py create_api()<br/>prefix /api/v1, /metrics"]
@@ -55,16 +57,19 @@ flowchart TB
     main --> wiring
     main --> infra
     main --> rconf
-    worker --> wiring
+    worker --> wwiring
     worker --> runner
     worker --> control
     worker --> infra
     worker --> rconf
-    cmds --> wiring
     cmds --> corpus
     cmds --> infra
     wiring --> application
     wiring --> infra
+    wiring --> defaults
+    wwiring --> application
+    wwiring --> infra
+    wwiring --> defaults
 
     factory --> routers
     factory --> mw

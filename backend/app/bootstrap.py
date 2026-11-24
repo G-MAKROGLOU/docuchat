@@ -10,20 +10,29 @@ from psycopg_pool import AsyncConnectionPool
 
 from app.config import Settings
 from app.infrastructure.database import build_pool
-from app.infrastructure.migrations import apply_migrations, check_vector_size
+from app.infrastructure.migrations import apply_migrations, check_schema, check_vector_size
 from app.infrastructure.runtime_settings_repository import PostgresRuntimeSettingsRepository
 from app.runtime_config import Rebuild, RuntimeConfig
-from app.wiring import default_runtime_settings
+from app.runtime_defaults import default_runtime_settings
 
 Pool = AsyncConnectionPool[psycopg.AsyncConnection[TupleRow]]
 
 
 @asynccontextmanager
 async def open_database(settings: Settings) -> AsyncIterator[Pool]:
-    """Applies the migrations and checks the vector column size, then yields an open pool."""
+    """For the API only: applies the migrations, checks the vector column size, yields a pool."""
     database_url = settings.database_url.get_secret_value()
     await asyncio.to_thread(apply_migrations, database_url)
     await asyncio.to_thread(check_vector_size, database_url, settings.embedding_dimensions)
+    async with build_pool(settings) as pool:
+        yield pool
+
+
+@asynccontextmanager
+async def open_current_database(settings: Settings) -> AsyncIterator[Pool]:
+    """For the worker and corpus-init: stops when the schema is not current, else yields a pool."""
+    database_url = settings.database_url.get_secret_value()
+    await asyncio.to_thread(check_schema, database_url, settings.embedding_dimensions)
     async with build_pool(settings) as pool:
         yield pool
 

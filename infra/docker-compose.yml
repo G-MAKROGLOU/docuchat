@@ -134,7 +134,7 @@ services:
     build:
       context: ../backend
       target: dev
-    command: ["python", "-m", "app.ingest_worker"]
+    command: ["python", "-m", "app.worker"]
     env_file:
       - path: ../backend/.env
     environment:
@@ -158,12 +158,12 @@ services:
         condition: service_healthy
 
   # One-shot job: queues the manifest labels that the library lacks, asks the worker for a pass, exits.
-  # It waits for the backend, which applies the migrations.
+  # It waits for the backend, which alone applies the migrations; it exits when the schema is not current.
   corpus-init:
     build:
       context: ../backend
       target: dev
-    command: ["python", "-m", "app.corpus_init"]
+    command: ["python", "-m", "app.worker.corpus_init"]
     restart: "no"
     env_file:
       - path: ../backend/.env

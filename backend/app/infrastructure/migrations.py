@@ -12,6 +12,10 @@ SQL_DIR = Path(__file__).parent / "sql"
 _LOCK_ID = 7_310_001
 
 
+class SchemaNotCurrentError(RuntimeError):
+    """The database schema does not match this code; the process must not start."""
+
+
 def apply_migrations(conninfo: str) -> list[str]:
     applied: list[str] = []
     with psycopg.connect(conninfo, autocommit=False) as conn:
@@ -33,6 +37,28 @@ def apply_migrations(conninfo: str) -> list[str]:
     return applied
 
 
+def pending_migrations(conninfo: str) -> list[str]:
+    """The migration files that schema_migrations does not record, in name order."""
+    with psycopg.connect(conninfo) as conn:
+        row = conn.execute("SELECT to_regclass('schema_migrations') IS NOT NULL").fetchone()
+        done = (
+            {r[0] for r in conn.execute("SELECT version FROM schema_migrations")}
+            if row and row[0]
+            else set()
+        )
+    return [path.stem for path in sorted(SQL_DIR.glob("*.sql")) if path.stem not in done]
+
+
+def check_schema(conninfo: str, dimensions: int) -> None:
+    """For the processes that do not own the migrations: stop when the schema is not current."""
+    if pending := pending_migrations(conninfo):
+        raise SchemaNotCurrentError(
+            f"The database schema is not current: {', '.join(pending)} not applied. "
+            "Start the API first; it applies the migrations."
+        )
+    check_vector_size(conninfo, dimensions)
+
+
 def check_vector_size(conninfo: str, dimensions: int) -> None:
     """The vector column has a fixed size; a different EMBEDDING_DIMENSIONS would fail on the
     first ingest or query, so the process stops at start with the fix instead."""
@@ -43,7 +69,7 @@ def check_vector_size(conninfo: str, dimensions: int) -> None:
         ).fetchone()
     column = int(row[0]) if row else None
     if column != dimensions:
-        raise RuntimeError(
+        raise SchemaNotCurrentError(
             f"EMBEDDING_DIMENSIONS={dimensions}, but the chunks.embedding column holds {column} "
             "values. Use an embedding model and size that match, or migrate the column."
         )

@@ -23,8 +23,8 @@ from app.config import get_settings
 from app.domain.documents import DocumentStatus
 from app.infrastructure.database import build_pool
 from app.infrastructure.document_repository import PostgresDocumentRepository
+from app.runtime_defaults import default_runtime_settings
 from app.wiring import (
-    default_runtime_settings,
     detector_thresholds,
     drug_detector,
     retrieval_service,

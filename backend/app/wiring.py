@@ -1,4 +1,4 @@
-"""Composition root: the API and the commands build their services here."""
+"""Composition root of the API: chat, retrieval and the drug detector."""
 
 from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
@@ -6,28 +6,19 @@ from datetime import UTC, datetime, timedelta
 from app.application.chat import ChatLimits, ChatService, Retriever
 from app.application.drug_detection import DetectorThresholds, DrugDetector, DrugEntry
 from app.application.fusion import SearchLimits
-from app.application.ingestion import IngestionService, IngestLimits
-from app.application.page_locator import LocatorLimits
 from app.application.retrieval import RetrievalService
-from app.application.runtime_settings import load_runtime_settings
 from app.application.versioned_cache import VersionedCache
 from app.config import Settings
 from app.domain.documents import Document, DocumentStatus
 from app.domain.ports import TurnTracer
 from app.domain.runtime_settings import RuntimeSettings
-from app.infrastructure.chunk_repository import PostgresChunkRepository
 from app.infrastructure.chunk_search import PostgresChunkSearch
 from app.infrastructure.conversation_repository import PostgresConversationRepository
 from app.infrastructure.database import Connections
-from app.infrastructure.document_locks import PostgresDocumentLocks
 from app.infrastructure.document_repository import PostgresDocumentRepository
 from app.infrastructure.models import ModelFactory
 from app.infrastructure.name_similarity import RapidFuzzSimilarity
-from app.infrastructure.pdf_parser import PyMuPdfParser
-from app.infrastructure.runtime_settings_repository import PostgresRuntimeSettingsRepository
-from app.infrastructure.spl_parser import SplXmlParser
-from app.infrastructure.storage import shared_document_store
-from app.infrastructure.text_splitting import SentenceTokenSplitter, TiktokenCounter
+from app.runtime_defaults import with_models
 
 
 def chat_limits(settings: Settings) -> ChatLimits:
@@ -64,20 +55,6 @@ def detector_thresholds(settings: Settings) -> DetectorThresholds:
     )
 
 
-def ingest_limits(settings: Settings) -> IngestLimits:
-    return IngestLimits(
-        anchor_words=settings.chunk_anchor_words,
-        max_page_misses=settings.ingest_max_page_misses,
-        failure_reason_max_chars=settings.failure_reason_max_chars,
-        locator=LocatorLimits(
-            window=settings.locator_window,
-            min_piece=settings.locator_min_piece,
-            slack=settings.locator_slack,
-            max_span=settings.locator_max_span,
-        ),
-    )
-
-
 def heartbeat_limit(settings: Settings) -> timedelta:
     return timedelta(seconds=settings.worker_heartbeat_limit_seconds)
 
@@ -109,45 +86,10 @@ def _is_brand(document: Document) -> bool:
     return bool(brand) and brand != document.generic_name.strip().casefold()
 
 
-def default_runtime_settings(settings: Settings) -> RuntimeSettings:
-    """The values that apply until the user saves others."""
-    return RuntimeSettings(
-        chunk_tokens=settings.default_chunk_tokens,
-        overlap_tokens=settings.default_overlap_tokens,
-        top_k=settings.default_top_k,
-        embedding_model=settings.embedding_model,
-        chat_model=settings.llm_chat_model,
-        rewrite_model=settings.llm_rewrite_model,
-        grade_model=settings.llm_grade_model,
-        generate_model=settings.llm_generate_model,
-        reasoning_effort="low",
-        grader_mode=settings.grader_mode,
-    )
-
-
-async def runtime_settings(settings: Settings, connections: Connections) -> RuntimeSettings:
-    """The saved runtime settings over the defaults."""
-    return await load_runtime_settings(
-        default_runtime_settings(settings), PostgresRuntimeSettingsRepository(connections)
-    )
-
-
-def _with_models(settings: Settings, runtime: RuntimeSettings) -> Settings:
-    return settings.model_copy(
-        update={
-            "llm_chat_model": runtime.chat_model,
-            "llm_rewrite_model": runtime.rewrite_model,
-            "llm_grade_model": runtime.grade_model,
-            "llm_generate_model": runtime.generate_model,
-            "embedding_model": runtime.embedding_model,
-        }
-    )
-
-
 def retrieval_service(
     settings: Settings, connections: Connections, runtime: RuntimeSettings
 ) -> RetrievalService:
-    effective = _with_models(settings, runtime)
+    effective = with_models(settings, runtime)
     return RetrievalService(
         PostgresChunkSearch(
             connections,
@@ -178,7 +120,7 @@ def chat_service(
     return ChatService(
         PostgresConversationRepository(connections),
         ModelFactory(
-            _with_models(settings, runtime), reasoning_effort=runtime.reasoning_effort
+            with_models(settings, runtime), reasoning_effort=runtime.reasoning_effort
         ).chat_models(),
         VersionedCache(
             documents.ingested_version, build, min_interval=settings.detector_rebuild_seconds
@@ -187,26 +129,4 @@ def chat_service(
         tracer,
         limits=chat_limits(settings),
         grader_mode=runtime.grader_mode,
-    )
-
-
-def ingestion_service(
-    settings: Settings, connections: Connections, runtime: RuntimeSettings
-) -> IngestionService:
-    effective = _with_models(settings, runtime)
-    return IngestionService(
-        store=shared_document_store(settings),
-        documents=PostgresDocumentRepository(connections),
-        chunks=PostgresChunkRepository(connections),
-        pdf_parser=PyMuPdfParser(settings.pdf_row_tolerance),
-        label_parser=SplXmlParser(),
-        splitter=SentenceTokenSplitter(
-            chunk_tokens=runtime.chunk_tokens, overlap_tokens=runtime.overlap_tokens
-        ),
-        counter=TiktokenCounter(),
-        embedder=ModelFactory(effective).embedder(),
-        embedding_model=effective.embedding_model,
-        embedding_prefix=settings.embedding_prefix,
-        limits=ingest_limits(settings),
-        locks=PostgresDocumentLocks(connections),
     )
