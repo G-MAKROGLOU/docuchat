@@ -1,13 +1,13 @@
 # Project rules
 
-One private monorepo. `backend/` and `frontend/` are independent deployable units with path-filtered pipelines. `infra/` holds the Compose stack, setup scripts, preflight and monitoring. `docs/` supports them. Each of `backend/`, `frontend/` and `infra/` has its own `.env`.
+One monorepo. `backend/` and `frontend/` are independent deployable units with path-filtered pipelines. `infra/` holds the Compose stack, setup scripts, preflight and monitoring. `docs/` supports them. Each of `backend/`, `frontend/` and `infra/` has its own `.env`.
 
 ## How to work
-- Before you use LangChain, LangGraph, ParadeDB (pg_search, pgvector), SeaweedFS, assistant-ui, Next.js, Langfuse, FastMCP or the OpenRouter API, read the current official documentation. Do not rely on memory. Pin exact versions. LangChain and LangGraph: 1.x APIs only.
+- Before you use LangChain, LangGraph, ParadeDB (pg_search, pgvector), SeaweedFS, Redis, Next.js, Langfuse or the OpenRouter API, read the current official documentation. Do not rely on memory. Pin exact versions. LangChain and LangGraph: 1.x APIs only.
 - Write the test first for: chunking, fusion, drug detection, routing functions, citation parsing, validation rules.
 - Small commits, Conventional Commits, one concern each.
 - No new dependency without approval from the author.
-- Do not write README.md prose. The author writes it. Record facts (what was built, measured values, problems, choices) in `docs/agent-log.md` with a date.
+- Do not write README.md prose. The author writes it. Record facts (what was built, measured values, problems, choices) in `docs/agent-log.md` with a date. This log is local and not tracked.
 - No client or company name in code, comments, commits or file names.
 - After each task, run lint, type check and tests, then report: what changed, the check output, open points, and items marked VERIFIED or ASSUMED.
 - Stop and ask when a done check fails two times, or when the task does not cover a decision.
