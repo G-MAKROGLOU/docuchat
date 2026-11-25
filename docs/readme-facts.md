@@ -1,20 +1,23 @@
 # Facts for the README
 
-Source material for the author, who writes `README.md`. Each fact names its evidence: a file, a command or an entry in `docs/agent-log.md`. Values are as of 2026-11-23.
+Source material for `README.md`. Each fact names its evidence: a file or a command. Values are as of 2026-11-24.
 
 ## Run it
 
 - Prerequisites: Docker with Compose v2, and an OpenRouter API key.
 - `infra/setup.sh` (Windows: `infra\setup.ps1`) checks Docker and creates `backend/.env`, `infra/.env` and `frontend/.env` from their examples. Only `OPENROUTER_API_KEY` in `backend/.env` must be typed; the other values work for a local run.
+- `COMPOSE_PROJECT_NAME` in `infra/.env` names the stack. The setup scripts stop when a stack with that name runs from another checkout. `DB_SHM_SIZE` (1g) sets the shared memory of the database.
 - Start from the repository root: `docker compose -f infra/docker-compose.yml up`. Reset: `docker compose -f infra/docker-compose.yml down -v`. Details: `docs/start-modes.md`.
-- On the first start, `corpus-init` puts the labels of `backend/corpus/manifest.json` into the label queue and asks the ingest worker for a pass. The worker downloads them from DailyMed and ingests them; the Corpus page shows the queue. A full ingest of the 53 labels: 3956 chunks, about 1.25 M tokens, about 0.025 USD of embeddings, about 85 s (agent-log, RAG fix 6).
+- On the first start, `corpus-init` puts the labels of `backend/corpus/manifest.json` into the label queue and asks the ingest worker for a pass. The worker downloads them from DailyMed and ingests them; the Corpus page shows the queue. The manifest has 50 labels: in a clean clone test the worker ingested them in 393 s (3748 chunks). A forced re-ingest of the 53-label dev library: 3956 chunks, about 1.23 M tokens, about 0.025 USD of embeddings, about 80 s.
 - URLs (ports in `infra/.env`): app `http://localhost:3000`, API docs `http://localhost:8000/api/v1/docs`, Grafana `http://127.0.0.1:3001`, Prometheus `http://127.0.0.1:9090`.
 - Langfuse tracing is optional: set the three `LANGFUSE_*` values in `backend/.env`.
 - Every tunable number is a required variable in the Tuning section of `backend/.env.example` (76 values: database pool, timeouts, cache lifetimes, model limits, chat and search limits, detector thresholds, worker intervals, DailyMed pacing). Preflight and the setup scripts read the names from that section and stop on an empty value. Only fixed rules stay in code: the API request limits, the 17 top-level label sections of the regulation, HTTP status codes, retry doubling, the advisory lock key.
 
 ## What is in the box
 
-- Services (`infra/docker-compose.yml`): preflight, db (ParadeDB: Postgres 18 with `pg_search` BM25 and `pgvector`), storage (SeaweedFS, S3 API), cache (Redis 7.2), backend (FastAPI, LangGraph), ingest-worker, corpus-init (one-shot), prometheus, grafana, frontend (Next.js, `@geomak/ui`).
+- Services (`infra/docker-compose.yml`): preflight, db (ParadeDB: Postgres 18 with `pg_search` BM25 and `pgvector`), storage (SeaweedFS, S3 API), cache (Redis 7.2), backend (FastAPI, LangGraph), ingest-worker (`python -m app.worker`), corpus-init (`python -m app.worker.corpus_init`, one-shot), prometheus, grafana, frontend (Next.js, `@geomak/ui`).
+- Only the API applies the database migrations (`app/bootstrap.py`). The worker and corpus-init check the schema and exit 1 when it is not current; the worker restarts (`restart: on-failure`).
+- The worker does not import LangGraph, FastAPI or the chat code (`backend/tests/test_worker_imports.py`). Only `app/application/chat/graph.py` imports LangGraph (`backend/tests/application/chat/test_graph_boundary.py`).
 - Pages: chat, documents (with the PDF viewer and citation highlight), corpus (DailyMed search and label queue), settings (chunking, search, models, answer checking), status, health.
 - Diagrams: `docs/diagrams/`. Screenshots (1440x900): `docs/screenshots/` (chat answer, cited passage in the PDF viewer, clarify question, documents, corpus, settings, status, health).
 
@@ -30,12 +33,12 @@ Source material for the author, who writes `README.md`. Each fact names its evid
 ## Measured (evals and tests)
 
 - Generated retrieval set, no LLM calls (`python -m evals.retrieval_set`, in the backend container): 578 questions from the 53 labels, recall@8 0.969, MRR 0.93. 16 misses are Ozempic clarify questions (by design), 2 are real misses (interaction comparisons).
-- Golden set, 28 cases with reference answers (`python -m evals.run --label <name>`; `backend/evals/golden_set.jsonl`, waiting for the author's review): run 3 (fact-checked references, stricter scorer: an answer must cite each expected drug at an expected section) passed 22 of 28; LLM judge correct 1.0 on the answered cases; retrieval hit 0.9; citation validity 1.0; numeric grounding 0.995; p50 7.6 s, p95 16.9 s; 0.014 USD per question. Failures: 3 strict-number refusals (ages), `injection-dose` (open author question), `crestor-price` (cited package sizes where no cited answer is expected), `synthroid-timing` (cited section 17, which holds the same fact; section 17 is now expected too).
+- Golden set, 28 reviewed cases with reference answers (`python -m evals.run --label <name>`; `backend/evals/golden_set.jsonl`): run 6 (`backend/evals/results/2026-11-24T115620Z-golden-run-6.json`) passed 24 of 28; LLM judge correct 1.0; citation validity 1.0; numeric grounding 1.0; p50 5.9 s; 0.38 USD for the run. All 4 failures are refusals from the strict number check: the 3 age cases and `januvia-side-effects`, which passes in some runs.
 - Ablation on the older 20-question set (`backend/evals/results/2026-11-23-ablation.md`): all configurations 18 to 20 of 20; the set is too easy to rank them; grader off or rule only cost about 1.8 times more (all excerpts go to the answer model).
 - Drug detector calibration (`python -m evals.detector_calibration`): 0 wrong drugs, 0 missed one-edit typos, 16 clarify questions on 654 cases.
-- Load: 4 API processes, 2000 synthetic labels (149,920 chunks), fake model server: 21.5 turns per second at 200 users, p95 9.7 s (agent-log 2026-11-22).
+- Load (2026-11-22, local load test setup, not in git): 4 API processes, 2000 synthetic labels (149,920 chunks), fake model server: 21.5 turns per second at 200 users, p95 9.7 s.
 - Detector at 10,000 names: 6.3 ms median per question.
-- Tests: backend 576 passed, 4 xfailed (known limits of the plain-word injection guard); frontend 131.
+- Tests: backend 580 passed, 4 xfailed (known limits of the plain-word injection guard); frontend 131.
 - Citation highlight: the viewer finds the cited passage on its page for 80.1% of all 3956 chunks (3151 by the passage start, 18 by the anchor; 88 of the 787 misses are on another page of the chunk); full run, 74 s (`python -m evals.export_anchors` in the backend container, then `npm run eval:anchors` in `frontend/`).
 
 ## Known limits and behaviours
@@ -68,7 +71,6 @@ The other backend dependencies (FastAPI, LangGraph, LangChain, redis-py, rapidfu
 
 ## Open decisions (author)
 
-- The golden set review (`reviewed: false` on each case).
-- A reranker (the data does not ask for one now: 2 real retrieval misses in 562 generated questions).
+- A reranker (the data does not ask for one now: 2 real retrieval misses in 578 generated questions).
 - A LangGraph checkpointer (out of scope).
 - Langfuse access for the reviewer.

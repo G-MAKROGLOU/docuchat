@@ -1,4 +1,4 @@
-# docuchat-frontend
+# Frontend
 
 Next.js chat interface for document question answering. A proxy route forwards `/api/*` to the backend at `BACKEND_URL`.
 

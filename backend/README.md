@@ -1,4 +1,4 @@
-# docuchat-backend
+# Backend
 
 FastAPI service for document question answering. API routes are under `/api/v1`.
 
