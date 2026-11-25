@@ -51,7 +51,7 @@ CREATE TABLE chunks (
 CREATE INDEX chunks_document_id_idx ON chunks (document_id);
 
 -- HNSW on the half-precision cast: half the index size of a full-precision index, the same
--- recall (docs/agent-log.md). The vector search orders by the same expression.
+-- recall within about 0.04. The vector search orders by the same expression.
 CREATE INDEX chunks_embedding_half_idx ON chunks
 USING hnsw ((embedding::halfvec(1536)) halfvec_cosine_ops);
 

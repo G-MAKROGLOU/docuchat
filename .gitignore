@@ -4,8 +4,13 @@
 
 backend/corpus/files/
 
-# Local load test overlay for infra/docker-compose.yml.
+# Local load test: the Compose overlay, the harness and its tests.
 infra/compose.loadtest.yml
+backend/loadtest/
+backend/tests/loadtest/
+
+# Local work log.
+docs/agent-log.md
 
 .DS_Store
 Thumbs.db
@@ -15,3 +20,4 @@ Thumbs.db
 
 # Local agent configuration and skills.
 .claude/
+CLAUDE.md

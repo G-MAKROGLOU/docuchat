@@ -1,5 +1,5 @@
 """Drug detection in a question: exact names first, then fuzzy, plain code.
-Thresholds calibrated on 2026-11-23 with evals/detector_calibration.py (see docs/agent-log.md)."""
+Thresholds calibrated on 2026-11-23 with evals/detector_calibration.py."""
 
 import re
 from collections.abc import Iterable, Sequence
